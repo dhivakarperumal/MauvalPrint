@@ -245,7 +245,18 @@ const AddProducts = ({ selectedProduct, setSelectedProduct, setActiveTab }) => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setProduct((prev) => ({ ...prev, [name]: value }));
+    setProduct((prev) => {
+      const updated = { ...prev, [name]: value };
+      // Auto-calculate salePrice when mrp or offer changes
+      if (name === "mrp" || name === "offer") {
+        const mrp = parseFloat(name === "mrp" ? value : prev.mrp) || 0;
+        const offer = parseFloat(name === "offer" ? value : prev.offer) || 0;
+        if (mrp > 0) {
+          updated.salePrice = Math.round(mrp - (mrp * offer) / 100);
+        }
+      }
+      return updated;
+    });
   };
 
 const handleImageUpload = async (e) => {
@@ -666,39 +677,83 @@ const handleImageUpload = async (e) => {
           </div>
         )}
 
-        {[
-          { label: "Offer (%)", name: "offer" },
-          { label: "Rating", name: "rating" },
-          { label: "MRP (₹)", name: "mrp", required: true },
-          { label: "Sale Price (₹)", name: "salePrice", required: true },
-        ].map(({ label, name, required }, i) => (
-          <div key={i}>
-            <label className="block text-sm font-medium text-gray-700">
-              {label} {required ? "*" : ""}
-            </label>
-            <input
-              type="number"
-              name={name}
-              min={0}
-             
-              value={product[name]}
-              onChange={handleInputChange}
-              required={required}
-              placeholder={
-                name === "offer"
-                  ? "e.g. 10"
-                  : name === "rating"
-                    ? "e.g. 4.5"
-                    : name === "mrp"
-                      ? "e.g. 999"
-                      : name === "salePrice"
-                        ? "e.g. 799"
-                        : ""
-              }
-              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            />
-          </div>
-        ))}
+        {/* ── MRP ── */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700">MRP (₹) *</label>
+          <input
+            type="number"
+            name="mrp"
+            min={0}
+            value={product.mrp}
+            onChange={handleInputChange}
+            required
+            placeholder="e.g. 999"
+            className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          />
+        </div>
+
+        {/* ── Offer ── */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700">
+            Offer (%)
+            {product.mrp > 0 && product.offer > 0 && (
+              <span className="ml-2 text-xs text-green-600 font-semibold">
+                → Saves ₹{Math.round((parseFloat(product.mrp) * parseFloat(product.offer)) / 100)}
+              </span>
+            )}
+          </label>
+          <input
+            type="number"
+            name="offer"
+            min={0}
+            max={100}
+            value={product.offer}
+            onChange={handleInputChange}
+            placeholder="e.g. 10"
+            className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          />
+        </div>
+
+        {/* ── Sale Price ── */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700">
+            Sale Price (₹) *
+            {product.mrp > 0 && product.offer > 0 && (
+              <span className="ml-2 text-xs text-blue-500">(auto-calculated)</span>
+            )}
+          </label>
+          <input
+            type="number"
+            name="salePrice"
+            min={0}
+            value={product.salePrice}
+            onChange={handleInputChange}
+            required
+            placeholder="e.g. 799"
+            className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          />
+          {product.mrp > 0 && product.offer > 0 && (
+            <p className="text-xs text-gray-400 mt-1">
+              Auto: ₹{product.mrp} − {product.offer}% = ₹{Math.round(product.mrp - (product.mrp * product.offer) / 100)} &nbsp;|&nbsp; Edit above to override
+            </p>
+          )}
+        </div>
+
+        {/* ── Rating ── */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Rating</label>
+          <input
+            type="number"
+            name="rating"
+            min={0}
+            max={5}
+            step={0.1}
+            value={product.rating}
+            onChange={handleInputChange}
+            placeholder="e.g. 4.5"
+            className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          />
+        </div>
 
        
 
