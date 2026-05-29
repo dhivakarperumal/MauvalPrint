@@ -189,7 +189,7 @@ const handlePayment = async (e) => {
 
   // -------------------- RAZORPAY OPTIONS --------------------
   const options = {
-    key: "rzp_live_RZ9VDWWKGZ8MTG",
+    key: "rzp_test_StTyzINJPsVmoj",
     amount: Math.round(payable * 100),
     currency: "INR",
     name: "MAUVAL PRINT",

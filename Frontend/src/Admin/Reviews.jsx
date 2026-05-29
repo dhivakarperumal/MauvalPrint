@@ -1,19 +1,6 @@
-
-
-
 import React, { useState, useEffect } from "react";
 import { FaStar, FaStarHalfAlt, FaRegStar, FaEdit, FaTrash } from "react-icons/fa";
-import { db } from "../firebase";
-import {
-  collection,
-  addDoc,
-  getDocs,
-  updateDoc,
-  deleteDoc,
-  doc,
-  query,
-  orderBy,
-} from "firebase/firestore";
+import api from "../api";
 import toast from "react-hot-toast";
 
 const renderStars = (rating) => {
@@ -34,23 +21,61 @@ const Reviews = () => {
     rating: 0,
     comment: "",
     featured: false,
+    image: "",
   });
   const [editingId, setEditingId] = useState(null);
 
   const fetchReviews = async () => {
     try {
-      const q = query(collection(db, "reviews"), orderBy("date", "desc"));
-      const snapshot = await getDocs(q);
-      const data = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-      setReviews(data);
+      const { data } = await api.get("/reviews");
+      if (data.success) setReviews(data.reviews);
     } catch (error) {
       console.error("Error fetching reviews:", error);
+      toast.error("Failed to load reviews");
     }
   };
 
   useEffect(() => {
     fetchReviews();
   }, []);
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement("canvas");
+          let width = img.width;
+          let height = img.height;
+          const MAX_SIZE = 800;
+
+          if (width > height) {
+            if (width > MAX_SIZE) {
+              height = Math.round(height * (MAX_SIZE / width));
+              width = MAX_SIZE;
+            }
+          } else {
+            if (height > MAX_SIZE) {
+              width = Math.round(width * (MAX_SIZE / height));
+              height = MAX_SIZE;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0, width, height);
+          
+          const dataUrl = canvas.toDataURL("image/jpeg", 0.7);
+          setForm((prev) => ({ ...prev, image: dataUrl }));
+        };
+        img.src = reader.result;
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -59,26 +84,25 @@ const Reviews = () => {
       return;
     }
 
-    const newReview = {
-      ...form,
+    const payload = {
+      name: form.name,
+      product: form.product,
       rating: parseFloat(form.rating),
-      date: new Date().toISOString().split("T")[0],
+      comment: form.comment,
       featured: form.featured || false,
+      image: form.image,
     };
 
     try {
       if (editingId) {
-        // Update existing review
-        const ref = doc(db, "reviews", editingId);
-        await updateDoc(ref, newReview);
+        await api.put(`/reviews/${editingId}`, payload);
         toast.success("Review updated!");
         setEditingId(null);
       } else {
-        // Add new review
-        await addDoc(collection(db, "reviews"), newReview);
+        await api.post("/reviews", payload);
         toast.success("Review added!");
       }
-      setForm({ name: "", product: "", rating: 0, comment: "", featured: false });
+      setForm({ name: "", product: "", rating: 0, comment: "", featured: false, image: "" });
       fetchReviews();
     } catch (err) {
       console.error("Error saving review:", err);
@@ -92,7 +116,8 @@ const Reviews = () => {
       product: review.product,
       rating: review.rating,
       comment: review.comment,
-      featured: review.featured,
+      featured: review.featured ? true : false,
+      image: review.image || "",
     });
     setEditingId(review.id);
   };
@@ -100,7 +125,7 @@ const Reviews = () => {
   const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this review?")) {
       try {
-        await deleteDoc(doc(db, "reviews", id));
+        await api.delete(`/reviews/${id}`);
         toast.success("Review deleted!");
         fetchReviews();
       } catch (err) {
@@ -112,8 +137,7 @@ const Reviews = () => {
 
   const toggleFeatured = async (id, currentStatus) => {
     try {
-      const ref = doc(db, "reviews", id);
-      await updateDoc(ref, { featured: !currentStatus });
+      await api.patch(`/reviews/${id}/featured`, { featured: !currentStatus });
       toast.success("Featured status updated!");
       fetchReviews();
     } catch (err) {
@@ -191,6 +215,21 @@ const Reviews = () => {
           </select>
         </div>
 
+        {/* Image Upload */}
+        <div>
+          <label className="block text-sm text-gray-600 mb-1" htmlFor="image">Image</label>
+          <input
+            id="image"
+            type="file"
+            accept="image/*"
+            onChange={handleImageChange}
+            className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          />
+          {form.image && (
+            <img src={form.image} alt="Preview" className="mt-2 h-16 w-16 object-cover rounded" />
+          )}
+        </div>
+
         {/* Comment */}
         <div className="col-span-1 sm:col-span-2">
           <label className="block text-sm text-gray-600 mb-1" htmlFor="comment">Review</label>
@@ -231,6 +270,9 @@ const Reviews = () => {
               <p className="text-sm text-gray-500 mb-2"><strong>Product:</strong> {review.product}</p>
               <div className="flex items-center mb-2">{renderStars(review.rating)}</div>
               <p className="text-gray-700 text-sm mb-4">{review.comment}</p>
+              {review.image && (
+                <img src={review.image} alt="Review" className="w-full h-40 object-cover rounded-md mb-4" />
+              )}
             </div>
 
             <div className="flex justify-between items-center gap-2">
