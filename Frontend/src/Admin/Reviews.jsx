@@ -166,25 +166,24 @@ const Reviews = () => {
 
   return (
     <div className="p-6 max-w-7xl mx-auto space-y-8 min-h-screen">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-3xl font-bold text-blue-900 mb-2">Product Reviews</h2>
-          <p className="text-sm text-gray-500">Manage customer reviews for products.</p>
+      
+        
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+        {/* Left Side: Search */}
+        <div className="relative w-full sm:w-72 md:w-96">
+          <input 
+            type="text" 
+            placeholder="Search reviews..." 
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full border border-gray-300 rounded-lg pl-10 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
         </div>
         
-        <div className="flex flex-col sm:flex-row items-center gap-4">
-          <div className="relative w-full sm:w-64">
-            <input 
-              type="text" 
-              placeholder="Search reviews..." 
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg pl-10 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-          </div>
-          
-          <div className="flex items-center bg-gray-100 rounded-lg p-1">
+        {/* Right Side: View Toggle & Add Button */}
+        <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto justify-end">
+          <div className="flex items-center bg-gray-100 rounded-lg p-1 w-full sm:w-auto justify-center">
             <button 
               type="button"
               onClick={() => setViewMode('card')}
@@ -377,10 +376,10 @@ const Reviews = () => {
           )}
         </div>
       ) : (
-        <div className="bg-white rounded-xl shadow overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-gray-50 text-gray-600 text-sm border-b border-gray-200">
+            <div className="hidden md:block overflow-x-auto shadow rounded-lg">
+            <table className="w-full text-sm text-left">
+              <thead className="bg-gray-800 text-white">
+              <tr className=" text-sm border-b border-gray-200">
                 <th className="p-4 font-medium">Image</th>
                 <th className="p-4 font-medium">Customer</th>
                 <th className="p-4 font-medium">Product</th>
