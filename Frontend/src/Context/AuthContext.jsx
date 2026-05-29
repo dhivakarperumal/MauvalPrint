@@ -46,7 +46,6 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     if (user?.uid) {
       const cartRef = collection(db, "users", user.uid, "cart");
-      const wishlistRef = collection(db, "users", user.uid, "wishlist");
 
       const unsubscribeCart = onSnapshot(cartRef, (snapshot) => {
         const items = snapshot.docs.map((doc) => ({
@@ -56,17 +55,22 @@ export function AuthProvider({ children }) {
         setCart(items);
       });
 
-      const unsubscribeWishlist = onSnapshot(wishlistRef, (snapshot) => {
-        const items = snapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-        setWishlist(items);
-      });
+      const fetchWishlist = async () => {
+        try {
+          const { data } = await api.get(`/wishlist/${user.uid}`);
+
+          if (data.success) {
+            setWishlist(data.wishlist);
+          }
+        } catch (error) {
+          console.error("Wishlist fetch error:", error);
+        }
+      };
+
+      fetchWishlist();
 
       return () => {
         unsubscribeCart();
-        unsubscribeWishlist();
       };
     } else {
       setCart([]);
@@ -83,31 +87,31 @@ export function AuthProvider({ children }) {
             // safely parse JSON fields if they are strings
             let parsedImages = p.images;
             if (typeof parsedImages === 'string') {
-              try { parsedImages = JSON.parse(parsedImages); } catch(e) { parsedImages = []; }
+              try { parsedImages = JSON.parse(parsedImages); } catch (e) { parsedImages = []; }
             }
             if (!Array.isArray(parsedImages)) parsedImages = [];
-            
+
             let parsedSize = p.size;
             if (typeof parsedSize === 'string') {
-              try { parsedSize = JSON.parse(parsedSize); } catch(e) { parsedSize = []; }
+              try { parsedSize = JSON.parse(parsedSize); } catch (e) { parsedSize = []; }
             }
             if (!Array.isArray(parsedSize)) parsedSize = [];
 
             let parsedColor = p.color;
             if (typeof parsedColor === 'string') {
-              try { parsedColor = JSON.parse(parsedColor); } catch(e) { parsedColor = []; }
+              try { parsedColor = JSON.parse(parsedColor); } catch (e) { parsedColor = []; }
             }
             if (!Array.isArray(parsedColor)) parsedColor = [];
 
             let parsedKeywords = p.keywords;
             if (typeof parsedKeywords === 'string') {
-              try { parsedKeywords = JSON.parse(parsedKeywords); } catch(e) { parsedKeywords = []; }
+              try { parsedKeywords = JSON.parse(parsedKeywords); } catch (e) { parsedKeywords = []; }
             }
             if (!Array.isArray(parsedKeywords)) parsedKeywords = [];
 
             let parsedStockByVariant = p.stock_by_variant;
             if (typeof parsedStockByVariant === 'string') {
-              try { parsedStockByVariant = JSON.parse(parsedStockByVariant); } catch(e) { parsedStockByVariant = {}; }
+              try { parsedStockByVariant = JSON.parse(parsedStockByVariant); } catch (e) { parsedStockByVariant = {}; }
             }
             if (typeof parsedStockByVariant !== 'object' || !parsedStockByVariant) parsedStockByVariant = {};
 
@@ -137,7 +141,7 @@ export function AuthProvider({ children }) {
         setDesigns([]);
       }
     };
-    
+
     fetchProducts();
   }, []);
 
@@ -275,39 +279,51 @@ export function AuthProvider({ children }) {
   const addToWishlist = async (product) => {
     if (!user) return toast.error("Login required");
 
-    const wishlistRef = doc(db, "users", user.uid, "wishlist", product.id);
-    const wishlistSnap = await getDoc(wishlistRef);
-    toast.success("Added to wishlist");
+    try {
+      const { data } = await api.post("/wishlist/add", {
+        user_id: user.uid,
+        product_id: product.id,
+        item_data: product,
+      });
 
-    if (wishlistSnap.exists()) {
-      toast.info("Already in wishlist");
-      return;
+      if (data.success) {
+        setWishlist((prev) => [...prev, product]);
+        toast.success("Added to wishlist");
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to add wishlist");
     }
-
-    const newItem = {
-      ...product,
-      images: product.images ?? [],
-      price: product.salePrice ?? 0,
-    };
-
-    await setDoc(wishlistRef, newItem);
   };
 
   const removeFromWishlist = async (id) => {
     if (!user) return;
-    await deleteDoc(doc(db, "users", user.uid, "wishlist", id));
-    toast.info("Removed from wishlist");
+
+    try {
+      await api.delete(`/wishlist/${user.uid}/${id}`);
+
+      setWishlist((prev) =>
+        prev.filter((item) => item.id !== id)
+      );
+
+      toast.info("Removed from wishlist");
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   const clearWishlist = async () => {
     if (!user) return;
-    const snapshot = await getDocs(
-      collection(db, "users", user.uid, "wishlist")
-    );
-    snapshot.forEach(async (docSnap) => {
-      await deleteDoc(docSnap.ref);
-    });
-    toast.info("Wishlist cleared");
+
+    try {
+      await api.delete(`/wishlist/clear/${user.uid}`);
+
+      setWishlist([]);
+
+      toast.info("Wishlist cleared");
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   const addAllWishlistToCart = async () => {
@@ -330,7 +346,7 @@ export function AuthProvider({ children }) {
     <AuthContext.Provider
       value={{
         user,
-        registerUser: () => {},
+        registerUser: () => { },
         loginWithEmail,
         logout,
         updateUserProfile,
