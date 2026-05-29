@@ -1,5 +1,6 @@
 import React, { useContext, useEffect, useState, useMemo } from "react";
 import { AuthContext } from "../Context/AuthContext";
+import api from "../api";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { FaStar, FaHeart, FaShoppingCart, FaEye } from "react-icons/fa";
 import { IoIosArrowDown } from "react-icons/io";
@@ -162,8 +163,21 @@ function Products() {
   const [minRating, setMinRating] = useState(0);
   const [showFilters, setShowFilters] = useState(false);
   const [cardSize, setCardSize] = useState({});
+  const [backendProducts, setBackendProducts] = useState([]);
+  const [backendLoaded, setBackendLoaded] = useState(false);
 
-  const products = Array.isArray(contextProducts) ? contextProducts : [];
+  const products = useMemo(() => {
+    const combined = [
+      ...(Array.isArray(contextProducts) ? contextProducts : []),
+      ...backendProducts,
+    ];
+    const map = new Map();
+    combined.forEach((product) => {
+      const id = product.id || product.productId || product.product_id;
+      if (id) map.set(id, product);
+    });
+    return Array.from(map.values());
+  }, [contextProducts, backendProducts]);
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -174,6 +188,61 @@ function Products() {
 
   useEffect(() => {
     AOS.init({ duration: 800, once: true });
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+    const loadBackendProducts = async () => {
+      try {
+        const { data } = await api.get("/products");
+        if (!active) return;
+        if (data?.success && Array.isArray(data.products)) {
+          const normalize = (product) => ({
+            ...product,
+            id: product.product_id || product.id || product.productId || `${product.product_id}`,
+            productId: product.product_id || product.productId || product.id,
+            salePrice: Number(product.sale_price ?? product.salePrice ?? 0),
+            mrp: Number(product.mrp ?? 0),
+            color: typeof product.color === "string"
+              ? product.color.startsWith("[")
+                ? JSON.parse(product.color)
+                : product.color.split(",").map((item) => item.trim()).filter(Boolean)
+              : Array.isArray(product.color)
+              ? product.color
+              : [],
+            size: typeof product.size === "string"
+              ? product.size.startsWith("[")
+                ? JSON.parse(product.size)
+                : product.size.split(",").map((item) => item.trim()).filter(Boolean)
+              : Array.isArray(product.size)
+              ? product.size
+              : [],
+            images: typeof product.images === "string"
+              ? product.images.startsWith("[")
+                ? JSON.parse(product.images)
+                : product.images.split(",").map((item) => item.trim()).filter(Boolean)
+              : Array.isArray(product.images)
+              ? product.images
+              : [],
+            stockByVariant: typeof product.stock_by_variant === "string"
+              ? product.stock_by_variant.startsWith("{")
+                ? JSON.parse(product.stock_by_variant)
+                : {}
+              : product.stock_by_variant || {},
+          });
+          setBackendProducts(data.products.map(normalize));
+        }
+      } catch (error) {
+        console.error("Products page backend fetch failed:", error);
+      } finally {
+        setBackendLoaded(true);
+      }
+    };
+
+    loadBackendProducts();
+    return () => {
+      active = false;
+    };
   }, []);
 
   const categories = ["all", ...new Set(products.map((p) => p.category).filter(Boolean))];
@@ -227,8 +296,8 @@ function Products() {
     }, 150);
   };
 
-  // Loading state when products haven't loaded yet
-  if (!products || products.length === 0) {
+  // Loading state while backend products are still loading
+  if (!backendLoaded && products.length === 0) {
     return (
       <div className="mt-18">
         <Head title="Our Products" subtitle="Products" />
