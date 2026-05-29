@@ -192,7 +192,7 @@ const AddProducts = ({ selectedProduct, setSelectedProduct, setActiveTab }) => {
     try {
       const { data } = await api.get("/products");
       const ids = (data.products || [])
-        .map((product) => product.title)
+        .map((product) => product.product_id)
         .filter((id) => id && id.startsWith("MP"))
         .map((id) => parseInt(id.replace("MP", ""), 10))
         .filter((num) => !isNaN(num));
@@ -213,7 +213,7 @@ const AddProducts = ({ selectedProduct, setSelectedProduct, setActiveTab }) => {
   useEffect(() => {
     if (selectedProduct && selectedProduct.product_id) {
       setProduct({
-        id: selectedProduct.title || "",
+        id: selectedProduct.product_id || "",
         productTitle: selectedProduct.title || "",
         name: selectedProduct.name || "",
         category: selectedProduct.category || "",

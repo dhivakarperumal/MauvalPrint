@@ -1,5 +1,13 @@
 const { randomUUID } = require("crypto");
 
+const generateNextProductId = async (pool) => {
+  const [rows] = await pool.query(
+    "SELECT MAX(CAST(SUBSTRING(product_id, 3) AS UNSIGNED)) AS max_id FROM products WHERE product_id LIKE 'MP%'"
+  );
+  const nextNumber = (rows?.[0]?.max_id || 0) + 1;
+  return `MP${String(nextNumber).padStart(3, "0")}`;
+};
+
 const getProducts = async (req, res) => {
   try {
     const pool = req.app.locals.pool;
@@ -55,7 +63,7 @@ const addProduct = async (req, res) => {
 
   try {
     const pool = req.app.locals.pool;
-    const productId = randomUUID();
+    const productId = await generateNextProductId(pool);
     const timestamp = new Date().toISOString().slice(0, 19).replace("T", " ");
 
     await pool.query(
