@@ -8,9 +8,9 @@ const {
 
 const router = express.Router();
 
-router.post("/print-orders", createPrintOrder);
-router.get("/print-orders", getPrintOrders);
-router.put("/print-orders/:id", updatePrintOrder);
-router.delete("/print-orders/:id", deletePrintOrder);
+router.post("/", createPrintOrder);
+router.get("/", getPrintOrders);
+router.put("/:id", updatePrintOrder);
+router.delete("/:id", deletePrintOrder);
 
 module.exports = router;
