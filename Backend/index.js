@@ -1,4 +1,4 @@
-﻿const express = require("express");
+const express = require("express");
 const cors = require("cors");
 const { connectDB } = require("./src/config/db");
 const userRoutes = require("./src/routers/userRoutes");
@@ -10,9 +10,9 @@ const app = express();
 // Enable CORS for all origins
 app.use(cors());
 
-// Parse JSON
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// Parse JSON — limit raised to 50 mb to handle base64 image uploads from the admin UI
+app.use(express.json({ limit: "50mb" }));
+app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 
 // Request logging
 app.use((req, res, next) => {

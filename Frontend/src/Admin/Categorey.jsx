@@ -43,7 +43,7 @@ const Category = () => {
     if (Array.isArray(val) || (val && typeof val === "object")) return val;
     try {
       return JSON.parse(val);
-    } catch {
+    } catch (e) {
       return fallback;
     }
   };
@@ -59,8 +59,8 @@ const Category = () => {
       const compressedFiles = await Promise.all(
         files.map((file) =>
           imageCompression(file, {
-            maxSizeMB: 0.2,
-            maxWidthOrHeight: 800,
+            maxSizeMB: 0.15,
+            maxWidthOrHeight: 700,
             useWebWorker: true,
           })
         )
