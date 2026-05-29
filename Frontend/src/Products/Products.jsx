@@ -125,9 +125,10 @@ function ProductCard({ product, index, addToCart, addToWishlist, cardSize, setCa
       {/* Sizes */}
       <div className="mt-2 mb-3 flex flex-wrap items-center justify-center gap-2">
         {(product?.size || []).map((sz) => {
-          const selectedColor = product.color?.[0];
+          const selectedColor = product.color?.[0] || "";
           const variantKey = `${selectedColor}-${sz}`;
-          const isAvailable = product.stockByVariant?.[variantKey] > 0;
+          const variantQuantity = stockByVariant[variantKey];
+          const isAvailable = variantQuantity > 0 || product.stock > 0;
 
           return (
             <button
