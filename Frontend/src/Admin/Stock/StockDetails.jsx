@@ -1,11 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { db } from "../../firebase";
-import {
-  collection,
-  getDocs,
-  updateDoc,
-  doc,
-} from "firebase/firestore";
+import api from "../../api";
 import toast from "react-hot-toast";
 
 const StockDetails = () => {
@@ -16,12 +10,19 @@ const StockDetails = () => {
 
   const fetchStock = async () => {
     try {
-      const snapshot = await getDocs(collection(db, "products"));
+      const { data } = await api.get("/products");
       const productList = [];
 
-      snapshot.forEach((docSnap) => {
-        const product = docSnap.data();
-        const stockByVariant = product.stockByVariant || {};
+      (data.products || []).forEach((product) => {
+        let stockByVariant = product.stock_by_variant || {};
+        if (typeof stockByVariant === "string") {
+          try {
+            stockByVariant = JSON.parse(stockByVariant);
+          } catch {
+            stockByVariant = {};
+          }
+        }
+
         const variants = [];
         let totalStock = 0;
 
@@ -32,8 +33,7 @@ const StockDetails = () => {
         });
 
         productList.push({
-          docId: docSnap.id,
-          productId: product.id || docSnap.id,
+          productId: product.product_id || product.id || "",
           name: product.name || "",
           variants,
           totalStock,
@@ -70,7 +70,7 @@ const StockDetails = () => {
   const handleEdit = (product, variant) => {
     setSelectedVariant({
       ...variant,
-      docId: product.docId,
+      productId: product.productId,
       name: product.name,
     });
     setShowModal(true);
@@ -85,12 +85,12 @@ const StockDetails = () => {
   };
 
   const handleUpdate = async () => {
-    const { docId, key, qty } = selectedVariant;
+    const { productId, key, qty } = selectedVariant;
 
     try {
-      const productRef = doc(db, "products", docId);
-      await updateDoc(productRef, {
-        [`stockByVariant.${key}`]: qty,
+      await api.put(`/products/${productId}/stock`, {
+        variant: key,
+        quantity: qty,
       });
 
       toast.success("Stock updated");
