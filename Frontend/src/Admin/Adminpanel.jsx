@@ -704,7 +704,7 @@ if (
                 className="w-10 h-10 rounded-full border-2 p-1.5 object-cover max-w-[120px]"
               /> */}
               <p className="border-2 px-3 py-1 rounded-full text-xl font-bold ">
-                {adminName.charAt(0)}
+                {adminName?.charAt(0).toUpperCase() || "A"}
               </p>
               <span className="text-sm hidden md:inline truncate max-w-[120px]">
                 {adminName}
