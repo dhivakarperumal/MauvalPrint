@@ -1,8 +1,6 @@
 import React, { useState } from "react";
 import { IoClose } from "react-icons/io5";
-import { auth, db } from "../firebase";
-import { createUserWithEmailAndPassword } from "firebase/auth";
-import { doc, setDoc } from "firebase/firestore";
+import api from "../api";
 import { toast } from "react-toastify";
 import tshirtImg from "/Image/register.png";
 
@@ -33,42 +31,27 @@ export default function Register({ onClose, onSwitch }) {
     }
 
     try {
-      // ✅ Create user in Firebase Auth
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
-        form.email,
-        form.password
-      );
-      const user = userCredential.user;
-
-      // ✅ Assign role
-      const role =
-        form.email.toLowerCase() === "vasanthloagn2525@gmail.com"
-          ? "admin"
-          : "user";
-
-      // ✅ Save user details in Firestore
-      await setDoc(doc(db, "users", user.uid), {
-        uid: user.uid,
+      const response = await api.post("/register", {
         username: form.username,
         email: form.email,
         phone: form.phone,
-        role,
-        createdAt: new Date().toISOString(),
+        password: form.password,
+        confirmPassword: form.confirmPassword,
       });
 
-      toast.success("Registration successful! Redirecting to login...");
+      toast.success(response.data?.message || "Registration successful! Redirecting to login...");
       setError("");
 
-      // ✅ Redirect to login modal
       setTimeout(() => {
         onClose();
         onSwitch();
       }, 2000);
     } catch (err) {
       console.error("Registration Error:", err);
-      setError(err.message);
-      toast.error("Registration failed. Please try again.");
+      const message =
+        err?.response?.data?.message || err.message || "Registration failed. Please try again.";
+      setError(message);
+      toast.error(message);
     }
   };
 

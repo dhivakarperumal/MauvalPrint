@@ -31,10 +31,193 @@ async function ensureDatabaseExists() {
   await adminConnection.end();
 }
 
+async function ensureTables() {
+  const statements = [
+    `
+      CREATE TABLE IF NOT EXISTS users (
+        id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+        user_id VARCHAR(36) NOT NULL UNIQUE,
+        username VARCHAR(255) NOT NULL,
+        email VARCHAR(255) NOT NULL UNIQUE,
+        phone VARCHAR(50),
+        password_hash VARCHAR(255) NOT NULL,
+        role VARCHAR(20) NOT NULL DEFAULT 'user',
+        status VARCHAR(20) NOT NULL DEFAULT 'active',
+        created_at DATETIME NOT NULL,
+        updated_at DATETIME NULL
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    `,
+    `
+      CREATE TABLE IF NOT EXISTS categories (
+        id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+        category_id VARCHAR(50) NOT NULL UNIQUE,
+        name VARCHAR(255) NOT NULL,
+        description TEXT,
+        images JSON,
+        subcategories JSON,
+        created_at DATETIME NOT NULL,
+        updated_at DATETIME NULL
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    `,
+    `
+      CREATE TABLE IF NOT EXISTS products (
+        id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+        product_id VARCHAR(50) NOT NULL UNIQUE,
+        title VARCHAR(255),
+        name VARCHAR(255),
+        category VARCHAR(255),
+        subcategory VARCHAR(255),
+        color JSON,
+        size JSON,
+        offer DECIMAL(10,2) DEFAULT 0,
+        rating DECIMAL(3,2) DEFAULT 0,
+        mrp DECIMAL(10,2) DEFAULT 0,
+        sale_price DECIMAL(10,2) DEFAULT 0,
+        stock INT DEFAULT 0,
+        description TEXT,
+        fabric_details TEXT,
+        fabric_gsm JSON,
+        images JSON,
+        our_design BOOLEAN DEFAULT FALSE,
+        keyword VARCHAR(255),
+        washing_details JSON,
+        notes TEXT,
+        stock_by_variant JSON,
+        size_chart_image TEXT,
+        created_at DATETIME NOT NULL,
+        updated_at DATETIME NULL
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    `,
+    `
+      CREATE TABLE IF NOT EXISTS orders (
+        id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+        order_id VARCHAR(50) NOT NULL UNIQUE,
+        user_id VARCHAR(36),
+        user_email VARCHAR(255),
+        checkout JSON,
+        cart JSON,
+        total DECIMAL(12,2) DEFAULT 0,
+        payment_id VARCHAR(255),
+        status VARCHAR(50) DEFAULT 'Placed',
+        created_at DATETIME NOT NULL,
+        updated_at DATETIME NULL
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    `,
+    `
+      CREATE TABLE IF NOT EXISTS reviews (
+        id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+        name VARCHAR(255),
+        product VARCHAR(255),
+        rating INT DEFAULT 0,
+        comment TEXT,
+        date DATE,
+        featured BOOLEAN DEFAULT FALSE,
+        created_at DATETIME NOT NULL,
+        updated_at DATETIME NULL
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    `,
+    `
+      CREATE TABLE IF NOT EXISTS invoices (
+        id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+        invoice_id VARCHAR(50) NOT NULL UNIQUE,
+        order_id VARCHAR(50),
+        user_id VARCHAR(36),
+        amount DECIMAL(12,2) DEFAULT 0,
+        status VARCHAR(50) DEFAULT 'pending',
+        data JSON,
+        created_at DATETIME NOT NULL,
+        updated_at DATETIME NULL
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    `,
+    `
+      CREATE TABLE IF NOT EXISTS dealers (
+        id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+        dealer_id VARCHAR(50) NOT NULL UNIQUE,
+        name VARCHAR(255),
+        email VARCHAR(255),
+        phone VARCHAR(50),
+        address TEXT,
+        data JSON,
+        created_at DATETIME NOT NULL,
+        updated_at DATETIME NULL
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    `,
+    `
+      CREATE TABLE IF NOT EXISTS cancel_orders (
+        id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+        order_id VARCHAR(50),
+        user_id VARCHAR(36),
+        reason TEXT,
+        status VARCHAR(50) DEFAULT 'cancelled',
+        data JSON,
+        created_at DATETIME NOT NULL,
+        updated_at DATETIME NULL
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    `,
+    `
+      CREATE TABLE IF NOT EXISTS get_order_details (
+        id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+        order_id VARCHAR(50) NOT NULL UNIQUE,
+        details JSON,
+        status VARCHAR(50) DEFAULT 'pending',
+        created_at DATETIME NOT NULL,
+        updated_at DATETIME NULL
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    `,
+    `
+      CREATE TABLE IF NOT EXISTS our_designs (
+        id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+        design_id VARCHAR(50) NOT NULL UNIQUE,
+        title VARCHAR(255),
+        images JSON,
+        category VARCHAR(255),
+        data JSON,
+        created_at DATETIME NOT NULL,
+        updated_at DATETIME NULL
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    `,
+    `
+      CREATE TABLE IF NOT EXISTS user_cart (
+        id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+        user_id VARCHAR(36),
+        product_id VARCHAR(50),
+        quantity INT DEFAULT 1,
+        item_data JSON,
+        created_at DATETIME NOT NULL,
+        updated_at DATETIME NULL
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    `,
+    `
+      CREATE TABLE IF NOT EXISTS user_wishlist (
+        id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+        user_id VARCHAR(36),
+        product_id VARCHAR(50),
+        item_data JSON,
+        created_at DATETIME NOT NULL,
+        updated_at DATETIME NULL
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    `,
+    `
+      CREATE TABLE IF NOT EXISTS user_addresses (
+        id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+        user_id VARCHAR(36),
+        address JSON,
+        created_at DATETIME NOT NULL,
+        updated_at DATETIME NULL
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    `,
+  ];
+
+  for (const statement of statements) {
+    await pool.query(statement);
+  }
+}
+
 async function connectDB() {
   if (!pool) {
     await ensureDatabaseExists();
     pool = mysql.createPool(poolConfig);
+    await ensureTables();
 
     // Pool error handling
     pool.on('error', (err) => {
