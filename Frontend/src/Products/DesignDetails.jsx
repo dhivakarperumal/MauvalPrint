@@ -35,7 +35,7 @@ const DesignDetails = () => {
 
   // find design by productId
   const design = useMemo(() => 
-    designs.find((d) => d.productId === productId),
+    designs.find((d) => d.id === productId || d.product_id === productId || d.productId === productId),
     [designs, productId]
   );
 
@@ -124,7 +124,7 @@ const DesignDetails = () => {
 
     const item = {
       ...design,
-      id: design.productId,
+      id: design.id || design.product_id || design.productId,
       selectedSize,
       quantity,
       price: salePrice || mrp,
@@ -163,7 +163,7 @@ const DesignDetails = () => {
   };
 
   // --- Wishlist Logic (Same as SingleProductView) ---
-  const isWishlisted = wishlist.some((item) => item.id === design.productId);
+  const isWishlisted = wishlist.some((item) => item.id === (design.id || design.product_id || design.productId));
 
   const handleWishlistToggle = () => {
     if (!user) {
@@ -174,13 +174,13 @@ const DesignDetails = () => {
 
     if (isWishlisted) {
       // Remove from wishlist
-      addToWishlist({ ...design, id: design.productId }, true); // Pass true if your context uses it as "remove" flag
+      addToWishlist({ ...design, id: design.id || design.product_id || design.productId }, true); // Pass true if your context uses it as "remove" flag
       toast.info("Removed from favorites");
     } else {
       // Add to wishlist
       const wishlistItem = {
         ...design,
-        id: design.productId,
+        id: design.id || design.product_id || design.productId,
         selectedSize,
         color: selectedColor,
         image: images[selectedImageIndex] || images[0],
@@ -479,7 +479,7 @@ const DesignDetails = () => {
         <RelatedProducts
           category={category}
           subcategory={subcategory}
-          currentId={design.productId}
+          currentId={design.id || design.product_id || design.productId}
           addToCart={addToCart}
           addToWishlist={addToWishlist}
         />

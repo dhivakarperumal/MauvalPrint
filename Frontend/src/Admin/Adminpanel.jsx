@@ -17,7 +17,8 @@ import {
   FaBell,
   FaUserCircle,
   FaSignOutAlt,
-  FaHome
+  FaHome,
+  FaTags
 } from "react-icons/fa";
 import { TiUserAdd } from "react-icons/ti";
 import { Link, useNavigate } from "react-router-dom";
@@ -31,6 +32,7 @@ import Dashboard from "./Dashboard";
 import ProductList from "./Products/Products";
 import AddProducts from "./Products/AddProducts";
 import OurDesings from "./Products/OurDesings";
+import ProductKeywords from "./Products/ProductKeywords";
 
 import NewOrders from "./Orders/NewOrders";
 import AllOrders from "./Orders/AllOrders";
@@ -65,6 +67,7 @@ const tabLabels = {
       allProducts: { label: "All Products", icon: <FaBookOpen /> },
       category: { label: "Category", icon: <FaFileAlt /> },
       ourDesigns: { label: "Our Designs", icon: <FaPalette /> },
+      productKeywords: { label: "Product Keywords", icon: <FaTags /> },
     },
   },
   orders: {
@@ -347,6 +350,7 @@ if (
       // case "allProducts": return <ProductList setActiveTab={setActiveTab} />;
       // case "addProduct": return <AddProducts setActiveTab={setActiveTab} />;
       case "ourDesigns": return <OurDesings />;
+      case "productKeywords": return <ProductKeywords />;
       case "newOrders": return <NewOrders />;
       case "allOrders": return <AllOrders />;
       case "processingOrders": return <ProccesingOrders />;

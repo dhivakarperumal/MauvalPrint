@@ -24,6 +24,7 @@ const AddProducts = ({ selectedProduct, setSelectedProduct, setActiveTab }) => {
     images: [],
     ourDesign: false,
     keyword: "",
+    keywords: [],
     washingDetails: [],
     notes: "",
   });
@@ -33,6 +34,7 @@ const AddProducts = ({ selectedProduct, setSelectedProduct, setActiveTab }) => {
   const [loading, setLoading] = useState(false);
   const [categories, setCategories] = useState([]);
   const [subcategories, setSubcategories] = useState([]);
+  const [availableKeywords, setAvailableKeywords] = useState([]);
 
   // FIXED: sizeChart & preview logic
   const [sizeChart, setSizeChart] = useState(null); // stores base64
@@ -178,6 +180,7 @@ const AddProducts = ({ selectedProduct, setSelectedProduct, setActiveTab }) => {
       images: [],
       ourDesign: false,
       keyword: "",
+      keywords: [],
       washingDetails: [],
       notes: "That the T-shirt's color may differ slightly from the picture.",
     });
@@ -231,6 +234,7 @@ const AddProducts = ({ selectedProduct, setSelectedProduct, setActiveTab }) => {
         images: selectedProduct.images ? (Array.isArray(selectedProduct.images) ? selectedProduct.images : JSON.parse(selectedProduct.images || "[]")) : [],
         ourDesign: selectedProduct.our_design || false,
         keyword: selectedProduct.keyword || "",
+        keywords: selectedProduct.keywords ? (Array.isArray(selectedProduct.keywords) ? selectedProduct.keywords : JSON.parse(selectedProduct.keywords || "[]")) : [],
         washingDetails: selectedProduct.washing_details ? (Array.isArray(selectedProduct.washing_details) ? selectedProduct.washing_details : JSON.parse(selectedProduct.washing_details || "[]")) : [],
         notes: selectedProduct.notes || "",
       });
@@ -322,6 +326,7 @@ const handleImageUpload = async (e) => {
         images: product.images,
         our_design: product.ourDesign,
         keyword: product.keyword,
+        keywords: product.keywords,
         washing_details: product.washingDetails,
         notes: product.notes,
         stock_by_variant: stockByVariant,
@@ -382,6 +387,21 @@ const handleImageUpload = async (e) => {
       }
     };
     fetchCategories();
+  }, []);
+
+  // Fetch active keywords
+  useEffect(() => {
+    const fetchKeywords = async () => {
+      try {
+        const { data } = await api.get("/keywords");
+        if (data.success) {
+          setAvailableKeywords(data.keywords.filter(kw => kw.status === 'active'));
+        }
+      } catch (err) {
+        console.error("Error fetching keywords:", err);
+      }
+    };
+    fetchKeywords();
   }, []);
 
   useEffect(() => {
@@ -829,18 +849,22 @@ const handleImageUpload = async (e) => {
             <label className="block text-sm font-medium text-gray-700">
               Keyword <span className="text-gray-400">(used for search)</span>
             </label>
-            <input
-              type="text"
+            <select
               name="keyword"
               value={product.keyword}
               onChange={handleInputChange}
-              placeholder="e.g. summer, floral, cotton"
               className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            />
+            >
+              <option value="">Select keyword</option>
+              {availableKeywords.map((kw) => (
+                <option key={kw.keyword_id} value={kw.keyword_name}>
+                  {kw.keyword_name}
+                </option>
+              ))}
+            </select>
           </div>
-        )}  
+        )}
 
-        
 
  
         <div className="md:col-span-2">

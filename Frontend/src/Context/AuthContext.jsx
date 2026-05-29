@@ -11,6 +11,9 @@ import {
   getDocs,
   deleteDoc,
   onSnapshot,
+  query,
+  orderBy,
+  limit,
 } from "firebase/firestore";
 import {
   getStorage,
@@ -72,83 +75,70 @@ export function AuthProvider({ children }) {
   }, [user]);
 
   useEffect(() => {
-    let isMounted = true;
-
-    const loadBackendProducts = async () => {
+    const fetchProducts = async () => {
       try {
-        const { data } = await api.get("/products");
-        console.log("✅ Backend API response:", data);
+        const { data } = await api.get('/products');
+        if (data && data.products) {
+          const productList = data.products.map(p => {
+            // safely parse JSON fields if they are strings
+            let parsedImages = p.images;
+            if (typeof parsedImages === 'string') {
+              try { parsedImages = JSON.parse(parsedImages); } catch(e) { parsedImages = []; }
+            }
+            if (!Array.isArray(parsedImages)) parsedImages = [];
+            
+            let parsedSize = p.size;
+            if (typeof parsedSize === 'string') {
+              try { parsedSize = JSON.parse(parsedSize); } catch(e) { parsedSize = []; }
+            }
+            if (!Array.isArray(parsedSize)) parsedSize = [];
 
-        if (!isMounted) {
-          console.log("⛔ Component unmounted, skipping state update");
-          return;
-        }
+            let parsedColor = p.color;
+            if (typeof parsedColor === 'string') {
+              try { parsedColor = JSON.parse(parsedColor); } catch(e) { parsedColor = []; }
+            }
+            if (!Array.isArray(parsedColor)) parsedColor = [];
 
-        if (data?.success && Array.isArray(data.products)) {
-          console.log("📦 Raw products from backend:", data.products.length, "items");
+            let parsedKeywords = p.keywords;
+            if (typeof parsedKeywords === 'string') {
+              try { parsedKeywords = JSON.parse(parsedKeywords); } catch(e) { parsedKeywords = []; }
+            }
+            if (!Array.isArray(parsedKeywords)) parsedKeywords = [];
 
-          const normalized = data.products.map((product) => ({
-            ...product,
-            id: product.product_id || product.id || product.productId || `${product.product_id}`,
-            productId: product.product_id || product.productId || product.id,
-            salePrice: Number(product.sale_price ?? product.salePrice ?? 0),
-            mrp: Number(product.mrp ?? 0),
-            color: typeof product.color === "string"
-              ? product.color.startsWith("[")
-                ? JSON.parse(product.color)
-                : product.color.split(",").map((item) => item.trim()).filter(Boolean)
-              : Array.isArray(product.color)
-              ? product.color
-              : [],
-            size: typeof product.size === "string"
-              ? product.size.startsWith("[")
-                ? JSON.parse(product.size)
-                : product.size.split(",").map((item) => item.trim()).filter(Boolean)
-              : Array.isArray(product.size)
-              ? product.size
-              : [],
-            images: typeof product.images === "string"
-              ? product.images.startsWith("[")
-                ? JSON.parse(product.images)
-                : product.images.split(",").map((item) => item.trim()).filter(Boolean)
-              : Array.isArray(product.images)
-              ? product.images
-              : [],
-            stockByVariant: typeof product.stock_by_variant === "string"
-              ? product.stock_by_variant.startsWith("{")
-                ? JSON.parse(product.stock_by_variant)
-                : {}
-              : product.stock_by_variant || {},
-            ourDesign:
-              product.our_design === 1 ||
-              product.our_design === "1" ||
-              product.ourDesign === true,
-          }));
+            let parsedStockByVariant = p.stock_by_variant;
+            if (typeof parsedStockByVariant === 'string') {
+              try { parsedStockByVariant = JSON.parse(parsedStockByVariant); } catch(e) { parsedStockByVariant = {}; }
+            }
+            if (typeof parsedStockByVariant !== 'object' || !parsedStockByVariant) parsedStockByVariant = {};
 
-          console.log("✨ Normalized products:", normalized.length, "items");
-          const regularProducts = normalized.filter((item) => !item.ourDesign);
-          const designProducts = normalized.filter((item) => item.ourDesign);
-          console.log("📄 Regular products:", regularProducts.length, "| Designs:", designProducts.length);
+            return {
+              ...p,
+              id: p.product_id || p.id,
+              ourDesign: p.our_design == 1 || p.our_design === true || p.ourDesign === true,
+              salePrice: p.sale_price || p.salePrice || 0,
+              mrp: p.mrp || 0,
+              images: parsedImages,
+              size: parsedSize,
+              color: parsedColor,
+              keywords: parsedKeywords,
+              keyword: p.keyword || "Other",
+              stockByVariant: parsedStockByVariant
+            };
+          });
 
-          setProducts(regularProducts);
+          const normalProducts = productList.filter((p) => !p.ourDesign);
+          const designProducts = productList.filter((p) => p.ourDesign);
+          setProducts(normalProducts);
           setDesigns(designProducts);
-        } else {
-          console.warn("⚠️ API response missing success flag or products array:", data);
-          setProducts([]);
-          setDesigns([]);
         }
       } catch (error) {
-        console.error("Error fetching backend products:", error);
+        console.error("Error fetching products from MySQL:", error);
         setProducts([]);
         setDesigns([]);
       }
     };
-
-    loadBackendProducts();
-
-    return () => {
-      isMounted = false;
-    };
+    
+    fetchProducts();
   }, []);
 
   useEffect(() => {
