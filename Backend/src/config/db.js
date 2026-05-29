@@ -1,7 +1,15 @@
 const dotenv = require('dotenv');
 const mysql = require('mysql2/promise');
+const { randomUUID, randomBytes, scrypt: _scrypt } = require('crypto');
+const { promisify } = require('util');
+
+const scrypt = promisify(_scrypt);
 
 dotenv.config();
+
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@gmail.com';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin@123';
+const ADMIN_USERNAME = process.env.ADMIN_USERNAME || 'admin';
 
 const dbName = process.env.DB_NAME || 'mauvalprint_db';
 const poolConfig = {
@@ -210,6 +218,48 @@ async function ensureTables() {
 
   for (const statement of statements) {
     await pool.query(statement);
+  }
+
+  const [userIdColumnRows] = await pool.query("SHOW COLUMNS FROM users LIKE 'user_id'");
+  if (userIdColumnRows.length === 0) {
+    await pool.query(
+      "ALTER TABLE users ADD COLUMN user_id VARCHAR(36) NOT NULL UNIQUE AFTER id"
+    );
+  } else if (!/^varchar\(36\)/i.test(userIdColumnRows[0].Type)) {
+    await pool.query(
+      "ALTER TABLE users MODIFY COLUMN user_id VARCHAR(36) NOT NULL UNIQUE AFTER id"
+    );
+  }
+
+  const [statusColumnRows] = await pool.query("SHOW COLUMNS FROM users LIKE 'status'");
+  if (statusColumnRows.length === 0) {
+    await pool.query(
+      "ALTER TABLE users ADD COLUMN status VARCHAR(20) NOT NULL DEFAULT 'active' AFTER role"
+    );
+  }
+
+  const [emptyUserIdRows] = await pool.query(
+    "SELECT id FROM users WHERE user_id = '' OR user_id IS NULL"
+  );
+
+  for (const { id } of emptyUserIdRows) {
+    await pool.query(
+      "UPDATE users SET user_id = ? WHERE id = ?",
+      [randomUUID(), id]
+    );
+  }
+
+  const [existingAdminRows] = await pool.query("SELECT id FROM users WHERE email = ?", [ADMIN_EMAIL]);
+  if (existingAdminRows.length === 0) {
+    const salt = randomBytes(16).toString('hex');
+    const derived = await scrypt(ADMIN_PASSWORD, salt, 64);
+    const passwordHash = `${salt}:${derived.toString('hex')}`;
+    const timestamp = new Date().toISOString().slice(0, 19).replace('T', ' ');
+
+    await pool.query(
+      "INSERT INTO users (user_id, username, email, phone, password_hash, role, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+      [randomUUID(), ADMIN_USERNAME, ADMIN_EMAIL, '', passwordHash, 'admin', 'active', timestamp, timestamp]
+    );
   }
 }
 

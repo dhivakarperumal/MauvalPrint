@@ -71,9 +71,12 @@ const register = async (req, res) => {
       ]
     );
 
+    console.log(`Registered user_id: ${userId} for email: ${email}`);
+
     res.status(201).json({
       success: true,
       message: "Registration successful.",
+      user_id: userId,
       data: {
         user_id: userId,
         username,

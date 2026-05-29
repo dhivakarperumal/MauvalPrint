@@ -383,6 +383,7 @@ const OldUsers = () => {
 
         return {
           id: doc.id,
+          user_id: user.user_id || user.uid || doc.id,
           uid: user.uid || "",
           name: user.fullName || user.name || user.username || "",
           email: user.email || "",
@@ -603,7 +604,7 @@ const OldUsers = () => {
         <table className="min-w-full text-sm text-left">
           <thead className="bg-gray-800 text-white">
             <tr>
-              <th className="p-3">ID</th>
+              <th className="p-3">User ID</th>
               <th className="p-3">Name</th>
               <th className="p-3">Email</th>
               <th className="p-3">Role</th>
@@ -612,9 +613,9 @@ const OldUsers = () => {
             </tr>
           </thead>
           <tbody>
-            {currentUsers.map((user, index) => (
+            {currentUsers.map((user) => (
               <tr key={user.id} className="border-t border-gray-200 hover:bg-gray-50">
-                <td className="p-3">{indexOfFirstUser + index + 1}</td>
+                <td className="p-3 break-all max-w-xs">{user.user_id}</td>
                 <td className="p-3">{user.name}</td>
                 <td className="p-3">{user.email}</td>
                 <td className="p-3">{user.role}</td>
@@ -675,6 +676,7 @@ const OldUsers = () => {
         {currentUsers.map((user, index) => (
           <div key={user.id} className="bg-white shadow rounded-lg p-4 space-y-2">
             <div>
+              <p className="text-xs text-gray-400 break-all">ID: {user.user_id}</p>
               <h3 className="font-bold text-blue-900">{user.name}</h3>
               <p className="text-sm text-gray-500">{user.email}</p>
               <p className="text-sm text-gray-500">{user.role}</p>
