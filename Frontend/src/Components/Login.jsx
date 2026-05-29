@@ -1,13 +1,11 @@
 import React, { useState, useContext, useEffect } from "react";
-import { FcGoogle } from "react-icons/fc";
 import { IoClose } from "react-icons/io5";
 import { AuthContext } from "../Context/AuthContext";
 import tshirtImg from "/Image/login.png";
 import { toast } from "react-toastify";
 
 export default function Login({ onClose, onSwitch }) {
-  const { loginWithEmail, loginWithGoogle, resetPassword } =
-    useContext(AuthContext);
+  const { loginWithEmail } = useContext(AuthContext);
   const [form, setForm] = useState({ email: "", password: "" });
   const [rememberMe, setRememberMe] = useState(false);
 
@@ -44,31 +42,6 @@ export default function Login({ onClose, onSwitch }) {
     }
   };
 
-  const handleGoogleLogin = async () => {
-    try {
-      await loginWithGoogle();
-      toast.success("Google login successful!");
-      onClose();
-    } catch (err) {
-      console.error("Google login failed:", err);
-      const msg = err?.message || "Google login failed";
-      toast.error(`Google login failed: ${msg}`);
-    }
-  };
-
-  const handleForgotPassword = async () => {
-    if (!form.email) {
-      toast.error("Please enter your email to reset password");
-      return;
-    }
-    try {
-      await resetPassword(form.email);
-      toast.success("Password reset email sent");
-    } catch (err) {
-      toast.error("Failed to send reset email");
-      console.error(err);
-    }
-  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-primary/50">
@@ -130,13 +103,6 @@ export default function Login({ onClose, onSwitch }) {
                 />
                 Remember Me
               </label>
-              <button
-                type="button"
-                onClick={handleForgotPassword}
-                className="text-sm text-primary hover:underline cursor-pointer"
-              >
-                Forgot Password?
-              </button>
             </div>
 
             <button
@@ -148,14 +114,6 @@ export default function Login({ onClose, onSwitch }) {
           </form>
 
           <div className="my-4 text-center text-gray-500">or</div>
-
-          <button
-            onClick={handleGoogleLogin}
-            className="flex items-center justify-center w-full border py-2 rounded text-sm font-medium text-black bg-white hover:bg-gray-100 transition cursor-pointer"
-          >
-            <FcGoogle className="text-xl mr-2" />
-            Sign in with Google
-          </button>
 
           <p className="text-center mt-3 text-sm text-black">
             Don't have an account?{" "}

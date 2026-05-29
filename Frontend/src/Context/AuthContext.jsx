@@ -1,14 +1,7 @@
 /* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useState, useEffect } from "react";
 import { toast } from "react-toastify";
-import { auth, db, googleProvider } from "../firebase";
-import {
-  signInWithPopup,
-  signInWithRedirect,
-  signOut,
-  sendPasswordResetEmail,
-  onAuthStateChanged,
-} from "firebase/auth";
+import { db } from "../firebase";
 import api from "../api";
 import {
   doc,
@@ -44,30 +37,10 @@ export function AuthProvider({ children }) {
   const [isOrderSidebarOpen, setOrderSidebarOpen] = useState(false);
 
   useEffect(() => {
-    let unsubscribeUser = null;
-
     const storedApiUser = localStorage.getItem(API_USER_KEY);
     if (storedApiUser) {
       setUser(JSON.parse(storedApiUser));
     }
-
-    const unsubscribeAuth = onAuthStateChanged(auth, async (firebaseUser) => {
-      if (firebaseUser) {
-        const userDocRef = doc(db, "users", firebaseUser.uid);
-        unsubscribeUser = onSnapshot(userDocRef, (docSnap) => {
-          if (docSnap.exists()) {
-            setLoggedIn(docSnap.data());
-          }
-        });
-      } else if (!localStorage.getItem(API_USER_KEY)) {
-        setUser(null);
-      }
-    });
-
-    return () => {
-      unsubscribeAuth();
-      if (unsubscribeUser) unsubscribeUser();
-    };
   }, []);
 
   useEffect(() => {
@@ -180,73 +153,8 @@ export function AuthProvider({ children }) {
     return normalizedUser;
   };
 
-  const loginWithGoogle = async () => {
-    try {
-      // Try popup first
-      const result = await signInWithPopup(auth, googleProvider);
-      const firebaseUser = result.user;
-
-      const isAdmin = firebaseUser.email === "vasanthlogan2525@gmail.com";
-    const userRef = doc(db, "users", firebaseUser.uid);
-    const snap = await getDoc(userRef);
-
-    let userData = {
-      uid: firebaseUser.uid,
-      username: firebaseUser.displayName.replace(/\s+/g, "_").toLowerCase(),
-      fullName: firebaseUser.displayName,
-      email: firebaseUser.email,
-      photoURL: firebaseUser.photoURL || "",
-      role: isAdmin ? "admin" : "user",
-      provider: "google",
-      createdAt: new Date().toISOString(),
-    };
-
-      if (!snap.exists()) {
-        await setDoc(userRef, userData);
-      } else {
-        userData = snap.data();
-      }
-
-      setLoggedIn(userData);
-      return userData;
-    } catch (err) {
-      console.error("Google login error:", err);
-      // Fallback to redirect for environments where popup is blocked
-      if (
-        err &&
-        (err.code === "auth/popup-blocked" ||
-          err.code === "auth/operation-not-supported-in-this-environment")
-      ) {
-        try {
-          await signInWithRedirect(auth, googleProvider);
-          return;
-        } catch (redirectErr) {
-          console.error("Google redirect fallback failed:", redirectErr);
-          throw redirectErr;
-        }
-      }
-      throw err;
-    }
-  };
-
-  const resetPassword = async (email) => {
-    try {
-      await sendPasswordResetEmail(auth, email);
-      toast.success("Password reset email sent");
-    } catch (error) {
-      console.error(error);
-      toast.error("Error sending password reset email");
-      throw error;
-    }
-  };
-
   const logout = async () => {
     localStorage.removeItem(API_USER_KEY);
-    try {
-      await signOut(auth);
-    } catch (error) {
-      console.warn("Firebase sign-out skipped or not available", error);
-    }
     setLoggedIn(null);
   };
 
@@ -385,8 +293,6 @@ export function AuthProvider({ children }) {
         user,
         registerUser: () => {},
         loginWithEmail,
-        loginWithGoogle,
-        resetPassword,
         logout,
         designs,
         products,

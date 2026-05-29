@@ -168,4 +168,91 @@ const login = async (req, res) => {
   }
 };
 
-module.exports = { register, login };
+const getUsers = async (req, res) => {
+  try {
+    const pool = req.app.locals.pool;
+    const [users] = await pool.query(
+      "SELECT id, user_id, username, email, phone, role, status, created_at FROM users ORDER BY created_at DESC"
+    );
+
+    res.status(200).json({
+      success: true,
+      users,
+    });
+  } catch (error) {
+    console.error("Fetch users error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Could not fetch users.",
+    });
+  }
+};
+
+const updateUser = async (req, res) => {
+  const { id } = req.params;
+  const { username, email, phone, role } = req.body;
+
+  if (!username || !email || !phone || !role) {
+    return res.status(400).json({
+      success: false,
+      message: "Please provide username, email, phone, and role.",
+    });
+  }
+
+  try {
+    const pool = req.app.locals.pool;
+    const timestamp = new Date().toISOString().slice(0, 19).replace("T", " ");
+
+    const [result] = await pool.query(
+      "UPDATE users SET username = ?, email = ?, phone = ?, role = ?, updated_at = ? WHERE id = ?",
+      [username, email, phone, role, timestamp, id]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found.",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "User updated successfully.",
+    });
+  } catch (error) {
+    console.error("Update user error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Could not update user.",
+    });
+  }
+};
+
+const deleteUser = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const pool = req.app.locals.pool;
+    const [result] = await pool.query("DELETE FROM users WHERE id = ?", [id]);
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found.",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "User deleted successfully.",
+    });
+  } catch (error) {
+    console.error("Delete user error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Could not delete user.",
+    });
+  }
+};
+
+module.exports = { register, login, getUsers, updateUser, deleteUser };
