@@ -26,6 +26,7 @@ import { collection, getDocs, doc, getDoc } from "firebase/firestore";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { db } from "../firebase";
 import { toast } from "react-toastify";
+import api from "../api";
 
 // Components
 import Dashboard from "./Dashboard";
@@ -178,17 +179,25 @@ const AdminPanel = () => {
   useEffect(() => {
     const fetchStock = async () => {
       try {
-        const snapshot = await getDocs(collection(db, "products"));
+        const { data } = await api.get('/products');
+        if (!data || !data.products) return;
+
         const productList = [];
         const lowStockList = [];
 
-        snapshot.forEach((docSnap) => {
-          const product = docSnap.data();
-          const stockByVariant = product.stockByVariant || {};
+        data.products.forEach((product) => {
+          let stockByVariant = {};
+          try {
+            stockByVariant = product.stock_by_variant 
+              ? (typeof product.stock_by_variant === 'string' ? JSON.parse(product.stock_by_variant) : product.stock_by_variant) 
+              : {};
+          } catch (e) {}
+
           let totalStock = 0;
           Object.values(stockByVariant).forEach((qty) => {
-            totalStock += qty || 0;
+            totalStock += parseInt(qty, 10) || 0;
           });
+          
           productList.push({ ...product, totalStock });
 
           if (totalStock < 5) lowStockList.push({ ...product, totalStock });

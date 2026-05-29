@@ -27,6 +27,7 @@ const ProductKeywords = () => {
 
   const [newKeyword, setNewKeyword] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
+  const [activeTab, setActiveTab] = useState("selected");
   const [showAddPopup, setShowAddPopup] = useState(false);
 
   const [editingId, setEditingId] = useState(null);
@@ -143,20 +144,24 @@ const ProductKeywords = () => {
     }
   };
 
-  const filteredKeywords = keywords.filter(kw => kw.keyword_name.toLowerCase().includes(searchTerm.toLowerCase()));
+  const filteredKeywords = keywords.filter(kw => {
+    const matchesSearch = kw.keyword_name.toLowerCase().includes(searchTerm.toLowerCase());
+    if (!matchesSearch) return false;
+    
+    if (activeTab === "selected") return kw.show_on_home;
+    if (activeTab === "unselected") return !kw.show_on_home;
+    return true;
+  });
 
   // Get selected home keywords sorted by order
   const homeKeywords = keywords.filter(kw => kw.show_on_home).sort((a, b) => a.display_order - b.display_order);
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
-      <div className="mb-6">
-        <h2 className="text-2xl font-bold text-gray-800">Product Keywords Manager</h2>
-        <p className="text-gray-500 text-sm">Manage dynamic tags for product grouping on frontend</p>
-      </div>
+     
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
         <div className="bg-white p-4 rounded-xl shadow border border-gray-100 flex flex-col items-center justify-center text-center">
           <h3 className="text-gray-500 text-sm font-semibold mb-1">Total Keywords</h3>
           <p className="text-3xl font-bold text-blue-900">{stats.totalKeywords}</p>
@@ -164,16 +169,6 @@ const ProductKeywords = () => {
         <div className="bg-white p-4 rounded-xl shadow border border-gray-100 flex flex-col items-center justify-center text-center">
           <h3 className="text-gray-500 text-sm font-semibold mb-1">Active Keywords</h3>
           <p className="text-3xl font-bold text-green-600">{stats.activeKeywords}</p>
-        </div>
-        <div className="bg-white p-4 rounded-xl shadow border border-gray-100 flex flex-col items-center justify-center text-center">
-          <h3 className="text-gray-500 text-sm font-semibold mb-1">Products Tagged</h3>
-          <p className="text-3xl font-bold text-purple-600">{stats.productsTagged}</p>
-        </div>
-        <div className="bg-white p-4 rounded-xl shadow border border-gray-100 flex flex-col items-center justify-center text-center">
-          <h3 className="text-gray-500 text-sm font-semibold mb-1">Most Used Keyword</h3>
-          <p className="text-xl font-bold text-orange-500 truncate w-full px-2" title={stats.mostUsedKeyword}>
-            {stats.mostUsedKeyword}
-          </p>
         </div>
       </div>
 
@@ -228,8 +223,27 @@ const ProductKeywords = () => {
 
       {/* List & Search (Full Width) */}
       <div className="bg-white p-6 rounded-xl shadow border border-gray-200 min-h-[400px]">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4 border-b pb-4">
-          <h3 className="text-lg font-bold text-gray-700">All Keywords</h3>
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4  pb-4">
+          <div className="flex gap-3 overflow-x-auto w-full sm:w-auto pb-1 sm:pb-0">
+            <button
+              onClick={() => setActiveTab("all")}
+              className={`px-5 py-2 text-sm font-bold rounded-lg transition-colors whitespace-nowrap ${activeTab === "all" ? "bg-blue-900 text-white shadow-sm" : "bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-800"}`}
+            >
+              All Keywords
+            </button>
+            <button
+              onClick={() => setActiveTab("selected")}
+              className={`px-5 py-2 text-sm font-bold rounded-lg transition-colors whitespace-nowrap ${activeTab === "selected" ? "bg-blue-900 text-white shadow-sm" : "bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-800"}`}
+            >
+              Selected
+            </button>
+            <button
+              onClick={() => setActiveTab("unselected")}
+              className={`px-5 py-2 text-sm font-bold rounded-lg transition-colors whitespace-nowrap ${activeTab === "unselected" ? "bg-blue-900 text-white shadow-sm" : "bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-800"}`}
+            >
+              Unselected
+            </button>
+          </div>
           <div className="flex items-center gap-3 w-full sm:w-auto">
             <div className="relative flex-1 sm:flex-none">
               <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={14} />
@@ -250,9 +264,9 @@ const ProductKeywords = () => {
           </div>
         </div>
 
-            <div className="overflow-x-auto max-h-[500px]">
-              <table className="w-full text-left text-sm text-gray-600">
-                <thead className="bg-gray-50 text-gray-800 sticky top-0 shadow-sm z-10">
+          <div className="hidden md:block overflow-x-auto shadow rounded-lg">
+            <table className="w-full text-sm text-left">
+              <thead className="bg-gray-800 text-white">
                   <tr>
                     <th className="py-3 px-3 font-semibold text-center">Home</th>
                     <th className="py-3 px-3 font-semibold text-center">Order</th>
