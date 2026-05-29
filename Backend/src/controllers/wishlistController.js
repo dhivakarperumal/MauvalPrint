@@ -12,6 +12,8 @@ exports.addWishlist = async (req, res) => {
         }
 
         const { user_id, product_id, item_data } = req.body;
+        console.log("Wishlist Item Data:");
+        console.log(item_data);
 
         const [existing] = await pool.execute(
             `SELECT id
