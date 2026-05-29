@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useContext } from "react";
 import {
   FaTachometerAlt,
   FaBoxOpen,
@@ -22,11 +22,11 @@ import {
 } from "react-icons/fa";
 import { TiUserAdd } from "react-icons/ti";
 import { Link, useNavigate } from "react-router-dom";
-import { collection, getDocs, doc, getDoc } from "firebase/firestore";
-import { getAuth, onAuthStateChanged } from "firebase/auth";
+import { collection, getDocs } from "firebase/firestore";
 import { db } from "../firebase";
 import { toast } from "react-toastify";
 import api from "../api";
+import { AuthContext } from "../Context/AuthContext";
 
 // Components
 import Dashboard from "./Dashboard";
@@ -159,6 +159,8 @@ const AdminPanel = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [suggestions, setSuggestions] = useState([]);
 
+  const { user, logout } = useContext(AuthContext);
+
   const sidebarRef = useRef(null);
   const lowStockRef = useRef(null);
   const [showLowStock, setShowLowStock] = useState(false);
@@ -169,11 +171,18 @@ const AdminPanel = () => {
 
   // Logout
   const handleLogout = async () => {
-    const auth = getAuth();
-    await auth.signOut();
+    await logout();
     toast.success("Logged out successfully");
     navigate("/");
   };
+
+  // Redirect non-admin users away from admin panel
+  useEffect(() => {
+    if (user && user.role !== "admin") {
+      toast.error("Unauthorized access");
+      navigate("/");
+    }
+  }, [user, navigate]);
 
   // Fetch Products & Low Stock
   useEffect(() => {
@@ -279,22 +288,11 @@ const AdminPanel = () => {
 
   // Fetch Admin Info
   useEffect(() => {
-    const auth = getAuth();
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        const docRef = doc(db, "users", user.uid);
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-          const data = docSnap.data();
-          setAdminName(data.fullName || data.fullname || data.name || "Admin");
-          setAdminImage(
-            data.photoURL || data.image || "https://randomuser.me/api/portraits/men/75.jpg"
-          );
-        }
-      }
-    });
-    return () => unsubscribe();
-  }, []);
+    if (user) {
+      setAdminName(user.username || user.email || "Admin");
+      setAdminImage("https://randomuser.me/api/portraits/men/75.jpg");
+    }
+  }, [user]);
 
   // Search Suggestions
   useEffect(() => {
@@ -706,19 +704,20 @@ if (
               <p className="border-2 px-3 py-1 rounded-full text-xl font-bold ">
                 {adminName?.charAt(0).toUpperCase() || "A"}
               </p>
-              <span className="text-sm hidden md:inline truncate max-w-[120px]">
-                {adminName}
-              </span>
+              
             </button>
 
             {/* Profile Dropdown */}
             {profileDropdownOpen && (
               <div className="absolute right-2 top-14 w-64 bg-white text-black shadow-md rounded-lg z-50 overflow-hidden">
-                <div className="flex items-center px-4 py-3 border-b border-gray-300 gap-3">
-                  <div>
-                    <p className="font-semibold">{adminName}</p>
-                    <p className="text-xs text-gray-500">Admin</p>
-                  </div>
+                <div className="flex flex-col px-4 py-3 border-b border-gray-300 gap-1">
+                  <p className="font-semibold">{user?.username || user?.email || adminName} {user?.role && (
+                    <span className="text-xs text-gray-500 mt-1">Role: {user.role}</span>
+                  )}</p>
+                  {user?.email && (
+                    <p className="text-xs text-gray-500 truncate">{user.email}</p>
+                  )}
+                  
                 </div>
 
                 <button
