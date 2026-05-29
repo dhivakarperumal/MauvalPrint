@@ -190,7 +190,7 @@ const getUsers = async (req, res) => {
 
 const updateUser = async (req, res) => {
   const { id } = req.params;
-  const { username, email, phone, role } = req.body;
+  const { username, email, phone, role, status } = req.body;
 
   if (!username || !email || !phone || !role) {
     return res.status(400).json({
@@ -203,10 +203,15 @@ const updateUser = async (req, res) => {
     const pool = req.app.locals.pool;
     const timestamp = new Date().toISOString().slice(0, 19).replace("T", " ");
 
-    const [result] = await pool.query(
-      "UPDATE users SET username = ?, email = ?, phone = ?, role = ?, updated_at = ? WHERE id = ?",
-      [username, email, phone, role, timestamp, id]
-    );
+    let query = "UPDATE users SET username = ?, email = ?, phone = ?, role = ?, updated_at = ? WHERE id = ?";
+    let values = [username, email, phone, role, timestamp, id];
+
+    if (status !== undefined) {
+      query = "UPDATE users SET username = ?, email = ?, phone = ?, role = ?, status = ?, updated_at = ? WHERE id = ?";
+      values = [username, email, phone, role, status, timestamp, id];
+    }
+
+    const [result] = await pool.query(query, values);
 
     if (result.affectedRows === 0) {
       return res.status(404).json({

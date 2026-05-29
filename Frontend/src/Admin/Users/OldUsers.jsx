@@ -84,6 +84,7 @@ const OldUsers = () => {
           email: user.email || "",
           phone: user.phone || "",
           role: user.role || "",
+          status: user.status || "active",
           createdAt: user.created_at ? new Date(user.created_at) : null,
         };
       });
@@ -115,7 +116,7 @@ const OldUsers = () => {
   };
 
   const handleAddUser = () => {
-    setSelectedUser({ name: "", email: "", phone: "", role: "", password: "" });
+    setSelectedUser({ name: "", email: "", phone: "", role: "", password: "", status: "active" });
     setAddMode(true);
     setEditMode(true);
   };
@@ -142,6 +143,7 @@ const OldUsers = () => {
           email: userToSave.email,
           phone: userToSave.phone,
           role: userToSave.role || "user",
+          status: userToSave.status || "active",
           createdAt: new Date(),
         };
 
@@ -153,6 +155,7 @@ const OldUsers = () => {
           email: userToSave.email,
           phone: userToSave.phone,
           role: userToSave.role,
+          status: userToSave.status,
         });
 
         setUsers((prev) =>
@@ -179,6 +182,26 @@ const OldUsers = () => {
     } catch (error) {
       console.error("Error deleting user:", error);
       toast.error("Failed to delete user.");
+    }
+  };
+
+  const handleToggleStatus = async (user) => {
+    const newStatus = user.status === "inactive" ? "active" : "inactive";
+    try {
+      await api.put(`/users/${user.id}`, {
+        username: user.name,
+        email: user.email,
+        phone: user.phone,
+        role: user.role,
+        status: newStatus,
+      });
+      setUsers((prev) =>
+        prev.map((u) => (u.id === user.id ? { ...u, status: newStatus } : u))
+      );
+      toast.success(`User status updated to ${newStatus}`);
+    } catch (error) {
+      console.error("Error toggling status:", error);
+      toast.error("Failed to update user status.");
     }
   };
 
@@ -251,17 +274,33 @@ const OldUsers = () => {
               <th className="p-3">Email</th>
               <th className="p-3">Role</th>
               <th className="p-3">Phone</th>
+              <th className="p-3">Status</th>
               <th className="p-3 text-center">Actions</th>
             </tr>
           </thead>
           <tbody>
             {currentUsers.map((user,ind) => (
-              <tr key={user.id} className="border-t border-gray-200 hover:bg-gray-50">
-                <td className="p-3 break-all max-w-xs">{ind+1}</td>
+              <tr
+                key={user.id}
+                onDoubleClick={() => handleToggleStatus(user)}
+                className={`border-t border-gray-200 hover:bg-gray-50 ${user.status === "inactive" ? "bg-red-50" : ""} cursor-pointer`}
+              >
+                <td className="p-3 break-all max-w-xs">{ind + 1}</td>
                 <td className="p-3">{user.name}</td>
                 <td className="p-3">{user.email}</td>
                 <td className="p-3">{user.role}</td>
                 <td className="p-3">{user.phone}</td>
+                <td className="p-3">
+                  <span
+                    className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-semibold ${
+                      user.status === "active"
+                        ? "bg-green-100 text-green-800"
+                        : "bg-red-100 text-red-800"
+                    }`}
+                  >
+                    {user.status}
+                  </span>
+                </td>
                 <td className="p-3">
                   <div className="flex justify-center gap-2">
                     <button
@@ -316,13 +355,28 @@ const OldUsers = () => {
       {/* Mobile Card Layout */}
       <div className="md:hidden space-y-4">
         {currentUsers.map((user) => (
-          <div key={user.id} className="bg-white shadow rounded-lg p-4 space-y-2">
+          <div
+            key={user.id}
+            onDoubleClick={() => handleToggleStatus(user)}
+            className={`bg-white shadow rounded-lg p-4 space-y-2 cursor-pointer ${user.status === "inactive" ? "bg-red-50" : ""}`}
+          >
             <div>
               <p className="text-xs text-gray-400 break-all">ID: {user.user_id}</p>
               <h3 className="font-bold text-blue-900">{user.name}</h3>
               <p className="text-sm text-gray-500">{user.email}</p>
               <p className="text-sm text-gray-500">{user.role}</p>
               <p className="text-sm">Phone: {user.phone}</p>
+              <p className="text-sm mt-2">
+                <span
+                  className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-semibold ${
+                    user.status === "active"
+                      ? "bg-green-100 text-green-800"
+                      : "bg-red-100 text-red-800"
+                  }`}
+                >
+                  {user.status}
+                </span>
+              </p>
             </div>
             <div className="flex justify-end gap-2">
               <button
