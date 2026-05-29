@@ -27,7 +27,7 @@ const ProductKeywords = () => {
 
   const [newKeyword, setNewKeyword] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
-  const [activeTab, setActiveTab] = useState("all");
+  const [activeTab, setActiveTab] = useState("selected");
   const [showAddPopup, setShowAddPopup] = useState(false);
 
   const [editingId, setEditingId] = useState(null);
@@ -161,7 +161,7 @@ const ProductKeywords = () => {
      
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
         <div className="bg-white p-4 rounded-xl shadow border border-gray-100 flex flex-col items-center justify-center text-center">
           <h3 className="text-gray-500 text-sm font-semibold mb-1">Total Keywords</h3>
           <p className="text-3xl font-bold text-blue-900">{stats.totalKeywords}</p>
@@ -169,16 +169,6 @@ const ProductKeywords = () => {
         <div className="bg-white p-4 rounded-xl shadow border border-gray-100 flex flex-col items-center justify-center text-center">
           <h3 className="text-gray-500 text-sm font-semibold mb-1">Active Keywords</h3>
           <p className="text-3xl font-bold text-green-600">{stats.activeKeywords}</p>
-        </div>
-        <div className="bg-white p-4 rounded-xl shadow border border-gray-100 flex flex-col items-center justify-center text-center">
-          <h3 className="text-gray-500 text-sm font-semibold mb-1">Products Tagged</h3>
-          <p className="text-3xl font-bold text-purple-600">{stats.productsTagged}</p>
-        </div>
-        <div className="bg-white p-4 rounded-xl shadow border border-gray-100 flex flex-col items-center justify-center text-center">
-          <h3 className="text-gray-500 text-sm font-semibold mb-1">Most Used Keyword</h3>
-          <p className="text-xl font-bold text-orange-500 truncate w-full px-2" title={stats.mostUsedKeyword}>
-            {stats.mostUsedKeyword}
-          </p>
         </div>
       </div>
 
