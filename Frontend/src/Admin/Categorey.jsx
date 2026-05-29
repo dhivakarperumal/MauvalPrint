@@ -20,12 +20,26 @@ const Category = () => {
   const [categories, setCategories] = useState([]);
   const [activeTab, setActiveTab] = useState("add");
 
+  // ─── Helpers ──────────────────────────────────────────────────────────────
+  const parseJSON = (val, fallback) => {
+    if (Array.isArray(val) || (val && typeof val === "object")) return val;
+    try {
+      return JSON.parse(val);
+    } catch (e) {
+      return fallback;
+    }
+  };
+
+  const generateNextCatId = (list) => {
+    const count = list.length + 1;
+    return `CAT${String(count).padStart(3, "0")}`;
+  };
+
   // ─── Fetch ────────────────────────────────────────────────────────────────
   const fetchCategories = async () => {
     try {
       const { data } = await api.get("/categories");
       const list = data.categories || [];
-      // Parse JSON fields returned as strings from MySQL
       const parsed = list.map((c) => ({
         ...c,
         images: parseJSON(c.images, []),
@@ -39,17 +53,11 @@ const Category = () => {
     }
   };
 
-  const parseJSON = (val, fallback) => {
-    if (Array.isArray(val) || (val && typeof val === "object")) return val;
-    try {
-      return JSON.parse(val);
-    } catch (e) {
-      return fallback;
-    }
-  };
-
   useEffect(() => {
-    fetchCategories();
+    (async () => {
+      const list = await fetchCategories();
+      setCategory((prev) => ({ ...prev, category_id: generateNextCatId(list) }));
+    })();
   }, []);
 
   // ─── Image handling ───────────────────────────────────────────────────────
@@ -103,12 +111,12 @@ const Category = () => {
     }
 
     const payload = {
+      category_id,
       name,
       description,
       images,
       subcategories,
     };
-    if (editId) payload.category_id = category_id;
 
     setLoading(true);
     try {
@@ -121,9 +129,9 @@ const Category = () => {
         toast.success("Category added!");
       }
 
-      await fetchCategories();
+      const list = await fetchCategories();
       setCategory({
-        category_id: "",
+        category_id: generateNextCatId(list),
         name: "",
         description: "",
         images: [],
