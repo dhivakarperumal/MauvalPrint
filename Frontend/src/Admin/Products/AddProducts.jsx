@@ -414,6 +414,14 @@ const handleImageUpload = async (e) => {
     }));
   };
 
+  const handleRemoveImage = (index) => {
+    setPreviewImg((prev) => prev.filter((_, i) => i !== index));
+    setProduct((prev) => ({
+      ...prev,
+      images: prev.images.filter((_, i) => i !== index),
+    }));
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-5 py-8">
       <h2 className="text-3xl font-bold text-blue-900 mb-6">
@@ -838,7 +846,16 @@ const handleImageUpload = async (e) => {
  />
         <div className="mt-3 flex gap-4 flex-wrap">
           {previewImg.map((img, i) => (
-            <img key={i} src={img} alt="preview" className="w-24 h-24 object-cover" />
+            <div key={i} className="relative">
+              <img src={img} alt="preview" className="w-24 h-24 object-cover rounded border border-gray-300" />
+              <button
+                type="button"
+                onClick={() => handleRemoveImage(i)}
+                className="absolute top-0 right-0 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-700 text-xs font-bold"
+              >
+                ×
+              </button>
+            </div>
           ))}
           </div>
         </div>
