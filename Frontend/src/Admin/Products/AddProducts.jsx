@@ -843,30 +843,30 @@ const handleImageUpload = async (e) => {
           </div>
         </div>
 
-        {/* Size Chart Section - Only show after product is selected/created */}
-        {selectedProduct && (
-          <div className="md:col-span-2 border border-gray-300 rounded-xl p-4 bg-blue-50">
-            <h3 className="text-sm font-medium text-gray-700 mb-3">
-              Upload Size Chart (Optional)
-            </h3>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleFileChange}
-              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            />
-            {preview && (
-              <div style={{ marginTop: "10px" }}>
-                <p className="text-sm font-medium text-gray-700 mb-2">Preview:</p>
-                <img
-                  src={preview}
-                  alt="size chart"
-                  width={100}
-                  height={100}
-                  className="rounded border border-gray-300"
-                />
-              </div>
-            )}
+        {/* Size Chart Section - Available for both new and existing products */}
+        <div className="md:col-span-2 border border-gray-300 rounded-xl p-4 bg-blue-50">
+          <h3 className="text-sm font-medium text-gray-700 mb-3">
+            Upload Size Chart (Optional)
+          </h3>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleFileChange}
+            className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          />
+          {preview && (
+            <div style={{ marginTop: "10px" }}>
+              <p className="text-sm font-medium text-gray-700 mb-2">Preview:</p>
+              <img
+                src={preview}
+                alt="size chart"
+                width={100}
+                height={100}
+                className="rounded border border-gray-300"
+              />
+            </div>
+          )}
+          {selectedProduct && (
             <button
               type="button"
               onClick={handleUpload}
@@ -874,8 +874,8 @@ const handleImageUpload = async (e) => {
             >
               Save Size Chart
             </button>
-          </div>
-        )}
+          )}
+        </div>
 
         {/* Washing Details */}
         <div className="md:col-span-2 border border-gray-300 rounded-xl p-3">
