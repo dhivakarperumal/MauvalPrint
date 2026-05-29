@@ -7,11 +7,13 @@ import AOS from "aos";
 import "aos/dist/aos.css";
 import { toast } from "react-toastify";
 import Head from "../Components/Head";
+import api from "../api";
 
 function ProductCard({ product, index, addToCart, addToWishlist, cardSize, setCardSize }) {
   const [clickedProductId, setClickedProductId] = useState(null);
+  const stockByVariant = product?.stockByVariant || {};
 
-  if (!product || !product.stockByVariant) return null;
+  if (!product) return null;
 
   const toggleBubble = (productId) => {
     setClickedProductId((prevId) => (prevId === productId ? null : productId));
@@ -153,6 +155,8 @@ function Products() {
   const { products: contextProducts, addToCart, addToWishlist } = useContext(AuthContext);
   const location = useLocation();
 
+  const [pageProducts, setPageProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [category, setCategory] = useState("all");
   const [selectedSubcategory, setSelectedSubcategory] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
@@ -163,7 +167,8 @@ function Products() {
   const [showFilters, setShowFilters] = useState(false);
   const [cardSize, setCardSize] = useState({});
 
-  const products = Array.isArray(contextProducts) ? contextProducts : [];
+  const products =
+    Array.isArray(contextProducts) && contextProducts.length > 0 ? contextProducts : pageProducts;
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -171,6 +176,81 @@ function Products() {
     setSelectedSubcategory(subcatParam.toLowerCase());
     setCurrentPage(1);
   }, [location.search]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadProducts = async () => {
+      if (Array.isArray(contextProducts) && contextProducts.length > 0) {
+        setLoading(false);
+        return;
+      }
+
+      setLoading(true);
+
+      try {
+        const { data } = await api.get("/products");
+
+        if (!isMounted) return;
+
+        if (data?.success && Array.isArray(data.products)) {
+          const normalized = data.products.map((product) => ({
+            ...product,
+            id: product.product_id || product.id || product.productId || `${product.product_id}`,
+            productId: product.product_id || product.productId || product.id,
+            salePrice: Number(product.sale_price ?? product.salePrice ?? 0),
+            mrp: Number(product.mrp ?? 0),
+            color: typeof product.color === "string"
+              ? product.color.startsWith("[")
+                ? JSON.parse(product.color)
+                : product.color.split(",").map((item) => item.trim()).filter(Boolean)
+              : Array.isArray(product.color)
+              ? product.color
+              : [],
+            size: typeof product.size === "string"
+              ? product.size.startsWith("[")
+                ? JSON.parse(product.size)
+                : product.size.split(",").map((item) => item.trim()).filter(Boolean)
+              : Array.isArray(product.size)
+              ? product.size
+              : [],
+            images: typeof product.images === "string"
+              ? product.images.startsWith("[")
+                ? JSON.parse(product.images)
+                : product.images.split(",").map((item) => item.trim()).filter(Boolean)
+              : Array.isArray(product.images)
+              ? product.images
+              : [],
+            stockByVariant: typeof product.stock_by_variant === "string"
+              ? product.stock_by_variant.startsWith("{")
+                ? JSON.parse(product.stock_by_variant)
+                : {}
+              : product.stock_by_variant || {},
+            ourDesign:
+              product.our_design === 1 ||
+              product.our_design === "1" ||
+              product.ourDesign === true,
+          }));
+
+          const regularProducts = normalized.filter((item) => !item.ourDesign);
+          setPageProducts(regularProducts);
+        } else {
+          setPageProducts([]);
+        }
+      } catch (error) {
+        console.error("Error fetching products from API:", error);
+        setPageProducts([]);
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
+
+    loadProducts();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [contextProducts]);
 
   useEffect(() => {
     AOS.init({ duration: 800, once: true });
@@ -227,8 +307,7 @@ function Products() {
     }, 150);
   };
 
-  // Loading state while products are loading
-  if (!products || products.length === 0) {
+  if (loading) {
     return (
       <div className="mt-18">
         <Head title="Our Products" subtitle="Products" />
@@ -236,6 +315,17 @@ function Products() {
           <div className="flex justify-center items-center mt-20">
             <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
           </div>
+        </section>
+      </div>
+    );
+  }
+
+  if (!products || products.length === 0) {
+    return (
+      <div className="mt-18">
+        <Head title="Our Products" subtitle="Products" />
+        <section className="p-4 md:p-8 bg-white">
+          <p className="text-center text-gray-500 py-20">No products found.</p>
         </section>
       </div>
     );
