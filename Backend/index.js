@@ -8,6 +8,7 @@ const printOrderRoutes = require("./src/routers/printOrderRoutes");
 const reviewRoutes = require("./src/routers/reviewRoutes");
 const dealerRoutes = require("./src/routers/dealerRoutes");
 const invoiceRoutes = require("./src/routers/invoiceRoutes");
+const keywordRoutes = require("./src/routers/keywordRoutes");
 require("dotenv").config();
 
 const app = express();
@@ -27,11 +28,12 @@ app.use((req, res, next) => {
 
 app.use("/api", userRoutes);
 app.use("/api", productRoutes);
-app.use("/api", orderRoutes);
-app.use("/api", printOrderRoutes);
+app.use("/api/orders", orderRoutes);
+app.use("/api/print-orders", printOrderRoutes);
 app.use("/api", reviewRoutes);
-app.use("/api", dealerRoutes);
-app.use("/api", invoiceRoutes);
+app.use("/api/dealers", dealerRoutes);
+app.use("/api/invoices", invoiceRoutes);
+app.use("/api/keywords", keywordRoutes);
 
 // Health Check
 app.get("/api/health", (req, res) => {

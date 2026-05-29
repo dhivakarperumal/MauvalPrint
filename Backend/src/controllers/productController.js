@@ -48,6 +48,7 @@ const addProduct = async (req, res) => {
     images,
     our_design,
     keyword,
+    keywords,
     washing_details,
     notes,
     stock_by_variant,
@@ -70,9 +71,9 @@ const addProduct = async (req, res) => {
       `INSERT INTO products (
         product_id, title, name, category, subcategory, color, size, 
         offer, rating, mrp, sale_price, stock, description, fabric_details, 
-        fabric_gsm, images, our_design, keyword, washing_details, notes, 
+        fabric_gsm, images, our_design, keyword, keywords, washing_details, notes, 
         stock_by_variant, size_chart_image, created_at, updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         productId,
         title,
@@ -92,6 +93,7 @@ const addProduct = async (req, res) => {
         JSON.stringify(images || []),
         our_design ? 1 : 0,
         keyword || null,
+        JSON.stringify(keywords || []),
         JSON.stringify(washing_details || []),
         notes || null,
         JSON.stringify(stock_by_variant || {}),
@@ -135,6 +137,7 @@ const updateProduct = async (req, res) => {
     images,
     our_design,
     keyword,
+    keywords,
     washing_details,
     notes,
     stock_by_variant,
@@ -216,6 +219,10 @@ const updateProduct = async (req, res) => {
     if (keyword !== undefined) {
       fields.push("keyword = ?");
       values.push(keyword);
+    }
+    if (keywords !== undefined) {
+      fields.push("keywords = ?");
+      values.push(JSON.stringify(keywords));
     }
     if (washing_details !== undefined) {
       fields.push("washing_details = ?");

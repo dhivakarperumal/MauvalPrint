@@ -24,6 +24,7 @@ const AddProducts = ({ selectedProduct, setSelectedProduct, setActiveTab }) => {
     images: [],
     ourDesign: true,
     keyword: "",
+    keywords: [],
     washingDetails: [],
     notes: "",
   });
@@ -33,6 +34,7 @@ const AddProducts = ({ selectedProduct, setSelectedProduct, setActiveTab }) => {
   const [loading, setLoading] = useState(false);
   const [categories, setCategories] = useState([]);
   const [subcategories, setSubcategories] = useState([]);
+  const [availableKeywords, setAvailableKeywords] = useState([]);
 
   // FIXED: sizeChart & preview logic
   const [sizeChart, setSizeChart] = useState(null); // stores base64
@@ -178,6 +180,7 @@ const AddProducts = ({ selectedProduct, setSelectedProduct, setActiveTab }) => {
       images: [],
       ourDesign: true,
       keyword: "",
+      keywords: [],
       washingDetails: [],
       notes: "That the T-shirt's color may differ slightly from the picture.",
     });
@@ -231,6 +234,7 @@ const AddProducts = ({ selectedProduct, setSelectedProduct, setActiveTab }) => {
         images: selectedProduct.images ? (Array.isArray(selectedProduct.images) ? selectedProduct.images : JSON.parse(selectedProduct.images || "[]")) : [],
         ourDesign: selectedProduct.our_design || false,
         keyword: selectedProduct.keyword || "",
+        keywords: selectedProduct.keywords ? (Array.isArray(selectedProduct.keywords) ? selectedProduct.keywords : JSON.parse(selectedProduct.keywords || "[]")) : [],
         washingDetails: selectedProduct.washing_details ? (Array.isArray(selectedProduct.washing_details) ? selectedProduct.washing_details : JSON.parse(selectedProduct.washing_details || "[]")) : [],
         notes: selectedProduct.notes || "",
       });
@@ -322,6 +326,7 @@ const handleImageUpload = async (e) => {
         images: product.images,
         our_design: product.ourDesign,
         keyword: product.keyword,
+        keywords: product.keywords,
         washing_details: product.washingDetails,
         notes: product.notes,
         stock_by_variant: stockByVariant,
@@ -382,6 +387,21 @@ const handleImageUpload = async (e) => {
       }
     };
     fetchCategories();
+  }, []);
+
+  // Fetch active keywords
+  useEffect(() => {
+    const fetchKeywords = async () => {
+      try {
+        const { data } = await api.get("/keywords");
+        if (data.success) {
+          setAvailableKeywords(data.keywords.filter(kw => kw.status === 'active'));
+        }
+      } catch (err) {
+        console.error("Error fetching keywords:", err);
+      }
+    };
+    fetchKeywords();
   }, []);
 
   useEffect(() => {
@@ -829,16 +849,85 @@ const handleImageUpload = async (e) => {
             <label className="block text-sm font-medium text-gray-700">
               Keyword <span className="text-gray-400">(used for search)</span>
             </label>
-            <input
-              type="text"
+            <select
               name="keyword"
               value={product.keyword}
               onChange={handleInputChange}
-              placeholder="e.g. summer, floral, cotton"
               className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            />
+            >
+              <option value="">Select keyword</option>
+              {availableKeywords.map((kw) => (
+                <option key={kw.keyword_id} value={kw.keyword_name}>
+                  {kw.keyword_name}
+                </option>
+              ))}
+            </select>
           </div>
-        )}  
+        )}
+
+        {/* ✅ Multi-Select Product Keywords */}
+        <div className="md:col-span-2 border border-gray-200 rounded-xl p-4 bg-gray-50">
+          <label className="block text-sm font-bold text-gray-700 mb-3">
+            Product Keywords <span className="text-gray-400 font-normal">(select multiple)</span>
+          </label>
+          {availableKeywords.length === 0 ? (
+            <p className="text-sm text-gray-400">No keywords available. Add from Product Keywords page.</p>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+              {availableKeywords.map((kw) => (
+                <label
+                  key={kw.keyword_id}
+                  className={`flex items-center gap-2 px-3 py-2 rounded-lg border cursor-pointer transition-all text-sm ${
+                    product.keywords.includes(kw.keyword_name)
+                      ? "bg-blue-100 border-blue-500 text-blue-800 font-semibold"
+                      : "bg-white border-gray-200 text-gray-700 hover:border-blue-300"
+                  }`}
+                >
+                  <input
+                    type="checkbox"
+                    value={kw.keyword_name}
+                    checked={product.keywords.includes(kw.keyword_name)}
+                    onChange={(e) => {
+                      const checked = e.target.checked;
+                      setProduct((prev) => ({
+                        ...prev,
+                        keywords: checked
+                          ? [...prev.keywords, kw.keyword_name]
+                          : prev.keywords.filter((k) => k !== kw.keyword_name),
+                      }));
+                    }}
+                    className="accent-blue-600"
+                  />
+                  {kw.keyword_name}
+                </label>
+              ))}
+            </div>
+          )}
+          {product.keywords.length > 0 && (
+            <div className="mt-3 flex flex-wrap gap-2">
+              {product.keywords.map((kw) => (
+                <span
+                  key={kw}
+                  className="inline-flex items-center gap-1 bg-blue-900 text-white text-xs font-medium px-3 py-1 rounded-full"
+                >
+                  {kw}
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setProduct((prev) => ({
+                        ...prev,
+                        keywords: prev.keywords.filter((k) => k !== kw),
+                      }))
+                    }
+                    className="ml-1 text-white hover:text-red-200 font-bold"
+                  >
+                    ×
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
 
         
 
