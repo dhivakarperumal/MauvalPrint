@@ -1,21 +1,21 @@
-import React, { createContext, useState, useEffect, useCallback } from "react";
+/* eslint-disable react-refresh/only-export-components */
+import React, { createContext, useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import { auth, db, googleProvider } from "../firebase";
 import {
-  signInWithEmailAndPassword,
   signInWithPopup,
   signInWithRedirect,
   signOut,
   sendPasswordResetEmail,
   onAuthStateChanged,
 } from "firebase/auth";
+import api from "../api";
 import {
   doc,
   getDoc,
   setDoc,
   collection,
   getDocs,
-  addDoc,
   deleteDoc,
   onSnapshot,
   query,
@@ -30,6 +30,7 @@ import {
 } from "firebase/storage";
 
 const storage = getStorage();
+const API_USER_KEY = "apiUser";
 
 export const AuthContext = createContext();
 
@@ -45,6 +46,11 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     let unsubscribeUser = null;
 
+    const storedApiUser = localStorage.getItem(API_USER_KEY);
+    if (storedApiUser) {
+      setUser(JSON.parse(storedApiUser));
+    }
+
     const unsubscribeAuth = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         const userDocRef = doc(db, "users", firebaseUser.uid);
@@ -53,7 +59,7 @@ export function AuthProvider({ children }) {
             setLoggedIn(docSnap.data());
           }
         });
-      } else {
+      } else if (!localStorage.getItem(API_USER_KEY)) {
         setUser(null);
       }
     });
@@ -160,13 +166,18 @@ export function AuthProvider({ children }) {
   };
 
   const loginWithEmail = async (email, password) => {
-    const result = await signInWithEmailAndPassword(auth, email, password);
-    const userDoc = await getDoc(doc(db, "users", result.user.uid));
-    if (userDoc.exists()) {
-      setLoggedIn(userDoc.data());
-    } else {
-      throw new Error("User not found in database");
+    const response = await api.post("/login", { email, password });
+    const apiUser = response.data?.data;
+    if (!apiUser) {
+      throw new Error("Login failed");
     }
+    const normalizedUser = {
+      ...apiUser,
+      uid: apiUser.user_id || apiUser.uid,
+    };
+    setLoggedIn(normalizedUser);
+    localStorage.setItem(API_USER_KEY, JSON.stringify(normalizedUser));
+    return normalizedUser;
   };
 
   const loginWithGoogle = async () => {
@@ -230,7 +241,12 @@ export function AuthProvider({ children }) {
   };
 
   const logout = async () => {
-    await signOut(auth);
+    localStorage.removeItem(API_USER_KEY);
+    try {
+      await signOut(auth);
+    } catch (error) {
+      console.warn("Firebase sign-out skipped or not available", error);
+    }
     setLoggedIn(null);
   };
 

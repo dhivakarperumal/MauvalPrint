@@ -9,6 +9,14 @@ const hashPassword = async (password) => {
   return `${salt}:${derived.toString("hex")}`;
 };
 
+const verifyPassword = async (password, storedHash) => {
+  if (!storedHash || !password) return false;
+  const [salt, key] = storedHash.split(":" );
+  if (!salt || !key) return false;
+  const derived = await scrypt(password, salt, 64);
+  return derived.toString("hex") === key;
+};
+
 const register = async (req, res) => {
   const { username, email, phone, password, confirmPassword } = req.body;
 
@@ -94,4 +102,70 @@ const register = async (req, res) => {
   }
 };
 
-module.exports = { register };
+const login = async (req, res) => {
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    return res.status(400).json({
+      success: false,
+      message: "Email and password are required.",
+    });
+  }
+
+  if (!email.includes("@")) {
+    return res.status(400).json({
+      success: false,
+      message: "Please enter a valid email address.",
+    });
+  }
+
+  try {
+    const pool = req.app.locals.pool;
+    const [users] = await pool.query(
+      "SELECT id, user_id, username, email, password_hash, role, status FROM users WHERE email = ?",
+      [email]
+    );
+
+    if (users.length === 0) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid email or password.",
+      });
+    }
+
+    const user = users[0];
+    if (user.status !== "active") {
+      return res.status(403).json({
+        success: false,
+        message: "Your account is not active.",
+      });
+    }
+
+    const isPasswordValid = await verifyPassword(password, user.password_hash);
+    if (!isPasswordValid) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid email or password.",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Login successful.",
+      data: {
+        user_id: user.user_id,
+        username: user.username,
+        email: user.email,
+        role: user.role,
+      },
+    });
+  } catch (error) {
+    console.error("Login error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Login failed. Please try again.",
+    });
+  }
+};
+
+module.exports = { register, login };

@@ -3,7 +3,6 @@ import { FcGoogle } from "react-icons/fc";
 import { IoClose } from "react-icons/io5";
 import { AuthContext } from "../Context/AuthContext";
 import tshirtImg from "/Image/login.png";
-import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 
 export default function Login({ onClose, onSwitch }) {
@@ -11,7 +10,6 @@ export default function Login({ onClose, onSwitch }) {
     useContext(AuthContext);
   const [form, setForm] = useState({ email: "", password: "" });
   const [rememberMe, setRememberMe] = useState(false);
-  const navigate = useNavigate();
 
   useEffect(() => {
     const savedEmail = localStorage.getItem("rememberedEmail");
@@ -40,7 +38,9 @@ export default function Login({ onClose, onSwitch }) {
       // navigate("/"); // uncomment if you want redirect
     } catch (err) {
       console.error("Login error:", err);
-      toast.error("Invalid email or password");
+      const errorMessage =
+        err?.response?.data?.message || err?.message || "Invalid email or password";
+      toast.error(errorMessage);
     }
   };
 
