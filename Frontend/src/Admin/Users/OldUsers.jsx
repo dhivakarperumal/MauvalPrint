@@ -1,15 +1,5 @@
 import React, { useEffect, useState } from "react";
-import {
-  collection,
-  getDocs,
-  deleteDoc,
-  updateDoc,
-  doc,
-  setDoc,
-  serverTimestamp,
-} from "firebase/firestore";
-import { db, auth } from "../../firebase";
-import { createUserWithEmailAndPassword } from "firebase/auth";
+import api from "../../api";
 import { FaEye, FaEdit, FaTrash, FaPlus } from "react-icons/fa";
 import toast from "react-hot-toast";
 
@@ -34,44 +24,9 @@ const OldUsers = () => {
   }, []);
 
   useEffect(() => {
-    applyFilters();
-  }, [users, search, filter, customFrom, customTo]);
-
-  // Fetch users from Firestore
-  const fetchUsers = async () => {
-    try {
-      const snapshot = await getDocs(collection(db, "users"));
-      const data = snapshot.docs.map((doc) => {
-        const user = doc.data();
-        let createdAt = user.createdAt?.toDate
-          ? user.createdAt.toDate()
-          : user.createdAt
-          ? new Date(user.createdAt)
-          : null;
-
-        return {
-          id: doc.id,
-          user_id: user.user_id || user.uid || doc.id,
-          uid: user.uid || "",
-          name: user.fullName || user.name || user.username || "",
-          email: user.email || "",
-          phone: user.phone || "",
-          role: user.role || "",
-          createdAt,
-        };
-      });
-      setUsers(data);
-    } catch (error) {
-      console.error("Error fetching users:", error);
-      toast.error("Failed to fetch users.");
-    }
-  };
-
-  const applyFilters = () => {
     let temp = [...users];
     const now = new Date();
 
-    // Time filters
     temp = temp.filter((user) => {
       if (!user.createdAt) return true;
 
@@ -105,7 +60,6 @@ const OldUsers = () => {
       return true;
     });
 
-    // Search
     if (search.trim() !== "") {
       temp = temp.filter(
         (u) =>
@@ -117,6 +71,27 @@ const OldUsers = () => {
 
     setFilteredUsers(temp);
     setCurrentPage(1);
+  }, [users, search, filter, customFrom, customTo]);
+
+  const fetchUsers = async () => {
+    try {
+      const { data } = await api.get("/users");
+      const dataUsers = (data.users || []).map((user) => {
+        return {
+          id: user.id,
+          user_id: user.user_id || user.id,
+          name: user.username || user.fullName || user.name || "",
+          email: user.email || "",
+          phone: user.phone || "",
+          role: user.role || "",
+          createdAt: user.created_at ? new Date(user.created_at) : null,
+        };
+      });
+      setUsers(dataUsers);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      toast.error("Failed to fetch users.");
+    }
   };
 
   // Generate password
@@ -147,38 +122,37 @@ const OldUsers = () => {
 
   const handleUpdate = async () => {
     try {
-      let userToSave = { ...selectedUser };
+      const userToSave = { ...selectedUser };
 
       if (addMode) {
-        userToSave.password = generatePassword(userToSave.name, userToSave.phone);
+        const password = generatePassword(userToSave.name, userToSave.phone);
+        const payload = {
+          username: userToSave.name,
+          email: userToSave.email,
+          phone: userToSave.phone,
+          password,
+          confirmPassword: password,
+        };
 
-        const userCredential = await createUserWithEmailAndPassword(
-          auth,
-          userToSave.email,
-          userToSave.password
-        );
-        const uid = userCredential.user.uid;
+        const { data } = await api.post("/register", payload);
+        const newUser = {
+          id: data.user_id || data.data?.user_id || userToSave.email,
+          user_id: data.user_id || data.data?.user_id || userToSave.email,
+          name: userToSave.name,
+          email: userToSave.email,
+          phone: userToSave.phone,
+          role: userToSave.role || "user",
+          createdAt: new Date(),
+        };
 
-        await setDoc(doc(db, "users", uid), {
-          uid,
+        setUsers((prev) => [...prev, newUser]);
+        toast.success(`User added! Password: ${password}`);
+      } else {
+        await api.put(`/users/${userToSave.id}`, {
           username: userToSave.name,
           email: userToSave.email,
           phone: userToSave.phone,
           role: userToSave.role,
-          password: userToSave.password,
-          createdAt: serverTimestamp(),
-          updatedAt: serverTimestamp(),
-        });
-
-        setUsers((prev) => [...prev, { ...userToSave, id: uid, uid }]);
-        toast.success(`User added! Password: ${userToSave.password}`);
-      } else {
-        await updateDoc(doc(db, "users", userToSave.id), {
-          fullName: userToSave.name,
-          email: userToSave.email,
-          phone: userToSave.phone,
-          role: userToSave.role,
-          updatedAt: serverTimestamp(),
         });
 
         setUsers((prev) =>
@@ -192,14 +166,14 @@ const OldUsers = () => {
       setAddMode(false);
     } catch (error) {
       console.error("Error saving user:", error);
-      toast.error("Failed to save user. " + error.message);
+      toast.error("Failed to save user. " + (error.response?.data?.message || error.message));
     }
   };
 
   const handleDelete = async (user) => {
     if (!window.confirm("Are you sure you want to delete this user?")) return;
     try {
-      await deleteDoc(doc(db, "users", user.id));
+      await api.delete(`/users/${user.id}`);
       setUsers((prev) => prev.filter((u) => u.id !== user.id));
       toast.success("User deleted successfully!");
     } catch (error) {
@@ -272,7 +246,7 @@ const OldUsers = () => {
         <table className="min-w-full text-sm text-left">
           <thead className="bg-gray-800 text-white">
             <tr>
-              <th className="p-3">User ID</th>
+              <th className="p-3">S No</th>
               <th className="p-3">Name</th>
               <th className="p-3">Email</th>
               <th className="p-3">Role</th>
@@ -281,9 +255,9 @@ const OldUsers = () => {
             </tr>
           </thead>
           <tbody>
-            {currentUsers.map((user) => (
+            {currentUsers.map((user,ind) => (
               <tr key={user.id} className="border-t border-gray-200 hover:bg-gray-50">
-                <td className="p-3 break-all max-w-xs">{user.user_id}</td>
+                <td className="p-3 break-all max-w-xs">{ind+1}</td>
                 <td className="p-3">{user.name}</td>
                 <td className="p-3">{user.email}</td>
                 <td className="p-3">{user.role}</td>
@@ -341,7 +315,7 @@ const OldUsers = () => {
 
       {/* Mobile Card Layout */}
       <div className="md:hidden space-y-4">
-        {currentUsers.map((user, index) => (
+        {currentUsers.map((user) => (
           <div key={user.id} className="bg-white shadow rounded-lg p-4 space-y-2">
             <div>
               <p className="text-xs text-gray-400 break-all">ID: {user.user_id}</p>
