@@ -40,15 +40,21 @@ const Billing = ({ setActiveTab }) => {
     fetchProducts();
   }, []);
 
+  const parseVariants = (raw) => {
+    if (!raw) return {};
+    if (typeof raw === "object") return raw;
+    try { return JSON.parse(raw); } catch { return {}; }
+  };
+
   const handleProductSelect = (id) => {
     setSelectedId(id);
-    const product = products.find((p) => p.productId === id);
+    const product = products.find((p) => p.product_id === id);
     if (!product) return;
 
     setCategory(product.category || "");
     setDerivedCategory(product.category || "");
 
-    const variantKeys = Object.keys(product.stockByVariant || {});
+    const variantKeys = Object.keys(parseVariants(product.stock_by_variant));
     const colors = Array.from(
       new Set(variantKeys.map((key) => key.split("-")[0]))
     );
@@ -69,12 +75,12 @@ const Billing = ({ setActiveTab }) => {
       return;
     }
 
-    const product = products.find((p) => p.productId === selectedId);
-    if (!product || !product.stockByVariant) return;
+    const product = products.find((p) => p.product_id === selectedId);
+    if (!product) return;
 
+    const variants = parseVariants(product.stock_by_variant);
     const key = `${color}-${size}`;
-    const qty = product.stockByVariant[key] || 0;
-    setAvailableQty(qty);
+    setAvailableQty(variants[key] || 0);
   }, [selectedId, color, size, products]);
 
   const handleAddToCart = () => {
@@ -83,11 +89,12 @@ const Billing = ({ setActiveTab }) => {
       return;
     }
 
-    const product = products.find((p) => p.productId === selectedId);
-    if (!product || !product.stockByVariant) return;
+    const product = products.find((p) => p.product_id === selectedId);
+    if (!product) return;
 
+    const variants = parseVariants(product.stock_by_variant);
     const key = `${color}-${size}`;
-    const available = product.stockByVariant[key] || 0;
+    const available = variants[key] || 0;
 
     if (available < quantity) {
       toast.error("Selected variant is out of stock or insufficient quantity.");
@@ -96,7 +103,7 @@ const Billing = ({ setActiveTab }) => {
 
     const existing = cart.find(
       (item) =>
-        item.productId === selectedId &&
+        item.product_id === selectedId &&
         item.color === color &&
         item.size === size &&
         item.category === category
@@ -106,14 +113,19 @@ const Billing = ({ setActiveTab }) => {
       return;
     }
 
+    const images = (() => {
+      if (Array.isArray(product.images)) return product.images;
+      try { return JSON.parse(product.images || "[]"); } catch { return []; }
+    })();
+
     const cartItem = {
       ...product,
       quantity,
       color,
       size,
       category,
-      price: product.salePrice,
-      image: product.images?.[0] || "",
+      price: product.sale_price,
+      image: images[0] || "",
       uid: `${selectedId}-${color}-${size}-${Date.now()}`,
     };
 
@@ -263,8 +275,8 @@ const Billing = ({ setActiveTab }) => {
           <select value={selectedId} onChange={(e) => handleProductSelect(e.target.value)} className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
             <option value="">Select Product</option>
             {products.map((p) => (
-              <option key={p.id} value={p.productId}>
-                {p.name} - ₹{p.salePrice}
+              <option key={p.product_id} value={p.product_id}>
+                {p.name} - ₹{p.sale_price}
               </option>
             ))}
           </select>
