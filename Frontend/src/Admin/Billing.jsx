@@ -1,13 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import {
-  collection,
-  getDocs,
-  addDoc,
-  updateDoc,
-  doc,
-  serverTimestamp,
-} from "firebase/firestore";
-import { db } from "../firebase";
+import api from "../api";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast"; 
 
@@ -37,12 +29,13 @@ const Billing = ({ setActiveTab }) => {
 
   useEffect(() => {
     const fetchProducts = async () => {
-      const snapshot = await getDocs(collection(db, "products"));
-      const productList = snapshot.docs.map((doc) => ({
-        ...doc.data(),
-        id: doc.id,
-      }));
-      setProducts(productList);
+      try {
+        const { data } = await api.get("/products");
+        setProducts(data.products || []);
+      } catch (error) {
+        console.error("Failed to fetch products:", error);
+        toast.error("Failed to fetch products");
+      }
     };
     fetchProducts();
   }, []);
@@ -154,27 +147,12 @@ const Billing = ({ setActiveTab }) => {
     }
 
     try {
-      const orderSnapshot = await getDocs(collection(db, "orders"));
-      const orderCount = orderSnapshot.size + 1;
-      const orderID = `ORD${String(orderCount).padStart(4, "0")}`;
-
-      // Update stock
+      // Update stock for each item
       for (let item of cart) {
-        const productRef = doc(db, "products", item.id);
-        const product = products.find((p) => p.id === item.id);
-        if (!product || !product.stockByVariant) continue;
-
-        const key = `${item.color}-${item.size}`;
-        const currentQty = product.stockByVariant[key] || 0;
-        const updatedStockByVariant = {
-          ...product.stockByVariant,
-          [key]: currentQty - item.quantity,
-        };
-        const totalStock = Object.values(updatedStockByVariant).reduce((a, b) => a + b, 0);
-
-        await updateDoc(productRef, {
-          stockByVariant: updatedStockByVariant,
-          stock: totalStock,
+        await api.put(`/products/${item.product_id || item.productId}/stock`, {
+          color: item.color,
+          size: item.size,
+          quantity: item.quantity,
         });
       }
 
@@ -189,8 +167,7 @@ const Billing = ({ setActiveTab }) => {
         customizedImage: item.customizedImage || "",
       }));
 
-      await addDoc(collection(db, "orders"), {
-        orderID,
+      await api.post("/orders", {
         customerName,
         customerPhone,
         gstNumber,
@@ -200,7 +177,6 @@ const Billing = ({ setActiveTab }) => {
         subtotal,
         total,
         status: "Delivered",
-        createdAt: serverTimestamp(),
       });
 
       toast.success("Order saved successfully!");

@@ -1,128 +1,142 @@
 import React, { useState, useEffect } from "react";
-import { db } from "../../firebase";
-import { doc, getDoc, updateDoc, collection, getDocs } from "firebase/firestore";
+import api from "../../api";
 import toast from "react-hot-toast";
 
+const parseJSON = (value, fallback) => {
+  if (Array.isArray(value) || (value && typeof value === "object")) return value;
+  try {
+    return JSON.parse(value);
+  } catch {
+    return fallback;
+  }
+};
+
 const AddStock = () => {
-  const [productIds, setProductIds] = useState([]);
+  const [products, setProducts] = useState([]);
   const [selectedId, setSelectedId] = useState("");
   const [product, setProduct] = useState({
-    pId: "",
+    product_id: "",
     name: "",
     color: [],
     category: "",
     size: [],
     stock: 0,
-    stockByVariant: {},
+    stock_by_variant: {},
   });
 
   const [selectedSize, setSelectedSize] = useState("");
   const [selectedColor, setSelectedColor] = useState("");
   const [addStock, setAddStock] = useState("");
 
+  // Fetch all products once on mount
   useEffect(() => {
-    const fetchProductIds = async () => {
+    const fetchProducts = async () => {
       try {
-        const snapshot = await getDocs(collection(db, "products"));
-        const ids = snapshot.docs
-          .map((doc) => ({
-            docId: doc.id,
-            productId: doc.data().id || "",
-          }))
-          .filter((item) => item.productId.startsWith("MP"));
-        setProductIds(ids);
+        const res = await api.get("/products");
+        if (res.data.success) {
+          const mpProducts = res.data.products.filter((p) =>
+            p.product_id?.startsWith("MP")
+          );
+          setProducts(mpProducts);
+        }
       } catch (err) {
         console.error(err);
         toast.error("Failed to load product IDs");
       }
     };
-    fetchProductIds();
+    fetchProducts();
   }, []);
 
+  // Populate product details when selection changes
   useEffect(() => {
-    const fetchProductDetails = async () => {
-      if (!selectedId) return;
-      try {
-        const docRef = doc(db, "products", selectedId);
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-          const data = docSnap.data();
-          setProduct({
-            pId: data.id || "",
-            name: data.name || "",
-            color: Array.isArray(data.color) ? data.color : [data.color],
-            category: data.category || "",
-            size: Array.isArray(data.size) ? data.size : [data.size],
-            stock: data.stock || 0,
-            stockByVariant: data.stockByVariant || {},
-          });
-        } else {
-          toast.error("Product not found!");
-        }
-      } catch (error) {
-        console.error(error);
-        toast.error("Failed to fetch product details");
-      }
-    };
-    fetchProductDetails();
-  }, [selectedId]);
+    if (!selectedId) {
+      setProduct({
+        product_id: "",
+        name: "",
+        color: [],
+        category: "",
+        size: [],
+        stock: 0,
+        stock_by_variant: {},
+      });
+      return;
+    }
+
+    const found = products.find((p) => p.product_id === selectedId);
+    if (found) {
+      setProduct({
+        product_id: found.product_id || "",
+        name: found.name || "",
+        color: parseJSON(found.color, []),
+        category: found.category || "",
+        size: parseJSON(found.size, []),
+        stock: found.stock || 0,
+        stock_by_variant: parseJSON(found.stock_by_variant, {}),
+      });
+    } else {
+      toast.error("Product not found!");
+    }
+
+    setSelectedSize("");
+    setSelectedColor("");
+    setAddStock("");
+  }, [selectedId, products]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     const added = Number(addStock);
-    if (!selectedId || !selectedSize || !selectedColor || isNaN(added) || added <= 0) {
+    if (
+      !selectedId ||
+      !selectedSize ||
+      !selectedColor ||
+      isNaN(added) ||
+      added <= 0
+    ) {
       toast.error("Select product, size, color, and enter valid stock.");
       return;
     }
 
     try {
-      const docRef = doc(db, "products", selectedId);
-      const docSnap = await getDoc(docRef);
-      if (!docSnap.exists()) {
-        toast.error("Product not found!");
-        return;
-      }
-
-      const data = docSnap.data();
-      let stockByVariant = { ...data.stockByVariant } || {};
-      const key = `${selectedColor}-${selectedSize}`;
-      const currentQty = Number(stockByVariant[key] || 0);
-      stockByVariant[key] = currentQty + added;
-
-      const existingTotalStock = Number(data.stock || 0);
-      const updatedTotalStock = existingTotalStock + added;
-
-      await updateDoc(docRef, {
-        stockByVariant,
-        stock: updatedTotalStock,
+      const res = await api.put(`/products/${selectedId}/stock`, {
+        color: selectedColor,
+        size: selectedSize,
+        quantity: added,
       });
 
-      toast.success(`Stock updated: ${key} = ${stockByVariant[key]}`);
+      if (res.data.success) {
+        const key = `${selectedColor}-${selectedSize}`;
+        toast.success(
+          `Stock updated: ${key} = ${res.data.stock_by_variant[key]}`
+        );
 
-      setProduct((prev) => ({
-        ...prev,
-        stockByVariant,
-        stock: updatedTotalStock,
-      }));
+        setProduct((prev) => ({
+          ...prev,
+          stock: res.data.stock,
+          stock_by_variant: res.data.stock_by_variant,
+        }));
 
-      setAddStock("");
-      setSelectedSize("");
-      setSelectedColor("");
+        setAddStock("");
+        setSelectedSize("");
+        setSelectedColor("");
+      }
     } catch (error) {
       console.error("Update error:", error);
-      toast.error("Failed to update stock.");
+      toast.error(
+        error?.response?.data?.message || "Failed to update stock."
+      );
     }
   };
 
-  const currentQty = product.stockByVariant[`${selectedColor}-${selectedSize}`] || 0;
+  const currentQty =
+    product.stock_by_variant[`${selectedColor}-${selectedSize}`] || 0;
 
   return (
     <div className="p-4 min-h-screen">
       <div className="max-w-7xl mx-auto">
         <h2 className="text-3xl font-bold text-blue-900">Add Product Stock</h2>
         <p className="text-sm text-gray-500 mb-6">
-          Select product, size & color to add stock.
+          Select product, size &amp; color to add stock.
         </p>
       </div>
 
@@ -140,9 +154,9 @@ const AddStock = () => {
               className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
               <option value="">-- Select Product --</option>
-              {productIds.map(({ docId, productId }) => (
-                <option key={docId} value={docId}>
-                  {productId}
+              {products.map((p) => (
+                <option key={p.product_id} value={p.product_id}>
+                  {p.product_id}
                 </option>
               ))}
             </select>
@@ -150,17 +164,21 @@ const AddStock = () => {
 
           {/* Product Name */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Product Name</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Product Name
+            </label>
             <input
               value={product.name}
               disabled
-              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full border border-gray-300 rounded-lg px-4 py-2 bg-gray-50 focus:outline-none"
             />
           </div>
 
           {/* Size */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Select Size *</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Select Size *
+            </label>
             <select
               value={selectedSize}
               onChange={(e) => setSelectedSize(e.target.value)}
@@ -178,7 +196,9 @@ const AddStock = () => {
 
           {/* Color */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Select Color *</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Select Color *
+            </label>
             <select
               value={selectedColor}
               onChange={(e) => setSelectedColor(e.target.value)}
@@ -196,18 +216,22 @@ const AddStock = () => {
 
           {/* Current Stock for Selected Variant */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Current Variant Stock</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Current Variant Stock
+            </label>
             <input
               type="number"
               value={currentQty}
               disabled
-              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full border border-gray-300 rounded-lg px-4 py-2 bg-gray-50 focus:outline-none"
             />
           </div>
 
           {/* Add Stock */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Add Stock *</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Add Stock *
+            </label>
             <input
               type="number"
               value={addStock}
@@ -231,26 +255,30 @@ const AddStock = () => {
         </form>
       </div>
 
-      {/*  Existing Stock Table */}
-      {Object.keys(product.stockByVariant).length > 0 && (
+      {/* Existing Stock Table */}
+      {Object.keys(product.stock_by_variant).length > 0 && (
         <div className="mt-8 max-w-7xl mx-auto bg-white p-6 rounded-lg shadow">
-          <h3 className="text-xl font-semibold text-blue-900 mb-4">Existing Stock</h3>
+          <h3 className="text-xl font-semibold text-blue-900 mb-4">
+            Existing Stock
+          </h3>
           <p className="text-gray-600 mb-4">Total Stock: {product.stock}</p>
           <div className="hidden md:block overflow-x-auto shadow rounded-lg">
-        <table className="w-full text-sm text-left">
-          <thead className="bg-gray-800 text-white">
+            <table className="w-full text-sm text-left">
+              <thead className="bg-gray-800 text-white">
                 <tr>
-                  <th className="px-4 py-2 ">Variant (Color-Size)</th>
+                  <th className="px-4 py-2">Variant (Color-Size)</th>
                   <th className="px-4 py-2">Qty</th>
                 </tr>
               </thead>
               <tbody>
-                {Object.entries(product.stockByVariant).map(([key, qty], idx) => (
-                  <tr key={idx} className="border-t border-gray-300">
-                    <td className="px-4 py-2 ">{key}</td>
-                    <td className="px-4 py-2">{qty}</td>
-                  </tr>
-                ))}
+                {Object.entries(product.stock_by_variant).map(
+                  ([key, qty], idx) => (
+                    <tr key={idx} className="border-t border-gray-300">
+                      <td className="px-4 py-2">{key}</td>
+                      <td className="px-4 py-2">{qty}</td>
+                    </tr>
+                  )
+                )}
               </tbody>
             </table>
           </div>
@@ -261,4 +289,3 @@ const AddStock = () => {
 };
 
 export default AddStock;
-

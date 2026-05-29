@@ -409,9 +409,70 @@ const deleteProduct = async (req, res) => {
   }
 };
 
+const updateStock = async (req, res) => {
+  const { id } = req.params; // product_id e.g. "MP001"
+  const { color, size, quantity } = req.body;
+
+  const added = Number(quantity);
+  if (!color || !size || isNaN(added) || added <= 0) {
+    return res.status(400).json({
+      success: false,
+      message: "Color, size, and a valid quantity are required.",
+    });
+  }
+
+  try {
+    const pool = req.app.locals.pool;
+
+    const [rows] = await pool.query(
+      "SELECT stock, stock_by_variant FROM products WHERE product_id = ?",
+      [id]
+    );
+    if (rows.length === 0) {
+      return res.status(404).json({ success: false, message: "Product not found." });
+    }
+
+    const product = rows[0];
+    let stockByVariant = {};
+    try {
+      stockByVariant =
+        typeof product.stock_by_variant === "string"
+          ? JSON.parse(product.stock_by_variant)
+          : product.stock_by_variant || {};
+    } catch {
+      stockByVariant = {};
+    }
+
+    const key = `${color}-${size}`;
+    const currentQty = Number(stockByVariant[key] || 0);
+    stockByVariant[key] = currentQty + added;
+
+    const updatedTotalStock = Number(product.stock || 0) + added;
+    const timestamp = new Date().toISOString().slice(0, 19).replace("T", " ");
+
+    await pool.query(
+      "UPDATE products SET stock = ?, stock_by_variant = ?, updated_at = ? WHERE product_id = ?",
+      [updatedTotalStock, JSON.stringify(stockByVariant), timestamp, id]
+    );
+
+    res.status(200).json({
+      success: true,
+      message: `Stock updated: ${key} = ${stockByVariant[key]}`,
+      stock: updatedTotalStock,
+      stock_by_variant: stockByVariant,
+    });
+  } catch (error) {
+    console.error("Update stock error:", error);
+    res.status(500).json({ success: false, message: "Could not update stock." });
+  }
+};
+
+module.exports = {
   getProducts,
   addProduct,
   updateProduct,
+  deleteProduct,
+  updateStock,
   getCategories,
   addCategory,
   updateCategory,
