@@ -379,7 +379,8 @@ const Reviews = () => {
             <div className="hidden md:block overflow-x-auto shadow rounded-lg">
             <table className="w-full text-sm text-left">
               <thead className="bg-gray-800 text-white">
-              <tr className=" text-sm border-b border-gray-200">
+              <tr className="">
+                <th className="p-4 font-medium w-16">S.No</th>
                 <th className="p-4 font-medium">Image</th>
                 <th className="p-4 font-medium">Customer</th>
                 <th className="p-4 font-medium">Product</th>
@@ -390,8 +391,9 @@ const Reviews = () => {
               </tr>
             </thead>
             <tbody>
-              {filteredReviews.length > 0 ? filteredReviews.map((review) => (
+              {filteredReviews.length > 0 ? filteredReviews.map((review, index) => (
                 <tr key={review.id} className="border-b border-gray-100 hover:bg-gray-50">
+                  <td className="p-4 text-gray-500 font-medium text-center">{index + 1}</td>
                   <td className="p-4">
                     {review.image ? (
                       <img src={review.image} alt="Review" className="w-12 h-12 object-cover rounded-md" />
@@ -429,7 +431,7 @@ const Reviews = () => {
                 </tr>
               )) : (
                 <tr>
-                  <td colSpan="7" className="p-8 text-center text-gray-500">No reviews found.</td>
+                  <td colSpan="8" className="p-8 text-center text-gray-500">No reviews found.</td>
                 </tr>
               )}
             </tbody>
