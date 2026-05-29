@@ -422,6 +422,11 @@ const handleImageUpload = async (e) => {
     }));
   };
 
+  const handleRemoveSizeChart = () => {
+    setSizeChart(null);
+    setPreview(null);
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-5 py-8">
       <h2 className="text-3xl font-bold text-blue-900 mb-6">
@@ -874,13 +879,22 @@ const handleImageUpload = async (e) => {
           {preview && (
             <div style={{ marginTop: "10px" }}>
               <p className="text-sm font-medium text-gray-700 mb-2">Preview:</p>
-              <img
-                src={preview}
-                alt="size chart"
-                width={100}
-                height={100}
-                className="rounded border border-gray-300"
-              />
+              <div className="relative inline-block">
+                <img
+                  src={preview}
+                  alt="size chart"
+                  width={100}
+                  height={100}
+                  className="rounded border border-gray-300"
+                />
+                <button
+                  type="button"
+                  onClick={handleRemoveSizeChart}
+                  className="absolute top-0 right-0 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-700 text-xs font-bold"
+                >
+                  ×
+                </button>
+              </div>
             </div>
           )}
           {selectedProduct && (
