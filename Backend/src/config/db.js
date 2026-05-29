@@ -118,6 +118,7 @@ async function ensureTables() {
         product VARCHAR(255),
         rating INT DEFAULT 0,
         comment TEXT,
+        image LONGTEXT,
         date DATE,
         featured BOOLEAN DEFAULT FALSE,
         created_at DATETIME NOT NULL,
@@ -235,6 +236,13 @@ async function ensureTables() {
   if (statusColumnRows.length === 0) {
     await pool.query(
       "ALTER TABLE users ADD COLUMN status VARCHAR(20) NOT NULL DEFAULT 'active' AFTER role"
+    );
+  }
+
+  const [reviewImageColumnRows] = await pool.query("SHOW COLUMNS FROM reviews LIKE 'image'");
+  if (reviewImageColumnRows.length === 0) {
+    await pool.query(
+      "ALTER TABLE reviews ADD COLUMN image LONGTEXT AFTER comment"
     );
   }
 

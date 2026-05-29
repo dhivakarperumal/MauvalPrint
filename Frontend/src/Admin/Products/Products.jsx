@@ -311,7 +311,7 @@ const ProductList = ({ setSelectedProduct, setActiveTab }) => {
                 className="w-full h-32 object-cover rounded"
               />
               <p className="font-semibold text-gray-800">{p.name}</p>
-              <p className="text-sm text-gray-600">ID: {p.title}</p>
+              <p className="text-sm text-gray-600">ID: {p.product_id}</p>
               <p className="text-sm text-gray-600">Category: {p.category}</p>
               <div className="flex justify-between">
                 <p className="text-sm text-gray-600 line-through">MRP ₹{p.mrp}</p>
