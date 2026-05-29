@@ -1,12 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { db } from "../../firebase";
-import {
-  collection,
-  addDoc,
-  getDocs,
-  updateDoc,
-  doc,
-} from "firebase/firestore";
+import api from "../../api";
 import imageCompression from "browser-image-compression";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
@@ -149,16 +142,14 @@ const AddProducts = ({ selectedProduct, setSelectedProduct, setActiveTab }) => {
 
   const handleUpload = async () => {
     if (!sizeChart) return toast.error("No size chart selected!");
-    // Use the current product's ID (either from selectedProduct or newly created)
-    const docId = selectedProduct?.productId || selectedProduct?.docId;
-    if (!docId) return toast.error("Product ID not found!");
+    const productId = selectedProduct?.product_id;
+    if (!productId) return toast.error("Product ID not found!");
 
     try {
-      await updateDoc(doc(db, "products", docId), {
-        sizeChartImage: sizeChart,
-        updatedAt: new Date(),
+      await api.put(`/products/${productId}`, {
+        size_chart_image: sizeChart,
       });
-      toast.success("Size chart link saved in Firestore!");
+      toast.success("Size chart saved successfully!");
     } catch (err) {
       console.error("Size chart save error:", err);
       toast.error("Failed to save size chart URL!");
@@ -197,11 +188,11 @@ const AddProducts = ({ selectedProduct, setSelectedProduct, setActiveTab }) => {
     generateNextProductId();
   };
 
-   const generateNextProductId = async () => {
+  const generateNextProductId = async () => {
     try {
-      const snapshot = await getDocs(collection(db, "products"));
-      const ids = snapshot.docs
-        .map((doc) => doc.data().id)
+      const { data } = await api.get("/products");
+      const ids = (data.products || [])
+        .map((product) => product.title)
         .filter((id) => id && id.startsWith("MP"))
         .map((id) => parseInt(id.replace("MP", ""), 10))
         .filter((num) => !isNaN(num));
@@ -209,7 +200,8 @@ const AddProducts = ({ selectedProduct, setSelectedProduct, setActiveTab }) => {
       const maxId = ids.length > 0 ? Math.max(...ids) : 0;
       const nextId = `MP${String(maxId + 1).padStart(3, "0")}`;
       setProduct((prev) => ({ ...prev, id: nextId }));
-    } catch {
+    } catch (err) {
+      console.error("Error generating product ID:", err);
       toast.error("Could not generate product ID");
     }
   };
@@ -219,18 +211,33 @@ const AddProducts = ({ selectedProduct, setSelectedProduct, setActiveTab }) => {
   }, []);
 
   useEffect(() => {
-    if (selectedProduct && selectedProduct.docId) {
+    if (selectedProduct && selectedProduct.product_id) {
       setProduct({
-        ...selectedProduct,
-        fabricGSM: selectedProduct.fabricGSM || [],
+        id: selectedProduct.title || "",
+        productTitle: selectedProduct.title || "",
+        name: selectedProduct.name || "",
+        category: selectedProduct.category || "",
+        subcategory: selectedProduct.subcategory || "",
+        color: selectedProduct.color ? (Array.isArray(selectedProduct.color) ? selectedProduct.color : JSON.parse(selectedProduct.color || "[]")) : [],
+        size: selectedProduct.size ? (Array.isArray(selectedProduct.size) ? selectedProduct.size : JSON.parse(selectedProduct.size || "[]")) : [],
+        offer: selectedProduct.offer || 0,
+        rating: selectedProduct.rating || 0,
+        mrp: selectedProduct.mrp || 0,
+        salePrice: selectedProduct.sale_price || 0,
+        stock: selectedProduct.stock || 0,
+        description: selectedProduct.description || "",
+        fabricDetails: selectedProduct.fabric_details || "",
+        fabricGSM: selectedProduct.fabric_gsm ? (Array.isArray(selectedProduct.fabric_gsm) ? selectedProduct.fabric_gsm : JSON.parse(selectedProduct.fabric_gsm || "[]")) : [],
+        images: selectedProduct.images ? (Array.isArray(selectedProduct.images) ? selectedProduct.images : JSON.parse(selectedProduct.images || "[]")) : [],
+        ourDesign: selectedProduct.our_design || false,
         keyword: selectedProduct.keyword || "",
-        washingDetails: selectedProduct.washingDetails || [],
+        washingDetails: selectedProduct.washing_details ? (Array.isArray(selectedProduct.washing_details) ? selectedProduct.washing_details : JSON.parse(selectedProduct.washing_details || "[]")) : [],
         notes: selectedProduct.notes || "",
       });
-      setStockByVariant(selectedProduct.stockByVariant || {});
-      setPreviewImg(selectedProduct.images || []);
-      setSizeChart(selectedProduct.sizeChartImage || null); // FIXED: was sizeChartImag
-      setPreview(selectedProduct.sizeChartImage || null); // FIXED: was sizeChartImag
+      setStockByVariant(selectedProduct.stock_by_variant ? (typeof selectedProduct.stock_by_variant === 'string' ? JSON.parse(selectedProduct.stock_by_variant) : selectedProduct.stock_by_variant) : {});
+      setPreviewImg(selectedProduct.images ? (Array.isArray(selectedProduct.images) ? selectedProduct.images : JSON.parse(selectedProduct.images || "[]")) : []);
+      setSizeChart(selectedProduct.size_chart_image || null);
+      setPreview(selectedProduct.size_chart_image || null);
     } else {
       resetForm();
     }
@@ -285,31 +292,46 @@ const handleImageUpload = async (e) => {
         return toast.error("Please upload at least one image.");
 
       const totalStock = Object.values(stockByVariant).reduce((a, b) => a + b, 0);
-      const finalProduct = {
-        ...product,
+      const payload = {
+        title: product.productTitle,
+        name: product.name,
+        category: product.category,
+        subcategory: product.subcategory,
+        color: product.color,
+        size: product.size,
+        offer: product.offer,
+        rating: product.rating,
+        mrp: product.mrp,
+        sale_price: product.salePrice,
         stock: totalStock,
-        stockByVariant,
-        sizeChartImage: sizeChart || "",
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        description: product.description,
+        fabric_details: product.fabricDetails,
+        fabric_gsm: product.fabricGSM,
+        images: product.images,
+        our_design: product.ourDesign,
+        keyword: product.keyword,
+        washing_details: product.washingDetails,
+        notes: product.notes,
+        stock_by_variant: stockByVariant,
+        size_chart_image: sizeChart || "",
       };
 
-      if (selectedProduct?.productId) {
-        await updateDoc(doc(db, "products", selectedProduct.productId), finalProduct);
+      if (selectedProduct?.product_id) {
+        // Update existing product
+        await api.put(`/products/${selectedProduct.product_id}`, payload);
         toast.success("Product updated!");
         setSelectedProduct(null);
       } else {
-        const docRef = await addDoc(collection(db, "products"), finalProduct);
-        await updateDoc(docRef, { productId: docRef.id });
+        // Add new product
+        const { data } = await api.post("/products", payload);
         toast.success("Product added!");
-        // After creating new product, update selectedProduct so size chart can be uploaded
-        setSelectedProduct({ ...finalProduct, productId: docRef.id, docId: docRef.id });
+        setSelectedProduct({ ...payload, product_id: data.product_id });
       }
 
       setActiveTab("allProducts");
     } catch (err) {
-      console.error(err);
-      toast.error("Error saving product");
+      console.error("Error saving product:", err);
+      toast.error("Error saving product: " + (err.response?.data?.message || err.message));
     } finally {
       setLoading(false);
     }
@@ -334,10 +356,16 @@ const handleImageUpload = async (e) => {
  useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const snapshot = await getDocs(collection(db, "categories"));
-        const data = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-        setCategories(data);
-      } catch {
+        const { data } = await api.get("/categories");
+        const categoriesData = (data.categories || []).map((cat) => ({
+          id: cat.id,
+          cname: cat.name,
+          cdescription: cat.description,
+          subcategories: cat.subcategories ? (typeof cat.subcategories === 'string' ? JSON.parse(cat.subcategories) : cat.subcategories) : [],
+        }));
+        setCategories(categoriesData);
+      } catch (err) {
+        console.error("Error fetching categories:", err);
         toast.error("Failed to fetch categories");
       }
     };

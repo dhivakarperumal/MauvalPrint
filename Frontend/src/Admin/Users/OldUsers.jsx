@@ -188,20 +188,28 @@ const OldUsers = () => {
   const handleToggleStatus = async (user) => {
     const newStatus = user.status === "inactive" ? "active" : "inactive";
     try {
-      await api.put(`/users/${user.id}`, {
-        username: user.name,
-        email: user.email,
-        phone: user.phone,
-        role: user.role,
+      console.log(`=== STATUS TOGGLE REQUEST ===`);
+      console.log(`User Object:`, user);
+      console.log(`User ID:`, user.id);
+      console.log(`User ID Type:`, typeof user.id);
+      console.log(`New Status:`, newStatus);
+      console.log(`Full URL: /users/${user.id}/status`);
+      
+      const response = await api.patch(`/users/${user.id}/status`, {
         status: newStatus,
       });
+      
+      console.log("Status update response:", response.data);
+      
       setUsers((prev) =>
         prev.map((u) => (u.id === user.id ? { ...u, status: newStatus } : u))
       );
       toast.success(`User status updated to ${newStatus}`);
     } catch (error) {
-      console.error("Error toggling status:", error);
-      toast.error("Failed to update user status.");
+      console.error("Error toggling status - Full Error:", error);
+      console.error("Error Response:", error.response?.data);
+      console.error("Error Status:", error.response?.status);
+      toast.error("Failed to update user status. " + (error.response?.data?.message || error.message));
     }
   };
 

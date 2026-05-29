@@ -2,6 +2,7 @@
 const cors = require("cors");
 const { connectDB } = require("./src/config/db");
 const userRoutes = require("./src/routers/userRoutes");
+const productRoutes = require("./src/routers/productRoutes");
 require("dotenv").config();
 
 const app = express();
@@ -20,6 +21,7 @@ app.use((req, res, next) => {
 });
 
 app.use("/api", userRoutes);
+app.use("/api", productRoutes);
 
 // Health Check
 app.get("/api/health", (req, res) => {

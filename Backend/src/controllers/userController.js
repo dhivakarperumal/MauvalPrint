@@ -192,10 +192,13 @@ const updateUser = async (req, res) => {
   const { id } = req.params;
   const { username, email, phone, role, status } = req.body;
 
-  if (!username || !email || !phone || !role) {
+  console.log(`Update request - ID: ${id}, Body:`, req.body);
+
+  // Allow updating either user fields or status alone
+  if (!username && !email && !phone && !role && status === undefined) {
     return res.status(400).json({
       success: false,
-      message: "Please provide username, email, phone, and role.",
+      message: "Please provide at least one field to update.",
     });
   }
 
@@ -203,15 +206,43 @@ const updateUser = async (req, res) => {
     const pool = req.app.locals.pool;
     const timestamp = new Date().toISOString().slice(0, 19).replace("T", " ");
 
-    let query = "UPDATE users SET username = ?, email = ?, phone = ?, role = ?, updated_at = ? WHERE id = ?";
-    let values = [username, email, phone, role, timestamp, id];
+    let query = "UPDATE users SET ";
+    let values = [];
+    let fields = [];
 
+    if (username !== undefined) {
+      fields.push("username = ?");
+      values.push(username);
+    }
+    if (email !== undefined) {
+      fields.push("email = ?");
+      values.push(email);
+    }
+    if (phone !== undefined) {
+      fields.push("phone = ?");
+      values.push(phone);
+    }
+    if (role !== undefined) {
+      fields.push("role = ?");
+      values.push(role);
+    }
     if (status !== undefined) {
-      query = "UPDATE users SET username = ?, email = ?, phone = ?, role = ?, status = ?, updated_at = ? WHERE id = ?";
-      values = [username, email, phone, role, status, timestamp, id];
+      fields.push("status = ?");
+      values.push(status);
     }
 
+    fields.push("updated_at = ?");
+    values.push(timestamp);
+    values.push(id);
+
+    query += fields.join(", ") + " WHERE id = ?";
+
+    console.log("Generated Query:", query);
+    console.log("Query Values:", values);
+
     const [result] = await pool.query(query, values);
+
+    console.log("Update Result:", result);
 
     if (result.affectedRows === 0) {
       return res.status(404).json({
@@ -228,7 +259,76 @@ const updateUser = async (req, res) => {
     console.error("Update user error:", error);
     res.status(500).json({
       success: false,
-      message: "Could not update user.",
+      message: "Could not update user. " + error.message,
+    });
+  }
+};
+
+const updateUserStatus = async (req, res) => {
+  const { id } = req.params;
+  const { status } = req.body;
+
+  console.log(`=== STATUS UPDATE REQUEST ===`);
+  console.log(`User ID: ${id}`);
+  console.log(`New Status: ${status}`);
+  console.log(`Req Params:`, req.params);
+  console.log(`Req Body:`, req.body);
+
+  if (!status) {
+    return res.status(400).json({
+      success: false,
+      message: "Status is required.",
+    });
+  }
+
+  if (!["active", "inactive"].includes(status)) {
+    return res.status(400).json({
+      success: false,
+      message: "Status must be 'active' or 'inactive'.",
+    });
+  }
+
+  try {
+    const pool = req.app.locals.pool;
+    const timestamp = new Date().toISOString().slice(0, 19).replace("T", " ");
+
+    console.log(`Updating user ${id} status to ${status}`);
+
+    // First check if user exists
+    const [userCheck] = await pool.query("SELECT id FROM users WHERE id = ?", [id]);
+    console.log(`User existence check:`, userCheck);
+
+    if (userCheck.length === 0) {
+      console.log(`User with ID ${id} not found in database`);
+      return res.status(404).json({
+        success: false,
+        message: `User not found. ID: ${id}`,
+      });
+    }
+
+    const [result] = await pool.query(
+      "UPDATE users SET status = ?, updated_at = ? WHERE id = ?",
+      [status, timestamp, id]
+    );
+
+    console.log(`Status update result:`, result);
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found.",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: `User status updated to ${status} successfully.`,
+    });
+  } catch (error) {
+    console.error("Update user status error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Could not update user status. " + error.message,
     });
   }
 };
@@ -260,4 +360,4 @@ const deleteUser = async (req, res) => {
   }
 };
 
-module.exports = { register, login, getUsers, updateUser, deleteUser };
+module.exports = { register, login, getUsers, updateUser, updateUserStatus, deleteUser };
