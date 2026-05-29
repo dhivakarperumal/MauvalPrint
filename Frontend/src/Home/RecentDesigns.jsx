@@ -4,6 +4,20 @@ import { AuthContext } from "../Context/AuthContext";
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay } from 'swiper/modules';
 import 'swiper/css';
+import api from "../api";
+
+const toRoman = (num) => {
+  const lookup = [
+    [1000, "M"], [900, "CM"], [500, "D"], [400, "CD"],
+    [100, "C"], [90, "XC"], [50, "L"], [40, "XL"],
+    [10, "X"], [9, "IX"], [5, "V"], [4, "IV"], [1, "I"]
+  ];
+  let roman = "";
+  for (const [value, symbol] of lookup) {
+    while (num >= value) { roman += symbol; num -= value; }
+  }
+  return roman;
+};
 
 // Image optimization utility
 const optimizeImageUrl = (url) => {
@@ -172,6 +186,24 @@ const RecentDesigns = () => {
   const [fit, setFit] = useState("All");
   const [showFilters, setShowFilters] = useState(false);
   const [isDesktop, setIsDesktop] = useState(false);
+  const [homeKeywords, setHomeKeywords] = useState([]);
+  const [keywordsLoaded, setKeywordsLoaded] = useState(false);
+
+  useEffect(() => {
+    const fetchKeywords = async () => {
+      try {
+        const { data } = await api.get('/keywords/home');
+        if (data.success) {
+          setHomeKeywords(data.keywords);
+        }
+      } catch (error) {
+        console.error("Failed to fetch home keywords", error);
+      } finally {
+        setKeywordsLoaded(true);
+      }
+    };
+    fetchKeywords();
+  }, []);
 
   // Check if desktop
   useEffect(() => {
@@ -250,9 +282,9 @@ const RecentDesigns = () => {
             className="px-6 py-3 border-2 border-primary/20 rounded-full bg-gradient-to-r from-primary/10 to-primary/5 text-gray-800 font-medium focus:outline-none focus:ring-4 focus:ring-primary/30 focus:border-primary transition-all duration-300 shadow-lg hover:shadow-xl"
           >
             <option value="All" className="bg-white text-gray-800">All Keywords</option>
-            {["God", "Filmy", "Family", "Couples", "Art"].map((kw, index) => (
-              <option key={kw} value={kw} className="bg-white text-gray-800">
-                {index + 1}. {kw}
+            {homeKeywords.map((kw, index) => (
+              <option key={kw.keyword_id} value={kw.keyword_name} className="bg-white text-gray-800">
+                {toRoman(index + 1)}. {kw.keyword_name}
               </option>
             ))}
           </select>
@@ -260,18 +292,27 @@ const RecentDesigns = () => {
     </div>
       )}
 
-      {["God", "Filmy", "Family", "Couples", "Art", "Quote"].some(kw => (groupedByKeyword[kw] || []).length > 0) ? (
-        ["God", "Filmy", "Family", "Couples", "Art", "Quote"].map((kw, index) => {
-          const items = (groupedByKeyword[kw] || []).slice(0, 6); // Show only 6 items per category for speed
-          if (selectedSubcategory !== "All" && selectedSubcategory !== kw) return null;
-          if (items.length === 0) return null;
-          return (
-            <div key={kw} className="mb-14">
-              <div className="text-left mb-8">
-                <h2 className="text-2xl font-bold text-primary inline-block relative pb-2 after:content-[''] after:absolute after:left-1/2 after:-bottom-1 after:-translate-x-1/2 after:w-20 after:h-[3px] after:bg-primary">
-                  {index + 1}. {kw}
-                </h2>
-              </div>
+      {/* Sections */}
+      {!keywordsLoaded ? (
+        <Spinner />
+      ) : (
+        <>
+          {homeKeywords.length === 0 && (
+            <div className="text-center text-gray-500 py-10">
+              No categories configured for the home page. Please enable keywords to show on home from the Admin Panel.
+            </div>
+          )}
+          {homeKeywords.map((kw, index) => {
+            const items = (groupedByKeyword[kw.keyword_name] || []).slice(0, 6); // Show only 6 items per category for speed
+            if (selectedSubcategory !== "All" && selectedSubcategory !== kw.keyword_name) return null;
+            if (items.length === 0) return null;
+            return (
+              <div key={kw.keyword_id} className="mb-14">
+                <div className="text-left mb-8">
+                  <h2 className="text-2xl font-bold text-primary inline-block relative pb-2 after:content-[''] after:absolute after:left-1/2 after:-bottom-1 after:-translate-x-1/2 after:w-20 after:h-[3px] after:bg-primary">
+                    {toRoman(index + 1)}. {kw.keyword_name}
+                  </h2>
+                </div>
 
               <Swiper
                 spaceBetween={10}
@@ -303,10 +344,9 @@ const RecentDesigns = () => {
                 ))}
               </Swiper>
             </div>
-          );
-        })
-      ) : (
-        <Spinner />
+            );
+          })}
+        </>
       )}
     </div>
   );

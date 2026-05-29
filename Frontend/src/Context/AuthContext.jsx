@@ -75,38 +75,70 @@ export function AuthProvider({ children }) {
   }, [user]);
 
   useEffect(() => {
-    // ✅ SUPER OPTIMIZED: Load only 100 products for speed
-    const q = query(
-      collection(db, "products"),
-      orderBy("createdAt", "desc"),
-      limit(100) // Reduced from 500 to 100 for faster loading
-    );
-    
-    const unsubscribe = onSnapshot(
-      q,
-      (snapshot) => {
-        try {
-          const productList = snapshot.docs.map((doc) => ({
-            id: doc.id,
-            ...doc.data(),
-          }));
-          const normalProducts = productList.filter((p) => p.ourDesign === false);
-          const designProducts = productList.filter((p) => p.ourDesign === true);
+    const fetchProducts = async () => {
+      try {
+        const { data } = await api.get('/products');
+        if (data && data.products) {
+          const productList = data.products.map(p => {
+            // safely parse JSON fields if they are strings
+            let parsedImages = p.images;
+            if (typeof parsedImages === 'string') {
+              try { parsedImages = JSON.parse(parsedImages); } catch(e) { parsedImages = []; }
+            }
+            if (!Array.isArray(parsedImages)) parsedImages = [];
+            
+            let parsedSize = p.size;
+            if (typeof parsedSize === 'string') {
+              try { parsedSize = JSON.parse(parsedSize); } catch(e) { parsedSize = []; }
+            }
+            if (!Array.isArray(parsedSize)) parsedSize = [];
+
+            let parsedColor = p.color;
+            if (typeof parsedColor === 'string') {
+              try { parsedColor = JSON.parse(parsedColor); } catch(e) { parsedColor = []; }
+            }
+            if (!Array.isArray(parsedColor)) parsedColor = [];
+
+            let parsedKeywords = p.keywords;
+            if (typeof parsedKeywords === 'string') {
+              try { parsedKeywords = JSON.parse(parsedKeywords); } catch(e) { parsedKeywords = []; }
+            }
+            if (!Array.isArray(parsedKeywords)) parsedKeywords = [];
+
+            let parsedStockByVariant = p.stock_by_variant;
+            if (typeof parsedStockByVariant === 'string') {
+              try { parsedStockByVariant = JSON.parse(parsedStockByVariant); } catch(e) { parsedStockByVariant = {}; }
+            }
+            if (typeof parsedStockByVariant !== 'object' || !parsedStockByVariant) parsedStockByVariant = {};
+
+            return {
+              ...p,
+              id: p.product_id || p.id,
+              ourDesign: p.our_design == 1 || p.our_design === true || p.ourDesign === true,
+              salePrice: p.sale_price || p.salePrice || 0,
+              mrp: p.mrp || 0,
+              images: parsedImages,
+              size: parsedSize,
+              color: parsedColor,
+              keywords: parsedKeywords,
+              keyword: p.keyword || "Other",
+              stockByVariant: parsedStockByVariant
+            };
+          });
+
+          const normalProducts = productList.filter((p) => !p.ourDesign);
+          const designProducts = productList.filter((p) => p.ourDesign);
           setProducts(normalProducts);
           setDesigns(designProducts);
-        } catch (error) {
-          console.error("Error processing products:", error);
         }
-      },
-      (error) => {
-        console.error("Error listening to products:", error);
-        // Fallback to empty data
+      } catch (error) {
+        console.error("Error fetching products from MySQL:", error);
         setProducts([]);
         setDesigns([]);
       }
-    );
-
-    return () => unsubscribe();
+    };
+    
+    fetchProducts();
   }, []);
 
   useEffect(() => {
