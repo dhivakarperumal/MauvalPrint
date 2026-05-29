@@ -4,6 +4,7 @@ const { connectDB } = require("./src/config/db");
 const userRoutes = require("./src/routers/userRoutes");
 const productRoutes = require("./src/routers/productRoutes");
 const orderRoutes = require("./src/routers/orderRoutes");
+const printOrderRoutes = require("./src/routers/printOrderRoutes");
 require("dotenv").config();
 
 const app = express();
@@ -24,6 +25,7 @@ app.use((req, res, next) => {
 app.use("/api", userRoutes);
 app.use("/api", productRoutes);
 app.use("/api", orderRoutes);
+app.use("/api", printOrderRoutes);
 
 // Health Check
 app.get("/api/health", (req, res) => {

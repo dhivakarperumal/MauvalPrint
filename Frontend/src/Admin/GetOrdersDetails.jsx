@@ -1,14 +1,5 @@
 import React, { useState, useEffect } from "react";
-import {
-  collection,
-  addDoc,
-  getDocs,
-  updateDoc,
-  deleteDoc,
-  doc,
-  serverTimestamp,
-} from "firebase/firestore";
-import { db } from "../firebase";
+import api from "../api";
 import imageCompression from "browser-image-compression";
 import toast from "react-hot-toast";
 import { FaEdit, FaTrash } from "react-icons/fa";
@@ -25,7 +16,7 @@ const GetOrdersDetails = () => {
 
   const [orders, setOrders] = useState([]);
   const [showForm, setShowForm] = useState(true);
-  const [editingId, setEditingId] = useState(null); // Track editing
+  const [editingId, setEditingId] = useState(null);
 
   useEffect(() => {
     fetchOrders();
@@ -33,14 +24,11 @@ const GetOrdersDetails = () => {
 
   const fetchOrders = async () => {
     try {
-      const snapshot = await getDocs(collection(db, "getOrdersDetails"));
-      const data = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
-      setOrders(data);
+      const { data } = await api.get("/print-orders");
+      if (data.success) setOrders(data.orders);
     } catch (error) {
       console.error("Error fetching orders:", error);
+      toast.error("Failed to load orders");
     }
   };
 
@@ -72,9 +60,7 @@ const GetOrdersDetails = () => {
   const handleLogoUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-
     const options = { maxSizeMB: 0.2, maxWidthOrHeight: 600, useWebWorker: true };
-
     try {
       const compressedFile = await imageCompression(file, options);
       const reader = new FileReader();
@@ -86,37 +72,38 @@ const GetOrdersDetails = () => {
     }
   };
 
+  const resetForm = () => {
+    setForm({
+      name: "",
+      phone: "",
+      email: "",
+      testimonial: "",
+      logo: "",
+      products: [{ color: "", size: "", quantity: "", printType: "" }],
+    });
+    setEditingId(null);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    const orderData = {
+    const payload = {
       name: form.name,
       phone: form.phone,
       email: form.email,
       testimonial: form.testimonial,
-      logoBase64: form.logo,
-      timestamp: serverTimestamp(),
+      logo: form.logo,
       products: form.products.map((p) => ({ ...p, quantity: Number(p.quantity) })),
     };
 
     try {
       if (editingId) {
-        await updateDoc(doc(db, "getOrdersDetails", editingId), orderData);
+        await api.put(`/print-orders/${editingId}`, payload);
         toast.success("Order updated successfully!");
-        setEditingId(null);
       } else {
-        await addDoc(collection(db, "getOrdersDetails"), orderData);
+        await api.post("/print-orders", payload);
         toast.success("Order submitted successfully!");
       }
-
-      setForm({
-        name: "",
-        phone: "",
-        email: "",
-        testimonial: "",
-        logo: "",
-        products: [{ color: "", size: "", quantity: "", printType: "" }],
-      });
+      resetForm();
       fetchOrders();
     } catch (error) {
       console.error("Error submitting order:", error);
@@ -126,21 +113,21 @@ const GetOrdersDetails = () => {
 
   const handleEdit = (order) => {
     setForm({
-      name: order.name,
-      phone: order.phone,
-      email: order.email,
-      testimonial: order.testimonial,
-      logo: order.logoBase64 || "",
+      name: order.name || "",
+      phone: order.phone || "",
+      email: order.email || "",
+      testimonial: order.testimonial || "",
+      logo: order.logo || "",
       products: order.products || [{ color: "", size: "", quantity: "", printType: "" }],
     });
-    setEditingId(order.id);
+    setEditingId(order.order_id);
     setShowForm(true);
   };
 
   const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this order?")) {
       try {
-        await deleteDoc(doc(db, "getOrdersDetails", id));
+        await api.delete(`/print-orders/${id}`);
         toast.success("Order deleted successfully!");
         fetchOrders();
       } catch (error) {
@@ -150,9 +137,9 @@ const GetOrdersDetails = () => {
     }
   };
 
-  const formatDate = (timestamp) => {
-    if (!timestamp || !timestamp.toDate) return "-";
-    const date = timestamp.toDate();
+  const formatDate = (dateStr) => {
+    if (!dateStr) return "-";
+    const date = new Date(dateStr);
     return date.toLocaleDateString() + " " + date.toLocaleTimeString();
   };
 
@@ -165,7 +152,7 @@ const GetOrdersDetails = () => {
         </div>
         <div className="flex gap-3 mt-4 md:mt-0">
           <button
-            onClick={() => setShowForm(true)}
+            onClick={() => { setShowForm(true); resetForm(); }}
             className={`px-4 py-2 rounded-full text-sm font-medium cursor-pointer ${
               showForm ? "bg-blue-900 text-white" : "bg-gray-200 text-gray-700 hover:bg-gray-300"
             }`}
@@ -220,7 +207,6 @@ const GetOrdersDetails = () => {
                 type="email"
                 value={form.email}
                 onChange={handleChange}
-                required
                 placeholder="example@gmail.com"
                 className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
@@ -369,6 +355,7 @@ const GetOrdersDetails = () => {
                   <table className="min-w-[900px] w-full text-sm text-left">
                     <thead className="bg-gray-800 text-white">
                       <tr>
+                        <th className="p-2">Order ID</th>
                         <th className="p-2">Name</th>
                         <th className="p-2">Phone</th>
                         <th className="p-2">Logo</th>
@@ -380,13 +367,14 @@ const GetOrdersDetails = () => {
                     </thead>
                     <tbody>
                       {orders.map((order) => (
-                        <tr key={order.id} className="border-b border-gray-300 hover:bg-gray-50">
+                        <tr key={order.order_id} className="border-b border-gray-300 hover:bg-gray-50">
+                          <td className="p-2 font-mono text-xs">{order.order_id}</td>
                           <td className="p-2">{order.name}</td>
                           <td className="p-2">{order.phone}</td>
                           <td className="p-2">
-                            {order.logoBase64 ? (
+                            {order.logo ? (
                               <img
-                                src={order.logoBase64}
+                                src={order.logo}
                                 alt="Logo"
                                 className="w-12 h-12 object-contain rounded border"
                               />
@@ -403,7 +391,7 @@ const GetOrdersDetails = () => {
                             ))}
                           </td>
                           <td className="p-2 italic text-gray-600">{order.testimonial || "-"}</td>
-                          <td className="p-2">{formatDate(order.timestamp)}</td>
+                          <td className="p-2">{formatDate(order.created_at)}</td>
                           <td className="p-2 flex items-center justify-center mt-4 gap-2">
                             <button
                               onClick={() => handleEdit(order)}
@@ -413,7 +401,7 @@ const GetOrdersDetails = () => {
                               <FaEdit />
                             </button>
                             <button
-                              onClick={() => handleDelete(order.id)}
+                              onClick={() => handleDelete(order.order_id)}
                               className="text-black border-2 cursor-pointer border-gray-200 p-2 rounded-full hover:text-red-800"
                               title="Delete"
                             >
@@ -429,14 +417,14 @@ const GetOrdersDetails = () => {
                 {/* Mobile Cards */}
                 <div className="md:hidden space-y-4">
                   {orders.map((order) => (
-                    <div key={order.id} className="bg-white p-4 rounded-lg shadow">
+                    <div key={order.order_id} className="bg-white p-4 rounded-lg shadow">
                       <div className="flex justify-between mb-2">
                         <h3 className="font-semibold">{order.name}</h3>
                         <span className="text-sm text-gray-500">{order.phone}</span>
                       </div>
-                      {order.logoBase64 && (
+                      {order.logo && (
                         <img
-                          src={order.logoBase64}
+                          src={order.logo}
                           alt="Logo"
                           className="w-16 h-16 object-contain mb-2"
                         />
@@ -450,19 +438,19 @@ const GetOrdersDetails = () => {
                         ))}
                       </div>
                       <p className="italic text-sm text-gray-500">{order.testimonial || "-"}</p>
-                      <p className="text-xs text-gray-400 mt-1">{formatDate(order.timestamp)}</p>
+                      <p className="text-xs text-gray-400 mt-1">{formatDate(order.created_at)}</p>
                       <div className="flex items-center justify-center gap-4 mt-2">
                         <button
                           onClick={() => handleEdit(order)}
                           className="text-blue-600 cursor-pointer flex items-center gap-1"
                         >
-                          <FaEdit /> 
+                          <FaEdit />
                         </button>
                         <button
-                          onClick={() => handleDelete(order.id)}
+                          onClick={() => handleDelete(order.order_id)}
                           className="text-red-600 cursor-pointer flex items-center gap-1"
                         >
-                          <FaTrash /> 
+                          <FaTrash />
                         </button>
                       </div>
                     </div>
