@@ -185,7 +185,7 @@ const AddProducts = ({ selectedProduct, setSelectedProduct, setActiveTab }) => {
     setPreviewImg([]);
     setPreview(null);
     setSizeChart(null);
-    generateNextProductId();
+    generateNextProductId(); // async, will update product.id when resolved
   };
 
   const generateNextProductId = async () => {
@@ -304,6 +304,7 @@ const handleImageUpload = async (e) => {
 
       const totalStock = Object.values(stockByVariant).reduce((a, b) => a + b, 0);
       const payload = {
+        product_id: product.id,       // send the pre-generated ID to the backend
         title: product.productTitle,
         name: product.name,
         category: product.category,
