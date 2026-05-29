@@ -11,9 +11,6 @@ import {
   getDocs,
   deleteDoc,
   onSnapshot,
-  query,
-  orderBy,
-  limit,
 } from "firebase/firestore";
 import {
   getStorage,
@@ -75,38 +72,70 @@ export function AuthProvider({ children }) {
   }, [user]);
 
   useEffect(() => {
-    // ✅ SUPER OPTIMIZED: Load only 100 products for speed
-    const q = query(
-      collection(db, "products"),
-      orderBy("createdAt", "desc"),
-      limit(100) // Reduced from 500 to 100 for faster loading
-    );
-    
-    const unsubscribe = onSnapshot(
-      q,
-      (snapshot) => {
-        try {
-          const productList = snapshot.docs.map((doc) => ({
-            id: doc.id,
-            ...doc.data(),
+    let isMounted = true;
+
+    const loadBackendProducts = async () => {
+      try {
+        const { data } = await api.get("/products");
+        if (!isMounted) return;
+
+        if (data?.success && Array.isArray(data.products)) {
+          const normalized = data.products.map((product) => ({
+            ...product,
+            id: product.product_id || product.id || product.productId || `${product.product_id}`,
+            productId: product.product_id || product.productId || product.id,
+            salePrice: Number(product.sale_price ?? product.salePrice ?? 0),
+            mrp: Number(product.mrp ?? 0),
+            color: typeof product.color === "string"
+              ? product.color.startsWith("[")
+                ? JSON.parse(product.color)
+                : product.color.split(",").map((item) => item.trim()).filter(Boolean)
+              : Array.isArray(product.color)
+              ? product.color
+              : [],
+            size: typeof product.size === "string"
+              ? product.size.startsWith("[")
+                ? JSON.parse(product.size)
+                : product.size.split(",").map((item) => item.trim()).filter(Boolean)
+              : Array.isArray(product.size)
+              ? product.size
+              : [],
+            images: typeof product.images === "string"
+              ? product.images.startsWith("[")
+                ? JSON.parse(product.images)
+                : product.images.split(",").map((item) => item.trim()).filter(Boolean)
+              : Array.isArray(product.images)
+              ? product.images
+              : [],
+            stockByVariant: typeof product.stock_by_variant === "string"
+              ? product.stock_by_variant.startsWith("{")
+                ? JSON.parse(product.stock_by_variant)
+                : {}
+              : product.stock_by_variant || {},
+            ourDesign:
+              product.our_design === 1 ||
+              product.our_design === "1" ||
+              product.ourDesign === true,
           }));
-          const normalProducts = productList.filter((p) => p.ourDesign === false);
-          const designProducts = productList.filter((p) => p.ourDesign === true);
-          setProducts(normalProducts);
-          setDesigns(designProducts);
-        } catch (error) {
-          console.error("Error processing products:", error);
+
+          setProducts(normalized.filter((item) => !item.ourDesign));
+          setDesigns(normalized.filter((item) => item.ourDesign));
+        } else {
+          setProducts([]);
+          setDesigns([]);
         }
-      },
-      (error) => {
-        console.error("Error listening to products:", error);
-        // Fallback to empty data
+      } catch (error) {
+        console.error("Error fetching backend products:", error);
         setProducts([]);
         setDesigns([]);
       }
-    );
+    };
 
-    return () => unsubscribe();
+    loadBackendProducts();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   useEffect(() => {
