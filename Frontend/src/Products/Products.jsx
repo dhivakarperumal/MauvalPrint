@@ -30,11 +30,10 @@ function ProductCard({ product, index, addToCart, addToWishlist, cardSize, setCa
       <div className="relative w-full h-52 bg-primary/5 rounded-[30px] overflow-hidden shadow-lg transition-transform duration-700 ease-in-out hover:scale-105">
         {/* Cart button */}
         <div
-          className={`absolute w-[70%] h-[70%] transition-all duration-400 ease-in-out z-10 rounded-[10%_13%_42%_0%/10%_12%_75%_0%] bg-primary/30 ${
-            clickedProductId === product.id
-              ? "bottom-0 left-0"
-              : "bottom-[-70%] left-[-70%] group-hover:bottom-0 group-hover:left-0"
-          }`}
+          className={`absolute w-[70%] h-[70%] transition-all duration-400 ease-in-out z-10 rounded-[10%_13%_42%_0%/10%_12%_75%_0%] bg-primary/30 ${clickedProductId === product.id
+            ? "bottom-0 left-0"
+            : "bottom-[-70%] left-[-70%] group-hover:bottom-0 group-hover:left-0"
+            }`}
           style={{ borderTop: "2px solid white", borderRight: "1px solid white", backdropFilter: "blur(2px)" }}
         >
           <div className="absolute top-2 right-2">
@@ -59,11 +58,10 @@ function ProductCard({ product, index, addToCart, addToWishlist, cardSize, setCa
 
         {/* Wishlist button */}
         <div
-          className={`absolute w-[50%] h-[50%] transition-all duration-700 ease-in-out z-10 rounded-[10%_13%_42%_0%/10%_12%_75%_0%] bg-primary/30 ${
-            clickedProductId === product.id
-              ? "bottom-0 left-0"
-              : "bottom-[-70%] left-[-70%] group-hover:bottom-0 group-hover:left-0"
-          }`}
+          className={`absolute w-[50%] h-[50%] transition-all duration-700 ease-in-out z-10 rounded-[10%_13%_42%_0%/10%_12%_75%_0%] bg-primary/30 ${clickedProductId === product.id
+            ? "bottom-0 left-0"
+            : "bottom-[-70%] left-[-70%] group-hover:bottom-0 group-hover:left-0"
+            }`}
           style={{ borderTop: "2px solid white", borderRight: "1px solid white", backdropFilter: "blur(2px)" }}
         >
           <div className="absolute top-2 right-2">
@@ -82,11 +80,10 @@ function ProductCard({ product, index, addToCart, addToWishlist, cardSize, setCa
 
         {/* View Details button */}
         <div
-          className={`absolute w-[32%] h-[32%] transition-all duration-1000 ease-in-out z-10 rounded-[10%_13%_42%_0%/10%_12%_75%_0%] bg-primary/30 ${
-            clickedProductId === product.id
-              ? "bottom-0 left-0"
-              : " bottom-[-70%] left-[-70%] group-hover:bottom-0 group-hover:left-0"
-          }`}
+          className={`absolute w-[32%] h-[32%] transition-all duration-1000 ease-in-out z-10 rounded-[10%_13%_42%_0%/10%_12%_75%_0%] bg-primary/30 ${clickedProductId === product.id
+            ? "bottom-0 left-0"
+            : " bottom-[-70%] left-[-70%] group-hover:bottom-0 group-hover:left-0"
+            }`}
           style={{ borderTop: "2px solid white", borderRight: "1px solid white", backdropFilter: "blur(2px)" }}
         >
           <div className="absolute top-2 right-2">
@@ -134,13 +131,12 @@ function ProductCard({ product, index, addToCart, addToWishlist, cardSize, setCa
             <button
               key={sz}
               onClick={() => isAvailable && setCardSize((prev) => ({ ...prev, [product.id]: sz }))}
-              className={`px-2 py-0.5 rounded-full text-xs border ${
-                cardSize[product.id] === sz
-                  ? "bg-primary text-white border-primary"
-                  : isAvailable
+              className={`px-2 py-0.5 rounded-full text-xs border ${cardSize[product.id] === sz
+                ? "bg-primary text-white border-primary"
+                : isAvailable
                   ? "bg-white text-gray-700 border-gray-300 cursor-pointer"
                   : "bg-gray-200 text-gray-400 border-gray-300 cursor-not-allowed"
-              }`}
+                }`}
               disabled={!isAvailable}
             >
               {sz}
@@ -179,10 +175,16 @@ function Products() {
   }, [location.search]);
 
   useEffect(() => {
+    console.log("Products useEffect triggered");
+    console.log("contextProducts:", contextProducts);
+
     let isMounted = true;
 
     const loadProducts = async () => {
+      console.log("loadProducts called");
+
       if (Array.isArray(contextProducts) && contextProducts.length > 0) {
+        console.log("Using context products:", contextProducts);
         setLoading(false);
         return;
       }
@@ -190,59 +192,107 @@ function Products() {
       setLoading(true);
 
       try {
-        const { data } = await api.get("/products");
+        console.log("Calling /products API...");
+
+        const response = await api.get("/products");
+
+        console.log("Full API Response:", response);
+        console.log("Response Data:", response.data);
+
+        const { data } = response;
 
         if (!isMounted) return;
 
         if (data?.success && Array.isArray(data.products)) {
+          console.log("Raw Products:", data.products);
+
           const normalized = data.products.map((product) => ({
             ...product,
-            id: product.product_id || product.id || product.productId || `${product.product_id}`,
-            productId: product.product_id || product.productId || product.id,
-            salePrice: Number(product.sale_price ?? product.salePrice ?? 0),
+            id:
+              product.product_id ||
+              product.id ||
+              product.productId ||
+              `${product.product_id}`,
+
+            productId:
+              product.product_id ||
+              product.productId ||
+              product.id,
+
+            salePrice: Number(
+              product.sale_price ??
+              product.salePrice ??
+              0
+            ),
+
             mrp: Number(product.mrp ?? 0),
-            color: typeof product.color === "string"
-              ? product.color.startsWith("[")
-                ? JSON.parse(product.color)
-                : product.color.split(",").map((item) => item.trim()).filter(Boolean)
-              : Array.isArray(product.color)
-              ? product.color
-              : [],
-            size: typeof product.size === "string"
-              ? product.size.startsWith("[")
-                ? JSON.parse(product.size)
-                : product.size.split(",").map((item) => item.trim()).filter(Boolean)
-              : Array.isArray(product.size)
-              ? product.size
-              : [],
-            images: typeof product.images === "string"
-              ? product.images.startsWith("[")
-                ? JSON.parse(product.images)
-                : product.images.split(",").map((item) => item.trim()).filter(Boolean)
-              : Array.isArray(product.images)
-              ? product.images
-              : [],
-            stockByVariant: typeof product.stock_by_variant === "string"
-              ? product.stock_by_variant.startsWith("{")
-                ? JSON.parse(product.stock_by_variant)
-                : {}
-              : product.stock_by_variant || {},
+
+            color:
+              typeof product.color === "string"
+                ? product.color.startsWith("[")
+                  ? JSON.parse(product.color)
+                  : product.color
+                    .split(",")
+                    .map((x) => x.trim())
+                    .filter(Boolean)
+                : Array.isArray(product.color)
+                  ? product.color
+                  : [],
+
+            size:
+              typeof product.size === "string"
+                ? product.size.startsWith("[")
+                  ? JSON.parse(product.size)
+                  : product.size
+                    .split(",")
+                    .map((x) => x.trim())
+                    .filter(Boolean)
+                : Array.isArray(product.size)
+                  ? product.size
+                  : [],
+
+            images:
+              typeof product.images === "string"
+                ? product.images.startsWith("[")
+                  ? JSON.parse(product.images)
+                  : product.images
+                    .split(",")
+                    .map((x) => x.trim())
+                    .filter(Boolean)
+                : Array.isArray(product.images)
+                  ? product.images
+                  : [],
+
+            stockByVariant:
+              typeof product.stock_by_variant === "string"
+                ? product.stock_by_variant.startsWith("{")
+                  ? JSON.parse(product.stock_by_variant)
+                  : {}
+                : product.stock_by_variant || {},
+
             ourDesign:
               product.our_design === 1 ||
               product.our_design === "1" ||
               product.ourDesign === true,
           }));
 
-          const regularProducts = normalized.filter((item) => !item.ourDesign);
-          setPageProducts(regularProducts);
+          console.log("Normalized Products:", normalized);
+
+          setPageProducts(normalized);
+
+          console.log("Page Products Set:", normalized);
         } else {
+          console.log("No products found in API response");
           setPageProducts([]);
         }
       } catch (error) {
-        console.error("Error fetching products from API:", error);
+        console.error("Products API Error:", error);
+        console.error("Error Response:", error?.response);
         setPageProducts([]);
       } finally {
-        if (isMounted) setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
 
@@ -365,9 +415,8 @@ function Products() {
                         setCategory(cat);
                         setCurrentPage(1);
                       }}
-                      className={`px-3 py-1 rounded-full border text-sm cursor-pointer ${
-                        category === cat ? "bg-primary text-white border-primary" : "bg-white text-gray-700"
-                      }`}
+                      className={`px-3 py-1 rounded-full border text-sm cursor-pointer ${category === cat ? "bg-primary text-white border-primary" : "bg-white text-gray-700"
+                        }`}
                     >
                       {cat.charAt(0).toUpperCase() + cat.slice(1)}
                     </button>
@@ -399,9 +448,8 @@ function Products() {
                         setSelectedSize(size);
                         setCurrentPage(1);
                       }}
-                      className={`w-9 h-9 border rounded-full text-sm cursor-pointer ${
-                        selectedSize === size ? "bg-primary text-white border-primary" : "bg-white text-gray-700"
-                      }`}
+                      className={`w-9 h-9 border rounded-full text-sm cursor-pointer ${selectedSize === size ? "bg-primary text-white border-primary" : "bg-white text-gray-700"
+                        }`}
                     >
                       {size.charAt(0).toUpperCase() + size.slice(1)}
                     </button>
@@ -422,16 +470,15 @@ function Products() {
                           setSelectedColor(clr);
                           setCurrentPage(1);
                         }}
-                        className={`w-7 h-7 rounded-full border-2 transition-all duration-300 cursor-pointer ${
-                          selectedColor === clr ? "ring-2 ring-primary border-primary" : "border-gray-300"
-                        }`}
+                        className={`w-7 h-7 rounded-full border-2 transition-all duration-300 cursor-pointer ${selectedColor === clr ? "ring-2 ring-primary border-primary" : "border-gray-300"
+                          }`}
                         style={{
                           backgroundColor:
                             clr.toLowerCase() === "white"
                               ? "#ffffff"
                               : clr.toLowerCase() === "navy"
-                              ? "#000080"
-                              : clr.toLowerCase(),
+                                ? "#000080"
+                                : clr.toLowerCase(),
                         }}
                         title={clr}
                       />
@@ -511,11 +558,10 @@ function Products() {
                     <button
                       key={i}
                       onClick={() => setCurrentPage(i + 1)}
-                      className={`h-8 w-8 rounded-full border text-sm ${
-                        currentPage === i + 1
-                          ? "bg-primary text-white border-primary"
-                          : "bg-white text-gray-700 border-gray-300"
-                      }`}
+                      className={`h-8 w-8 rounded-full border text-sm ${currentPage === i + 1
+                        ? "bg-primary text-white border-primary"
+                        : "bg-white text-gray-700 border-gray-300"
+                        }`}
                     >
                       {i + 1}
                     </button>
