@@ -227,8 +227,8 @@ function Products() {
     }, 150);
   };
 
-  // Loading state while backend products are still loading
-  if (!backendLoaded && products.length === 0) {
+  // Loading state while products are loading
+  if (!products || products.length === 0) {
     return (
       <div className="mt-18">
         <Head title="Our Products" subtitle="Products" />
