@@ -29,12 +29,64 @@ export const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
-  const [designs, setDesigns] = useState([]);
-  const [products, setProducts] = useState([]);
+  const [firebaseDesigns, setFirebaseDesigns] = useState([]);
+  const [firebaseProducts, setFirebaseProducts] = useState([]);
+  const [mysqlDesigns, setMysqlDesigns] = useState([]);
+  const [mysqlProducts, setMysqlProducts] = useState([]);
   const [cart, setCart] = useState([]);
   const [wishlist, setWishlist] = useState([]);
   const [reviews, setReviews] = useState([]);
   const [isOrderSidebarOpen, setOrderSidebarOpen] = useState(false);
+
+  const parseDatabaseValue = (value, fallback = []) => {
+    if (Array.isArray(value)) return value;
+    if (value && typeof value === "object") return value;
+    if (typeof value === "string") {
+      try {
+        return JSON.parse(value);
+      } catch {
+        if (value.includes(",")) {
+          return value.split(",").map((item) => item.trim()).filter(Boolean);
+        }
+      }
+    }
+    return fallback;
+  };
+
+  const normalizeBackendProduct = (product) => {
+    const rawDesignValue = product.our_design ?? product.ourDesign;
+    const ourDesignValue =
+      rawDesignValue === 1 ||
+      rawDesignValue === "1" ||
+      rawDesignValue === true;
+
+    return {
+      ...product,
+      id: product.product_id || product.id || product.productId || `${product.product_id}`,
+      productId: product.product_id || product.productId || product.id,
+      salePrice: Number(product.sale_price ?? product.salePrice ?? 0),
+      mrp: Number(product.mrp ?? 0),
+      color: parseDatabaseValue(product.color, []),
+      size: parseDatabaseValue(product.size, []),
+      images: parseDatabaseValue(product.images, []),
+      stockByVariant: parseDatabaseValue(product.stock_by_variant, {}),
+      ourDesign: ourDesignValue,
+    };
+  };
+
+  const products = React.useMemo(() => {
+    const map = new Map();
+    firebaseProducts.forEach((product) => map.set(product.id, product));
+    mysqlProducts.forEach((product) => map.set(product.id, product));
+    return Array.from(map.values());
+  }, [firebaseProducts, mysqlProducts]);
+
+  const designs = React.useMemo(() => {
+    const map = new Map();
+    firebaseDesigns.forEach((product) => map.set(product.id, product));
+    mysqlDesigns.forEach((product) => map.set(product.id, product));
+    return Array.from(map.values());
+  }, [firebaseDesigns, mysqlDesigns]);
 
   useEffect(() => {
     const storedApiUser = localStorage.getItem(API_USER_KEY);
@@ -92,8 +144,8 @@ export function AuthProvider({ children }) {
           }));
           const normalProducts = productList.filter((p) => p.ourDesign === false);
           const designProducts = productList.filter((p) => p.ourDesign === true);
-          setProducts(normalProducts);
-          setDesigns(designProducts);
+          setFirebaseProducts(normalProducts);
+          setFirebaseDesigns(designProducts);
         } catch (error) {
           console.error("Error processing products:", error);
         }
@@ -101,12 +153,41 @@ export function AuthProvider({ children }) {
       (error) => {
         console.error("Error listening to products:", error);
         // Fallback to empty data
-        setProducts([]);
-        setDesigns([]);
+        setFirebaseProducts([]);
+        setFirebaseDesigns([]);
       }
     );
 
     return () => unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+    const loadBackendProducts = async () => {
+      try {
+        const { data } = await api.get("/products");
+        if (!isMounted) return;
+
+        if (data?.success && Array.isArray(data.products)) {
+          const normalized = data.products.map(normalizeBackendProduct);
+          setMysqlProducts(normalized.filter((item) => !item.ourDesign));
+          setMysqlDesigns(normalized.filter((item) => item.ourDesign));
+        } else {
+          setMysqlProducts([]);
+          setMysqlDesigns([]);
+        }
+      } catch (error) {
+        console.error("Error fetching backend products:", error);
+        setMysqlProducts([]);
+        setMysqlDesigns([]);
+      }
+    };
+
+    loadBackendProducts();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   useEffect(() => {
