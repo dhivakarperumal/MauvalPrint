@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/png" href="/favicon.ico" />
+
+  <!-- Primary Meta Tags -->
+  <title>Mauval Prints | Custom T-Shirts, Hoodies & Sweatshirts in Tirupattur</title>
+  <meta name="title" content="Mauval Prints | Custom T-Shirts, Hoodies & Sweatshirts in Tirupattur, Tamil Nadu" />
+  <meta name="description" content="Mauval Prints is Tirupattur's trusted custom t-shirt printing shop offering premium hoodies, sweatshirts, name prints, couple tees & bulk orders. Fast delivery across Tamil Nadu. Contact: +91 6385381388" />
+  <meta name="keywords" content="Custom T-Shirts Tirupattur, Mauval Prints, Printed T-Shirts Tamil Nadu, Hoodie Printing Tirupattur, Sweatshirts, Couple T-Shirts, Bulk T-Shirt Orders, 635653, 6.Quote" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="author" content="Mauval Prints" />
+  <meta name="language" content="English" />
+
+  <!-- Open Graph / Social Preview -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://www.mauvalprint.in" />
+  <meta property="og:title" content="Custom T-Shirts & Hoodies in Tirupattur | Mauval Prints" />
+  <meta property="og:description" content="Design your own T-shirt, Hoodie or Sweatshirt at Mauval Prints. Affordable prices & fast delivery! Contact +91 6385381388" />
+  <meta property="og:image" content="https://www.mauvalprint.in/top.jpg" />
+
+  <!-- Local Business Schema (Boosts Google Search Visibility) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org/",
+    "@type": "ClothingStore",
+    "name": "Mauval Prints",
+    "image": "https://www.mauvalprint.in/top.jpg",
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "Tirupattur",
+      "addressLocality": "Tirupattur",
+      "addressRegion": "Tamil Nadu",
+      "postalCode": "635653",
+      "addressCountry": "IN"
+    },
+    "url": "https://www.mauvalprint.in",
+    "telephone": "+91 6385381388",
+    "openingHours": "Mo-Sa 09:00-21:00",
+    "sameAs": []
+  }
+  </script>
+</head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script>
+      // Disable right-click context menu entirely
+      document.addEventListener("contextmenu", (e) => e.preventDefault());
+
+      // Disable common key shortcuts (except DevTools like F12)
+      document.addEventListener("keydown", function (e) {
+        // Ctrl+S or Cmd+S (Save page)
+        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") {
+          e.preventDefault();
+        }
+
+        // Ctrl+U or Cmd+U (View Source)
+        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "u") {
+          e.preventDefault();
+        }
+
+        // Don't block DevTools (F12 / Ctrl+Shift+I / Cmd+Opt+I)
+      });
+
+      // Disable image dragging globally
+      window.addEventListener("DOMContentLoaded", () => {
+        const imgs = document.querySelectorAll("img");
+        imgs.forEach((img) => {
+          img.draggable = false;
+          img.style.pointerEvents = "none";
+          img.style.userSelect = "none";
+          img.oncontextmenu = () => false;
+        });
+      });
+    </script>
+  </body>
+</html>

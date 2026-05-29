@@ -1,0 +1,50 @@
+{
+  "name": "mauval_print",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "lint": "eslint .",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@emailjs/browser": "^4.4.1",
+    "@react-oauth/google": "^0.12.2",
+    "@tailwindcss/vite": "^4.1.11",
+    "aos": "^2.3.4",
+    "browser-image-compression": "^2.0.2",
+    "chart.js": "^4.5.0",
+    "file-saver": "^2.0.5",
+    "firebase": "^11.10.0",
+    "framer-motion": "^12.23.3",
+    "jwt-decode": "^4.0.0",
+    "react": "^19.1.0",
+    "react-chartjs-2": "^5.3.0",
+    "react-circular-progressbar": "^2.2.0",
+    "react-dom": "^19.1.0",
+    "react-hot-toast": "^2.5.2",
+    "react-icons": "^5.5.0",
+    "react-router-dom": "^7.7.0",
+    "react-slick": "^0.30.3",
+    "react-toastify": "^11.0.5",
+    "recharts": "^3.1.0",
+    "slick-carousel": "^1.8.1",
+    "swiper": "^12.0.3",
+    "tailwindcss": "^4.1.11",
+    "uuid": "^11.1.0",
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.30.1",
+    "@types/react": "^19.1.8",
+    "@types/react-dom": "^19.1.6",
+    "@vitejs/plugin-react": "^4.6.0",
+    "eslint": "^9.30.1",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "eslint-plugin-react-refresh": "^0.4.20",
+    "globals": "^16.3.0",
+    "vite": "^7.0.4"
+  }
+}

@@ -1,0 +1,1600 @@
+[
+  {
+    "id": 1,
+    "name": "Best Bro & Sis",
+    "category": "Brother & Sister",
+    "images": [
+      "Image/Designs/bs1.png",
+      "Image/Designs/bs2.png"
+    ],
+    "mrp": 1031,
+    "size": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL"
+    ],
+    "offer": 10,
+    "offer_price": 928,
+    "saved_amount": 103,
+    "rating": 4.9,
+    "description": {
+      "summary": [
+        "Best Bro & Sis design stands out with unique flair and comfort",
+        "Crafted with premium cotton, it blends art and apparel effortlessly",
+        "Perfect for casual days or special occasions, this tee celebrates individuality and emotional bonds",
+        "Wear your heart on your sleeve\u2014literally",
+        "With attention to detail, this shirt symbolizes love, loyalty, and style",
+        "A keepsake for memories or a standout fashion piece",
+        "Each print tells a story",
+        "The feel is soft, the statement is bold",
+        "Gift it or flaunt it\u2014this tee does it all."
+      ],
+      "details": {
+        "Country Of Origin": "India",
+        "MRP (Inc. of all taxes)": "\u20b91031.00 (inclusive of all taxes)",
+        "Shelf Life": "12 Months",
+        "Ingredients": "100% Cotton, Premium Print",
+        "Processed, Packed & Marketed by": "YourBrand Clothing Co., India"
+      }
+    },
+    "reviews": [
+      {
+        "customer": "Lakshmi",
+        "review": "Unique concept. I got compliments from friends and family on the first wear!",
+        "date": "2025-05-28"
+      },
+      {
+        "customer": "Amit",
+        "review": "Absolutely loved the design and fabric. It feels special every time I wear it.",
+        "date": "2025-06-03"
+      },
+      {
+        "customer": "Megha",
+        "review": "Color stays bright even after washes. It fits well and makes a great gift.",
+        "date": "2025-06-05"
+      }
+    ],
+    "launched_date": "2025-05-17",
+    "relationship": "Siblings",
+    "theme": "Family",
+    "occasion": "Raksha Bandhan",
+    "price_range": "\u20b9800\u2013\u20b91000",
+    "is_customizable": false
+  },
+  {
+    "id": 2,
+    "name": "Couple Goals",
+    "category": "Couple",
+    "images": [
+      "Image/Designs/c1.png",
+      "Image/Designs/c2.png"
+    ],
+    "mrp": 837,
+    "size": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL"
+    ],
+    "offer": 15,
+    "offer_price": 711,
+    "saved_amount": 126,
+    "rating": 4.6,
+    "description": {
+      "summary": [
+        "Couple Goals design stands out with unique flair and comfort",
+        "Crafted with premium cotton, it blends art and apparel effortlessly",
+        "Perfect for casual days or special occasions, this tee celebrates individuality and emotional bonds",
+        "Wear your heart on your sleeve\u2014literally",
+        "With attention to detail, this shirt symbolizes love, loyalty, and style",
+        "A keepsake for memories or a standout fashion piece",
+        "Each print tells a story",
+        "The feel is soft, the statement is bold",
+        "Gift it or flaunt it\u2014this tee does it all."
+      ],
+      "details": {
+        "Country Of Origin": "India",
+        "MRP (Inc. of all taxes)": "\u20b9837.00 (inclusive of all taxes)",
+        "Shelf Life": "12 Months",
+        "Ingredients": "100% Cotton, Premium Print",
+        "Processed, Packed & Marketed by": "YourBrand Clothing Co., India"
+      }
+    },
+    "reviews": [
+      {
+        "customer": "Rahul",
+        "review": "Color stays bright even after washes. It fits well and makes a great gift.",
+        "date": "2025-05-16"
+      },
+      {
+        "customer": "Lakshmi",
+        "review": "Unique concept. I got compliments from friends and family on the first wear!",
+        "date": "2025-05-20"
+      },
+      {
+        "customer": "Sneha",
+        "review": "Feels premium and the artwork really stands out. Will definitely buy again.",
+        "date": "2025-05-21"
+      }
+    ],
+    "launched_date": "2025-05-27",
+    "relationship": "Couple",
+    "theme": "Family",
+    "occasion": "Anniversary",
+    "price_range": "Under \u20b9800",
+    "is_customizable": false
+  },
+  {
+    "id": 3,
+    "name": "Dad & Daughter Bond",
+    "category": "Dad & Daughter",
+    "images": [
+      "Image/Designs/dd1.png",
+      "Image/Designs/dd2.png"
+    ],
+    "mrp": 1183,
+    "size": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL"
+    ],
+    "offer": 20,
+    "offer_price": 946,
+    "saved_amount": 237,
+    "rating": 4.7,
+    "description": {
+      "summary": [
+        "Dad & Daughter Bond design stands out with unique flair and comfort",
+        "Crafted with premium cotton, it blends art and apparel effortlessly",
+        "Perfect for casual days or special occasions, this tee celebrates individuality and emotional bonds",
+        "Wear your heart on your sleeve\u2014literally",
+        "With attention to detail, this shirt symbolizes love, loyalty, and style",
+        "A keepsake for memories or a standout fashion piece",
+        "Each print tells a story",
+        "The feel is soft, the statement is bold",
+        "Gift it or flaunt it\u2014this tee does it all."
+      ],
+      "details": {
+        "Country Of Origin": "India",
+        "MRP (Inc. of all taxes)": "\u20b91183.00 (inclusive of all taxes)",
+        "Shelf Life": "12 Months",
+        "Ingredients": "100% Cotton, Premium Print",
+        "Processed, Packed & Marketed by": "YourBrand Clothing Co., India"
+      }
+    },
+    "reviews": [
+      {
+        "customer": "Karan",
+        "review": "Absolutely loved the design and fabric. It feels special every time I wear it.",
+        "date": "2025-05-16"
+      },
+      {
+        "customer": "Sneha",
+        "review": "Bought it as a surprise and it brought tears of joy. Beautiful and meaningful.",
+        "date": "2025-06-02"
+      },
+      {
+        "customer": "Divya",
+        "review": "The artwork really stands out. My daughter loved it. Perfect gift for family days.",
+        "date": "2025-06-07"
+      }
+    ],
+    "launched_date": "2025-06-02",
+    "relationship": "Dad & Daughter",
+    "theme": "Family",
+    "occasion": "Father's Day",
+    "price_range": "\u20b9800\u2013\u20b91000",
+    "is_customizable": false
+  },
+  {
+    "id": 4,
+    "name": "Dad & Son Duo",
+    "category": "Dad & Son",
+    "images": [
+      "Image/Designs/ds1.png",
+      "Image/Designs/ds2.png"
+    ],
+    "mrp": 1065,
+    "size": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL"
+    ],
+    "offer": 25,
+    "offer_price": 799,
+    "saved_amount": 266,
+    "rating": 4.8,
+    "description": {
+      "summary": [
+        "Dad & Son Duo design stands out with unique flair and comfort",
+        "Crafted with premium cotton, it blends art and apparel effortlessly",
+        "Perfect for casual days or special occasions, this tee celebrates individuality and emotional bonds",
+        "Wear your heart on your sleeve\u2014literally",
+        "With attention to detail, this shirt symbolizes love, loyalty, and style",
+        "A keepsake for memories or a standout fashion piece",
+        "Each print tells a story",
+        "The feel is soft, the statement is bold",
+        "Gift it or flaunt it\u2014this tee does it all."
+      ],
+      "details": {
+        "Country Of Origin": "India",
+        "MRP (Inc. of all taxes)": "\u20b91065.00 (inclusive of all taxes)",
+        "Shelf Life": "12 Months",
+        "Ingredients": "100% Cotton, Premium Print",
+        "Processed, Packed & Marketed by": "YourBrand Clothing Co., India"
+      }
+    },
+    "reviews": [
+      {
+        "customer": "Ravi",
+        "review": "Perfect bonding gift! My son and I wore these together on Father's Day. Loved the quality and design.",
+        "date": "2025-05-22"
+      },
+      {
+        "customer": "Megha",
+        "review": "Premium feel and very well made. My husband and son looked adorable in these.",
+        "date": "2025-06-01"
+      },
+      {
+        "customer": "Rahul",
+        "review": "Really nice fabric and print. A memory to cherish forever!",
+        "date": "2025-06-06"
+      }
+    ],
+    "launched_date": "2025-05-24",
+    "relationship": "Dad & Son",
+    "theme": "Family",
+    "occasion": "Father's Day",
+    "price_range": "Under \u20b9800",
+    "is_customizable": false
+  },
+  {
+    "id": 5,
+    "name": "King & Queen",
+    "category": "King & Queen",
+    "images": [
+      "Image/Designs/kq1.png",
+      "Image/Designs/kq2.png"
+    ],
+    "mrp": 1013,
+    "size": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL"
+    ],
+    "offer": 20,
+    "offer_price": 810,
+    "saved_amount": 203,
+    "rating": 4.8,
+    "description": {
+      "summary": [
+        "King & Queen design stands out with unique flair and comfort",
+        "Crafted with premium cotton, it blends art and apparel effortlessly",
+        "Perfect for casual days or special occasions, this tee celebrates individuality and emotional bonds",
+        "Wear your heart on your sleeve\u2014literally",
+        "With attention to detail, this shirt symbolizes love, loyalty, and style",
+        "A keepsake for memories or a standout fashion piece",
+        "Each print tells a story",
+        "The feel is soft, the statement is bold",
+        "Gift it or flaunt it\u2014this tee does it all."
+      ],
+      "details": {
+        "Country Of Origin": "India",
+        "MRP (Inc. of all taxes)": "\u20b91013.00 (inclusive of all taxes)",
+        "Shelf Life": "12 Months",
+        "Ingredients": "100% Cotton, Premium Print",
+        "Processed, Packed & Marketed by": "YourBrand Clothing Co., India"
+      }
+    },
+    "reviews": [
+      {
+        "customer": "Sneha",
+        "review": "Royal vibes! We wore this for our pre-wedding shoot and got so many compliments.",
+        "date": "2025-06-02"
+      },
+      {
+        "customer": "Amit",
+        "review": "Felt like royalty! Amazing material and perfect couples\u2019 wear.",
+        "date": "2025-06-09"
+      },
+      {
+        "customer": "Nithin",
+        "review": "Bold, comfy, and perfect for gifting. We loved it.",
+        "date": "2025-06-11"
+      }
+    ],
+    "launched_date": "2025-05-25",
+    "relationship": "Couple",
+    "theme": "Family",
+    "occasion": "Anniversary",
+    "price_range": "\u20b9800\u2013\u20b91000",
+    "is_customizable": false
+  },
+  {
+    "id": 6,
+    "name": "Wolf Instinct",
+    "category": "Wolf",
+    "images": [
+      "Image/Designs/w1.png",
+      "Image/Designs/w2.png"
+    ],
+    "mrp": 1129,
+    "size": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL"
+    ],
+    "offer": 30,
+    "offer_price": 790,
+    "saved_amount": 339,
+    "rating": 4.7,
+    "description": {
+      "summary": [
+        "Wolf Instinct design stands out with unique flair and comfort",
+        "Crafted with premium cotton, it blends art and apparel effortlessly",
+        "Perfect for casual days or special occasions, this tee celebrates individuality and emotional bonds",
+        "Wear your heart on your sleeve\u2014literally",
+        "With attention to detail, this shirt symbolizes love, loyalty, and style",
+        "A keepsake for memories or a standout fashion piece",
+        "Each print tells a story",
+        "The feel is soft, the statement is bold",
+        "Gift it or flaunt it\u2014this tee does it all."
+      ],
+      "details": {
+        "Country Of Origin": "India",
+        "MRP (Inc. of all taxes)": "\u20b91129.00 (inclusive of all taxes)",
+        "Shelf Life": "12 Months",
+        "Ingredients": "100% Cotton, Premium Print",
+        "Processed, Packed & Marketed by": "YourBrand Clothing Co., India"
+      }
+    },
+    "reviews": [
+      {
+        "customer": "Anbu",
+        "review": "This tee screams alpha! Loved the boldness and sharpness of the print. Great for night rides too.",
+        "date": "2025-05-28"
+      },
+      {
+        "customer": "Jagan",
+        "review": "Very eye-catching. The artwork is intense and stylish. Worth every rupee.",
+        "date": "2025-06-03"
+      },
+      {
+        "customer": "Saravanan",
+        "review": "Superb fit and premium feel. My friends keep asking where I got it from.",
+        "date": "2025-06-07"
+      }
+    ],
+    "launched_date": "2025-05-23",
+    "relationship": "General",
+    "theme": "Bold",
+    "occasion": "Casual Wear",
+    "price_range": "Under \u20b9800",
+    "is_customizable": false
+  },
+  {
+    "id": 7,
+    "name": "Tree of Love",
+    "category": "Tree",
+    "images": [
+      "Image/Designs/t1.png",
+      "Image/Designs/t2.png"
+    ],
+    "mrp": 999,
+    "size": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL"
+    ],
+    "offer": 20,
+    "offer_price": 799,
+    "saved_amount": 200,
+    "rating": 4.9,
+    "description": {
+      "summary": [
+        "Tree of Love design stands out with unique flair and comfort",
+        "Crafted with premium cotton, it blends art and apparel effortlessly",
+        "Perfect for casual days or special occasions, this tee celebrates individuality and emotional bonds",
+        "Wear your heart on your sleeve\u2014literally",
+        "With attention to detail, this shirt symbolizes love, loyalty, and style",
+        "A keepsake for memories or a standout fashion piece",
+        "Each print tells a story",
+        "The feel is soft, the statement is bold",
+        "Gift it or flaunt it\u2014this tee does it all."
+      ],
+      "details": {
+        "Country Of Origin": "India",
+        "MRP (Inc. of all taxes)": "\u20b9999.00 (inclusive of all taxes)",
+        "Shelf Life": "12 Months",
+        "Ingredients": "100% Cotton, Premium Print",
+        "Processed, Packed & Marketed by": "YourBrand Clothing Co., India"
+      }
+    },
+    "reviews": [
+      {
+        "customer": "Preethi",
+        "review": "Wore it on our anniversary. The design is so symbolic and beautifully printed!",
+        "date": "2025-05-19"
+      },
+      {
+        "customer": "Vani",
+        "review": "Elegant, meaningful, and soft. Makes a great gift for loved ones.",
+        "date": "2025-05-28"
+      },
+      {
+        "customer": "Jeeva",
+        "review": "Love-themed shirts usually feel too loud, but this one is perfectly minimal and expressive.",
+        "date": "2025-06-04"
+      }
+    ],
+    "launched_date": "2025-05-26",
+    "relationship": "General",
+    "theme": "Romantic",
+    "occasion": "Casual Wear",
+    "price_range": "Under \u20b9800",
+    "is_customizable": false
+  },
+  {
+    "id": 8,
+    "name": "Heart Beat",
+    "category": "Heart",
+    "images": [
+      "Image/Designs/h1.png",
+      "Image/Designs/h2.png"
+    ],
+    "mrp": 945,
+    "size": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL"
+    ],
+    "offer": 15,
+    "offer_price": 803,
+    "saved_amount": 142,
+    "rating": 4.8,
+    "description": {
+      "summary": [
+        "Heart Beat design stands out with unique flair and comfort",
+        "Crafted with premium cotton, it blends art and apparel effortlessly",
+        "Perfect for casual days or special occasions, this tee celebrates individuality and emotional bonds",
+        "Wear your heart on your sleeve\u2014literally",
+        "With attention to detail, this shirt symbolizes love, loyalty, and style",
+        "A keepsake for memories or a standout fashion piece",
+        "Each print tells a story",
+        "The feel is soft, the statement is bold",
+        "Gift it or flaunt it\u2014this tee does it all."
+      ],
+      "details": {
+        "Country Of Origin": "India",
+        "MRP (Inc. of all taxes)": "\u20b9945.00 (inclusive of all taxes)",
+        "Shelf Life": "12 Months",
+        "Ingredients": "100% Cotton, Premium Print",
+        "Processed, Packed & Marketed by": "YourBrand Clothing Co., India"
+      }
+    },
+    "reviews": [
+      {
+        "customer": "Ramya",
+        "review": "So symbolic and sweet. The heart line artwork is minimal but very expressive!",
+        "date": "2025-05-24"
+      },
+      {
+        "customer": "Nithin",
+        "review": "Really soft material and the print feels durable. I wore this on a date night!",
+        "date": "2025-05-30"
+      },
+      {
+        "customer": "Dharani",
+        "review": "It\u2019s a simple yet deep design. Got one for myself and one for my partner!",
+        "date": "2025-06-02"
+      }
+    ],
+    "launched_date": "2025-05-22",
+    "relationship": "General",
+    "theme": "Romantic",
+    "occasion": "Anniversary",
+    "price_range": "\u20b9800\u2013\u20b91000",
+    "is_customizable": false
+  },
+  {
+    "id": 9,
+    "name": "CSK Roar",
+    "category": "CSK",
+    "images": [
+      "Image/Designs/csk1.png",
+      "Image/Designs/csk2.png"
+    ],
+    "mrp": 1145,
+    "size": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL"
+    ],
+    "offer": 25,
+    "offer_price": 859,
+    "saved_amount": 286,
+    "rating": 4.9,
+    "description": {
+      "summary": [
+        "CSK Roar design stands out with unique flair and comfort",
+        "Crafted with premium cotton, it blends art and apparel effortlessly",
+        "Perfect for casual days or special occasions, this tee celebrates individuality and emotional bonds",
+        "Wear your heart on your sleeve\u2014literally",
+        "With attention to detail, this shirt symbolizes love, loyalty, and style",
+        "A keepsake for memories or a standout fashion piece",
+        "Each print tells a story",
+        "The feel is soft, the statement is bold",
+        "Gift it or flaunt it\u2014this tee does it all."
+      ],
+      "details": {
+        "Country Of Origin": "India",
+        "MRP (Inc. of all taxes)": "\u20b91145.00 (inclusive of all taxes)",
+        "Shelf Life": "12 Months",
+        "Ingredients": "100% Cotton, Premium Print",
+        "Processed, Packed & Marketed by": "YourBrand Clothing Co., India"
+      }
+    },
+    "reviews": [
+      {
+        "customer": "Raj",
+        "review": "Wore this during an IPL match and the crowd loved it. Vibrant, loyal, and full of roar!",
+        "date": "2025-06-01"
+      },
+      {
+        "customer": "Arvind",
+        "review": "CSK fans will adore this! Quality is amazing and it fits like a dream.",
+        "date": "2025-06-05"
+      },
+      {
+        "customer": "Mukesh",
+        "review": "Yellow never looked this good. Great combo of design and comfort.",
+        "date": "2025-06-08"
+      }
+    ],
+    "launched_date": "2025-05-21",
+    "relationship": "General",
+    "theme": "Bold",
+    "occasion": "Cricket Season",
+    "price_range": "\u20b9800\u2013\u20b91000",
+    "is_customizable": false
+  },
+  {
+    "id": 10,
+    "name": "Custom Magic",
+    "category": "Customized Design",
+    "images": [
+      "Image/Designs/cd1.png"
+    ],
+    "mrp": 1020,
+    "size": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL"
+    ],
+    "offer": 30,
+    "offer_price": 714,
+    "saved_amount": 306,
+    "rating": 4.7,
+    "description": {
+      "summary": [
+        "Custom Magic design stands out with unique flair and comfort",
+        "Crafted with premium cotton, it blends art and apparel effortlessly",
+        "Perfect for casual days or special occasions, this tee celebrates individuality and emotional bonds",
+        "Wear your heart on your sleeve\u2014literally",
+        "With attention to detail, this shirt symbolizes love, loyalty, and style",
+        "A keepsake for memories or a standout fashion piece",
+        "Each print tells a story",
+        "The feel is soft, the statement is bold",
+        "Gift it or flaunt it\u2014this tee does it all."
+      ],
+      "details": {
+        "Country Of Origin": "India",
+        "MRP (Inc. of all taxes)": "\u20b91020.00 (inclusive of all taxes)",
+        "Shelf Life": "12 Months",
+        "Ingredients": "100% Cotton, Premium Print",
+        "Processed, Packed & Marketed by": "YourBrand Clothing Co., India"
+      }
+    },
+    "reviews": [
+      {
+        "customer": "Deepa",
+        "review": "Was able to personalize this design with a custom message\u2014just beautiful! Made it very special.",
+        "date": "2025-05-27"
+      },
+      {
+        "customer": "Ravi",
+        "review": "Print is crisp and the cotton is soft. Loved the fact that it's unique!",
+        "date": "2025-06-03"
+      },
+      {
+        "customer": "Sowmya",
+        "review": "Got this for a surprise birthday. Amazing attention to detail and packaging!",
+        "date": "2025-06-10"
+      }
+    ],
+    "launched_date": "2025-05-29",
+    "relationship": "Personalized",
+    "theme": "Personalized",
+    "occasion": "Birthday",
+    "price_range": "Under \u20b9800",
+    "is_customizable": true
+  },
+  {
+    "id": 11,
+    "name": "Best Bro & Sis",
+    "category": "Brother & Sister",
+    "images": [
+      "Image/Designs/bs2.png",
+      "Image/Designs/bs1.png"
+    ],
+    "mrp": 881,
+    "size": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL"
+    ],
+    "offer": 25,
+    "offer_price": 661,
+    "saved_amount": 220,
+    "rating": 4.8,
+    "description": {
+      "summary": [
+        "Best Bro & Sis design stands out with unique flair and comfort",
+        "Crafted with premium cotton, it blends art and apparel effortlessly",
+        "Perfect for casual days or special occasions, this tee celebrates individuality and emotional bonds",
+        "Wear your heart on your sleeve\u2014literally",
+        "With attention to detail, this shirt symbolizes love, loyalty, and style",
+        "A keepsake for memories or a standout fashion piece",
+        "Each print tells a story",
+        "The feel is soft, the statement is bold",
+        "Gift it or flaunt it\u2014this tee does it all."
+      ],
+      "details": {
+        "Country Of Origin": "India",
+        "MRP (Inc. of all taxes)": "\u20b9881.00 (inclusive of all taxes)",
+        "Shelf Life": "12 Months",
+        "Ingredients": "100% Cotton, Premium Print",
+        "Processed, Packed & Marketed by": "YourBrand Clothing Co., India"
+      }
+    },
+    "reviews": [
+      {
+        "customer": "Karan",
+        "review": "Got this for Raksha Bandhan. My sister absolutely loved it. The print made her smile!",
+        "date": "2025-05-18"
+      },
+      {
+        "customer": "Aarya",
+        "review": "Super comfy and emotional design. Everyone asked where we bought it!",
+        "date": "2025-05-26"
+      },
+      {
+        "customer": "Harish",
+        "review": "High quality cotton and very expressive print. Worth every penny!",
+        "date": "2025-06-02"
+      }
+    ],
+    "launched_date": "2025-05-23",
+    "relationship": "Siblings",
+    "theme": "Family",
+    "occasion": "Raksha Bandhan",
+    "price_range": "Under \u20b9800",
+    "is_customizable": false
+  },
+  {
+    "id": 12,
+    "name": "Couple Goals",
+    "category": "Couple",
+    "images": [
+      "Image/Designs/c2.png",
+      "Image/Designs/c1.png"
+    ],
+    "mrp": 999,
+    "size": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL"
+    ],
+    "offer": 20,
+    "offer_price": 799,
+    "saved_amount": 200,
+    "rating": 4.7,
+    "description": {
+      "summary": [
+        "Couple Goals design stands out with unique flair and comfort",
+        "Crafted with premium cotton, it blends art and apparel effortlessly",
+        "Perfect for casual days or special occasions, this tee celebrates individuality and emotional bonds",
+        "Wear your heart on your sleeve\u2014literally",
+        "With attention to detail, this shirt symbolizes love, loyalty, and style",
+        "A keepsake for memories or a standout fashion piece",
+        "Each print tells a story",
+        "The feel is soft, the statement is bold",
+        "Gift it or flaunt it\u2014this tee does it all."
+      ],
+      "details": {
+        "Country Of Origin": "India",
+        "MRP (Inc. of all taxes)": "\u20b9999.00 (inclusive of all taxes)",
+        "Shelf Life": "12 Months",
+        "Ingredients": "100% Cotton, Premium Print",
+        "Processed, Packed & Marketed by": "YourBrand Clothing Co., India"
+      }
+    },
+    "reviews": [
+      {
+        "customer": "Vikram",
+        "review": "Gave it as a surprise gift for our anniversary. She smiled the whole day!",
+        "date": "2025-05-30"
+      },
+      {
+        "customer": "Sowmya",
+        "review": "Adorable design and fits perfectly. A must-buy for couples!",
+        "date": "2025-06-04"
+      },
+      {
+        "customer": "Nisha",
+        "review": "Cozy and romantic. We're planning a photoshoot wearing these!",
+        "date": "2025-06-09"
+      }
+    ],
+    "launched_date": "2025-05-27",
+    "relationship": "Couple",
+    "theme": "Family",
+    "occasion": "Anniversary",
+    "price_range": "Under \u20b9800",
+    "is_customizable": false
+  },
+  {
+    "id": 13,
+    "name": "Dad & Daughter Bond",
+    "category": "Dad & Daughter",
+    "images": [
+      "Image/Designs/dd2.png",
+      "Image/Designs/dd1.png"
+    ],
+    "mrp": 1055,
+    "size": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL"
+    ],
+    "offer": 20,
+    "offer_price": 844,
+    "saved_amount": 211,
+    "rating": 4.9,
+    "description": {
+      "summary": [
+        "Dad & Daughter Bond design stands out with unique flair and comfort",
+        "Crafted with premium cotton, it blends art and apparel effortlessly",
+        "Perfect for casual days or special occasions, this tee celebrates individuality and emotional bonds",
+        "Wear your heart on your sleeve\u2014literally",
+        "With attention to detail, this shirt symbolizes love, loyalty, and style",
+        "A keepsake for memories or a standout fashion piece",
+        "Each print tells a story",
+        "The feel is soft, the statement is bold",
+        "Gift it or flaunt it\u2014this tee does it all."
+      ],
+      "details": {
+        "Country Of Origin": "India",
+        "MRP (Inc. of all taxes)": "\u20b91055.00 (inclusive of all taxes)",
+        "Shelf Life": "12 Months",
+        "Ingredients": "100% Cotton, Premium Print",
+        "Processed, Packed & Marketed by": "YourBrand Clothing Co., India"
+      }
+    },
+    "reviews": [
+      {
+        "customer": "Ramesh",
+        "review": "This touched my heart. A gift from my daughters\u2014will treasure it forever!",
+        "date": "2025-06-03"
+      },
+      {
+        "customer": "Lavanya",
+        "review": "Bought this for Father's Day. The moment he opened it, he smiled so big.",
+        "date": "2025-06-06"
+      },
+      {
+        "customer": "Divya",
+        "review": "Simple, emotional, and perfect. The bond is captured so well in this design.",
+        "date": "2025-06-11"
+      }
+    ],
+    "launched_date": "2025-05-25",
+    "relationship": "Dad & Daughter",
+    "theme": "Family",
+    "occasion": "Father's Day",
+    "price_range": "\u20b9800\u2013\u20b91000",
+    "is_customizable": false
+  },
+  {
+    "id": 14,
+    "name": "Dad & Son Duo",
+    "category": "Dad & Son",
+    "images": [
+      "Image/Designs/ds3.png",
+      "Image/Designs/ds4.png"
+    ],
+    "mrp": 949,
+    "size": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL"
+    ],
+    "offer": 10,
+    "offer_price": 854,
+    "saved_amount": 95,
+    "rating": 4.8,
+    "description": {
+      "summary": [
+        "Dad & Son Duo design stands out with unique flair and comfort",
+        "Crafted with premium cotton, it blends art and apparel effortlessly",
+        "Perfect for casual days or special occasions, this tee celebrates individuality and emotional bonds",
+        "Wear your heart on your sleeve\u2014literally",
+        "With attention to detail, this shirt symbolizes love, loyalty, and style",
+        "A keepsake for memories or a standout fashion piece",
+        "Each print tells a story",
+        "The feel is soft, the statement is bold",
+        "Gift it or flaunt it\u2014this tee does it all."
+      ],
+      "details": {
+        "Country Of Origin": "India",
+        "MRP (Inc. of all taxes)": "\u20b9949.00 (inclusive of all taxes)",
+        "Shelf Life": "12 Months",
+        "Ingredients": "100% Cotton, Premium Print",
+        "Processed, Packed & Marketed by": "YourBrand Clothing Co., India"
+      }
+    },
+    "reviews": [
+      {
+        "customer": "Ganesh",
+        "review": "Loved twinning with my son. Such a thoughtful and bonding-friendly design!",
+        "date": "2025-05-30"
+      },
+      {
+        "customer": "Meena",
+        "review": "I gifted this to my husband and son\u2014they looked so cute wearing it together.",
+        "date": "2025-06-04"
+      },
+      {
+        "customer": "Pravin",
+        "review": "Great quality and emotional value. Highly recommend for Father's Day gifts.",
+        "date": "2025-06-07"
+      }
+    ],
+    "launched_date": "2025-05-24",
+    "relationship": "Dad & Son",
+    "theme": "Family",
+    "occasion": "Father's Day",
+    "price_range": "\u20b9800\u2013\u20b91000",
+    "is_customizable": false
+  },
+  {
+    "id": 15,
+    "name": "King & Queen",
+    "category": "King & Queen",
+    "images": [
+      "Image/Designs/kq2.png",
+      "Image/Designs/kq1.png"
+    ],
+    "mrp": 1025,
+    "size": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL"
+    ],
+    "offer": 25,
+    "offer_price": 769,
+    "saved_amount": 256,
+    "rating": 4.9,
+    "description": {
+      "summary": [
+        "King & Queen design stands out with unique flair and comfort",
+        "Crafted with premium cotton, it blends art and apparel effortlessly",
+        "Perfect for casual days or special occasions, this tee celebrates individuality and emotional bonds",
+        "Wear your heart on your sleeve\u2014literally",
+        "With attention to detail, this shirt symbolizes love, loyalty, and style",
+        "A keepsake for memories or a standout fashion piece",
+        "Each print tells a story",
+        "The feel is soft, the statement is bold",
+        "Gift it or flaunt it\u2014this tee does it all."
+      ],
+      "details": {
+        "Country Of Origin": "India",
+        "MRP (Inc. of all taxes)": "\u20b91025.00 (inclusive of all taxes)",
+        "Shelf Life": "12 Months",
+        "Ingredients": "100% Cotton, Premium Print",
+        "Processed, Packed & Marketed by": "YourBrand Clothing Co., India"
+      }
+    },
+    "reviews": [
+      {
+        "customer": "Nisha",
+        "review": "We wore this for our engagement shoot and absolutely loved the royal vibe!",
+        "date": "2025-06-04"
+      },
+      {
+        "customer": "Ravi",
+        "review": "Perfect for couples who love to show off their connection in style!",
+        "date": "2025-06-07"
+      },
+      {
+        "customer": "Sneha",
+        "review": "Bold design with great finish. Feels like a premium gift set.",
+        "date": "2025-06-11"
+      }
+    ],
+    "launched_date": "2025-05-29",
+    "relationship": "Couple",
+    "theme": "Family",
+    "occasion": "Anniversary",
+    "price_range": "Under \u20b9800",
+    "is_customizable": false
+  },
+  {
+    "id": 16,
+    "name": "Wolf Instinct",
+    "category": "Wolf",
+    "images": [
+      "Image/Designs/w2.png",
+      "Image/Designs/w3.png"
+    ],
+    "mrp": 985,
+    "size": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL"
+    ],
+    "offer": 30,
+    "offer_price": 690,
+    "saved_amount": 295,
+    "rating": 4.7,
+    "description": {
+      "summary": [
+        "Wolf Instinct design stands out with unique flair and comfort",
+        "Crafted with premium cotton, it blends art and apparel effortlessly",
+        "Perfect for casual days or special occasions, this tee celebrates individuality and emotional bonds",
+        "Wear your heart on your sleeve\u2014literally",
+        "With attention to detail, this shirt symbolizes love, loyalty, and style",
+        "A keepsake for memories or a standout fashion piece",
+        "Each print tells a story",
+        "The feel is soft, the statement is bold",
+        "Gift it or flaunt it\u2014this tee does it all."
+      ],
+      "details": {
+        "Country Of Origin": "India",
+        "MRP (Inc. of all taxes)": "\u20b9985.00 (inclusive of all taxes)",
+        "Shelf Life": "12 Months",
+        "Ingredients": "100% Cotton, Premium Print",
+        "Processed, Packed & Marketed by": "YourBrand Clothing Co., India"
+      }
+    },
+    "reviews": [
+      {
+        "customer": "Aditya",
+        "review": "A fierce look! Everyone noticed it. Perfect for bikers and lone wolves.",
+        "date": "2025-05-25"
+      },
+      {
+        "customer": "Meghna",
+        "review": "Looks powerful and feels light. Super happy with the quality!",
+        "date": "2025-05-29"
+      },
+      {
+        "customer": "Surya",
+        "review": "One of the best designs I\u2019ve seen\u2014sharp and bold.",
+        "date": "2025-06-03"
+      }
+    ],
+    "launched_date": "2025-05-22",
+    "relationship": "General",
+    "theme": "Bold",
+    "occasion": "Casual Wear",
+    "price_range": "Under \u20b9800",
+    "is_customizable": false
+  },
+  {
+    "id": 17,
+    "name": "Tree of Love",
+    "category": "Tree",
+    "images": [
+      "Image/Designs/t3.png",
+      "Image/Designs/t4.png"
+    ],
+    "mrp": 1010,
+    "size": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL"
+    ],
+    "offer": 20,
+    "offer_price": 808,
+    "saved_amount": 202,
+    "rating": 4.9,
+    "description": {
+      "summary": [
+        "Tree of Love design stands out with unique flair and comfort",
+        "Crafted with premium cotton, it blends art and apparel effortlessly",
+        "Perfect for casual days or special occasions, this tee celebrates individuality and emotional bonds",
+        "Wear your heart on your sleeve\u2014literally",
+        "With attention to detail, this shirt symbolizes love, loyalty, and style",
+        "A keepsake for memories or a standout fashion piece",
+        "Each print tells a story",
+        "The feel is soft, the statement is bold",
+        "Gift it or flaunt it\u2014this tee does it all."
+      ],
+      "details": {
+        "Country Of Origin": "India",
+        "MRP (Inc. of all taxes)": "\u20b91010.00 (inclusive of all taxes)",
+        "Shelf Life": "12 Months",
+        "Ingredients": "100% Cotton, Premium Print",
+        "Processed, Packed & Marketed by": "YourBrand Clothing Co., India"
+      }
+    },
+    "reviews": [
+      {
+        "customer": "Ritika",
+        "review": "Symbolic and stylish. I bought it for my partner and we both loved it!",
+        "date": "2025-06-01"
+      },
+      {
+        "customer": "Saran",
+        "review": "Soft fabric, strong message. The artwork is thoughtful and subtle.",
+        "date": "2025-06-06"
+      },
+      {
+        "customer": "Yamini",
+        "review": "Such a pretty and meaningful tee. Looks even better in person!",
+        "date": "2025-06-09"
+      }
+    ],
+    "launched_date": "2025-05-21",
+    "relationship": "General",
+    "theme": "Romantic",
+    "occasion": "Casual Wear",
+    "price_range": "\u20b9800\u2013\u20b91000",
+    "is_customizable": false
+  },
+  {
+    "id": 18,
+    "name": "Heart Beat",
+    "category": "Heart",
+    "images": [
+      "Image/Designs/h2.png",
+      "Image/Designs/h1.png"
+    ],
+    "mrp": 1099,
+    "size": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL"
+    ],
+    "offer": 15,
+    "offer_price": 934,
+    "saved_amount": 165,
+    "rating": 4.8,
+    "description": {
+      "summary": [
+        "Heart Beat design stands out with unique flair and comfort",
+        "Crafted with premium cotton, it blends art and apparel effortlessly",
+        "Perfect for casual days or special occasions, this tee celebrates individuality and emotional bonds",
+        "Wear your heart on your sleeve\u2014literally",
+        "With attention to detail, this shirt symbolizes love, loyalty, and style",
+        "A keepsake for memories or a standout fashion piece",
+        "Each print tells a story",
+        "The feel is soft, the statement is bold",
+        "Gift it or flaunt it\u2014this tee does it all."
+      ],
+      "details": {
+        "Country Of Origin": "India",
+        "MRP (Inc. of all taxes)": "\u20b91099.00 (inclusive of all taxes)",
+        "Shelf Life": "12 Months",
+        "Ingredients": "100% Cotton, Premium Print",
+        "Processed, Packed & Marketed by": "YourBrand Clothing Co., India"
+      }
+    },
+    "reviews": [
+      {
+        "customer": "Kavya",
+        "review": "This tee captures emotions in such a simple form. I love how minimal yet expressive it is.",
+        "date": "2025-06-02"
+      },
+      {
+        "customer": "Gokul",
+        "review": "Feels like wearing a heartbeat\u2014perfect for special occasions with my partner.",
+        "date": "2025-06-07"
+      },
+      {
+        "customer": "Sneha",
+        "review": "The fabric is super soft and the print looks exactly like the picture.",
+        "date": "2025-06-10"
+      }
+    ],
+    "launched_date": "2025-05-22",
+    "relationship": "General",
+    "theme": "Romantic",
+    "occasion": "Anniversary",
+    "price_range": "\u20b9800\u2013\u20b91000",
+    "is_customizable": false
+  },
+  {
+    "id": 19,
+    "name": "CSK Roar",
+    "category": "CSK",
+    "images": [
+      "Image/Designs/csk2.png",
+      "Image/Designs/csk1.png"
+    ],
+    "mrp": 1085,
+    "size": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL"
+    ],
+    "offer": 20,
+    "offer_price": 868,
+    "saved_amount": 217,
+    "rating": 4.9,
+    "description": {
+      "summary": [
+        "CSK Roar design stands out with unique flair and comfort",
+        "Crafted with premium cotton, it blends art and apparel effortlessly",
+        "Perfect for casual days or special occasions, this tee celebrates individuality and emotional bonds",
+        "Wear your heart on your sleeve\u2014literally",
+        "With attention to detail, this shirt symbolizes love, loyalty, and style",
+        "A keepsake for memories or a standout fashion piece",
+        "Each print tells a story",
+        "The feel is soft, the statement is bold",
+        "Gift it or flaunt it\u2014this tee does it all."
+      ],
+      "details": {
+        "Country Of Origin": "India",
+        "MRP (Inc. of all taxes)": "\u20b91085.00 (inclusive of all taxes)",
+        "Shelf Life": "12 Months",
+        "Ingredients": "100% Cotton, Premium Print",
+        "Processed, Packed & Marketed by": "YourBrand Clothing Co., India"
+      }
+    },
+    "reviews": [
+      {
+        "customer": "Kiran",
+        "review": "Roars CSK pride! I wore this during the finals and people asked me where I got it!",
+        "date": "2025-06-05"
+      },
+      {
+        "customer": "Sundar",
+        "review": "Perfect for IPL fans. The print is bright, and the stitching is durable.",
+        "date": "2025-06-09"
+      },
+      {
+        "customer": "Rithika",
+        "review": "Bought one for my brother who\u2019s a huge Dhoni fan. He absolutely loved it!",
+        "date": "2025-06-13"
+      }
+    ],
+    "launched_date": "2025-05-28",
+    "relationship": "General",
+    "theme": "Bold",
+    "occasion": "Cricket Season",
+    "price_range": "\u20b9800\u2013\u20b91000",
+    "is_customizable": false
+  },
+  {
+    "id": 20,
+    "name": "Custom Magic",
+    "category": "Customized Design",
+    "images": [
+      "Image/Designs/cd1.png"
+    ],
+    "mrp": 965,
+    "size": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL"
+    ],
+    "offer": 30,
+    "offer_price": 676,
+    "saved_amount": 289,
+    "rating": 4.7,
+    "description": {
+      "summary": [
+        "Custom Magic design stands out with unique flair and comfort",
+        "Crafted with premium cotton, it blends art and apparel effortlessly",
+        "Perfect for casual days or special occasions, this tee celebrates individuality and emotional bonds",
+        "Wear your heart on your sleeve\u2014literally",
+        "With attention to detail, this shirt symbolizes love, loyalty, and style",
+        "A keepsake for memories or a standout fashion piece",
+        "Each print tells a story",
+        "The feel is soft, the statement is bold",
+        "Gift it or flaunt it\u2014this tee does it all."
+      ],
+      "details": {
+        "Country Of Origin": "India",
+        "MRP (Inc. of all taxes)": "\u20b9965.00 (inclusive of all taxes)",
+        "Shelf Life": "12 Months",
+        "Ingredients": "100% Cotton, Premium Print",
+        "Processed, Packed & Marketed by": "YourBrand Clothing Co., India"
+      }
+    },
+    "reviews": [
+      {
+        "customer": "Maya",
+        "review": "I customized this with our family initials\u2014everyone loved the thought behind it!",
+        "date": "2025-06-01"
+      },
+      {
+        "customer": "Shyam",
+        "review": "Loved how I could make it personal. Great quality too!",
+        "date": "2025-06-08"
+      },
+      {
+        "customer": "Arun",
+        "review": "Stands out from mass prints. You feel connected to it because it's YOUR design.",
+        "date": "2025-06-10"
+      }
+    ],
+    "launched_date": "2025-05-20",
+    "relationship": "Personalized",
+    "theme": "Personalized",
+    "occasion": "Birthday",
+    "price_range": "Under \u20b9800",
+    "is_customizable": true
+  },
+  {
+    "id": 21,
+    "name": "Best Bro & Sis",
+    "category": "Tree",
+    "images": [
+      "Image/Designs/t4.png",
+      "Image/Designs/t5.png"
+    ],
+    "mrp": 1019,
+    "size": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL"
+    ],
+    "offer": 20,
+    "offer_price": 815,
+    "saved_amount": 204,
+    "rating": 4.8,
+    "description": {
+      "summary": [
+        "Best Bro & Sis design stands out with unique flair and comfort",
+        "Crafted with premium cotton, it blends art and apparel effortlessly",
+        "Perfect for casual days or special occasions, this tee celebrates individuality and emotional bonds",
+        "Wear your heart on your sleeve\u2014literally",
+        "With attention to detail, this shirt symbolizes love, loyalty, and style",
+        "A keepsake for memories or a standout fashion piece",
+        "Each print tells a story",
+        "The feel is soft, the statement is bold",
+        "Gift it or flaunt it\u2014this tee does it all."
+      ],
+      "details": {
+        "Country Of Origin": "India",
+        "MRP (Inc. of all taxes)": "\u20b91019.00 (inclusive of all taxes)",
+        "Shelf Life": "12 Months",
+        "Ingredients": "100% Cotton, Premium Print",
+        "Processed, Packed & Marketed by": "YourBrand Clothing Co., India"
+      }
+    },
+    "reviews": [
+      {
+        "customer": "Ragini",
+        "review": "The design captures sibling love beautifully. Got matching ones for Rakhi!",
+        "date": "2025-06-03"
+      },
+      {
+        "customer": "Manoj",
+        "review": "Perfect for gifting. It fits well and looks great in photos!",
+        "date": "2025-06-06"
+      },
+      {
+        "customer": "Gayathri",
+        "review": "This is more than a shirt\u2014it\u2019s an emotion. So glad I found it!",
+        "date": "2025-06-10"
+      }
+    ],
+    "launched_date": "2025-05-23",
+    "relationship": "Siblings",
+    "theme": "Family",
+    "occasion": "Raksha Bandhan",
+    "price_range": "\u20b9800\u2013\u20b91000",
+    "is_customizable": false
+  },
+  {
+    "id": 22,
+    "name": "Couple Goals",
+    "category": "Dad & Son",
+    "images": [
+      "Image/Designs/ds3.png",
+      "Image/Designs/ds4.png"
+    ],
+    "mrp": 1090,
+    "size": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL"
+    ],
+    "offer": 30,
+    "offer_price": 763,
+    "saved_amount": 327,
+    "rating": 4.9,
+    "description": {
+      "summary": [
+        "Couple Goals design stands out with unique flair and comfort",
+        "Crafted with premium cotton, it blends art and apparel effortlessly",
+        "Perfect for casual days or special occasions, this tee celebrates individuality and emotional bonds",
+        "Wear your heart on your sleeve\u2014literally",
+        "With attention to detail, this shirt symbolizes love, loyalty, and style",
+        "A keepsake for memories or a standout fashion piece",
+        "Each print tells a story",
+        "The feel is soft, the statement is bold",
+        "Gift it or flaunt it\u2014this tee does it all."
+      ],
+      "details": {
+        "Country Of Origin": "India",
+        "MRP (Inc. of all taxes)": "\u20b91090.00 (inclusive of all taxes)",
+        "Shelf Life": "12 Months",
+        "Ingredients": "100% Cotton, Premium Print",
+        "Processed, Packed & Marketed by": "YourBrand Clothing Co., India"
+      }
+    },
+    "reviews": [
+      {
+        "customer": "Sujatha",
+        "review": "This tee turned our anniversary shoot into a picture-perfect memory!",
+        "date": "2025-06-01"
+      },
+      {
+        "customer": "Rohit",
+        "review": "Love the fit, love the message, love the design! 10/10",
+        "date": "2025-06-05"
+      },
+      {
+        "customer": "Ishita",
+        "review": "Great gift idea for couples. Looks stylish and meaningful.",
+        "date": "2025-06-09"
+      }
+    ],
+    "launched_date": "2025-05-24",
+    "relationship": "Couple",
+    "theme": "Family",
+    "occasion": "Anniversary",
+    "price_range": "Under \u20b9800",
+    "is_customizable": false
+  },
+  {
+    "id": 23,
+    "name": "Dad & Daughter Bond",
+    "category": "Dad & Daughter",
+    "images": [
+      "Image/Designs/dd2.png",
+      "Image/Designs/dd1.jpg"
+    ],
+    "mrp": 1075,
+    "size": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL"
+    ],
+    "offer": 15,
+    "offer_price": 914,
+    "saved_amount": 161,
+    "rating": 4.8,
+    "description": {
+      "summary": [
+        "Dad & Daughter Bond design stands out with unique flair and comfort",
+        "Crafted with premium cotton, it blends art and apparel effortlessly",
+        "Perfect for casual days or special occasions, this tee celebrates individuality and emotional bonds",
+        "Wear your heart on your sleeve\u2014literally",
+        "With attention to detail, this shirt symbolizes love, loyalty, and style",
+        "A keepsake for memories or a standout fashion piece",
+        "Each print tells a story",
+        "The feel is soft, the statement is bold",
+        "Gift it or flaunt it\u2014this tee does it all."
+      ],
+      "details": {
+        "Country Of Origin": "India",
+        "MRP (Inc. of all taxes)": "\u20b91075.00 (inclusive of all taxes)",
+        "Shelf Life": "12 Months",
+        "Ingredients": "100% Cotton, Premium Print",
+        "Processed, Packed & Marketed by": "YourBrand Clothing Co., India"
+      }
+    },
+    "reviews": [
+      {
+        "customer": "Kavitha",
+        "review": "My dad teared up when he saw this design. It\u2019s a bond captured in cloth.",
+        "date": "2025-06-04"
+      },
+      {
+        "customer": "Yash",
+        "review": "Wearing this makes me feel proud of my daughter. Strong emotions, great comfort.",
+        "date": "2025-06-07"
+      },
+      {
+        "customer": "Geetha",
+        "review": "Beautifully designed. Got it as a gift for Father's Day, and he loved it!",
+        "date": "2025-06-11"
+      }
+    ],
+    "launched_date": "2025-05-27",
+    "relationship": "Dad & Daughter",
+    "theme": "Family",
+    "occasion": "Father's Day",
+    "price_range": "\u20b9800\u2013\u20b91000",
+    "is_customizable": false
+  },
+  {
+    "id": 24,
+    "name": "Dad & Son Duo",
+    "category": "Dad & Son",
+    "images": [
+      "Image/Designs/ds4.png",
+      "Image/Designs/ds1.png"
+    ],
+    "mrp": 999,
+    "size": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL"
+    ],
+    "offer": 20,
+    "offer_price": 799,
+    "saved_amount": 200,
+    "rating": 4.7,
+    "description": {
+      "summary": [
+        "Dad & Son Duo design stands out with unique flair and comfort",
+        "Crafted with premium cotton, it blends art and apparel effortlessly",
+        "Perfect for casual days or special occasions, this tee celebrates individuality and emotional bonds",
+        "Wear your heart on your sleeve\u2014literally",
+        "With attention to detail, this shirt symbolizes love, loyalty, and style",
+        "A keepsake for memories or a standout fashion piece",
+        "Each print tells a story",
+        "The feel is soft, the statement is bold",
+        "Gift it or flaunt it\u2014this tee does it all."
+      ],
+      "details": {
+        "Country Of Origin": "India",
+        "MRP (Inc. of all taxes)": "\u20b9999.00 (inclusive of all taxes)",
+        "Shelf Life": "12 Months",
+        "Ingredients": "100% Cotton, Premium Print",
+        "Processed, Packed & Marketed by": "YourBrand Clothing Co., India"
+      }
+    },
+    "reviews": [
+      {
+        "customer": "Aadhav",
+        "review": "The moment I saw it, I knew I had to get it for me and my son. Super soft and meaningful!",
+        "date": "2025-06-02"
+      },
+      {
+        "customer": "Meera",
+        "review": "Gifted this to my husband and son\u2014such a sweet matching pair. They loved it!",
+        "date": "2025-06-06"
+      },
+      {
+        "customer": "Rajesh",
+        "review": "Comfortable and full of sentiment. Great father-son moment captured in style.",
+        "date": "2025-06-09"
+      }
+    ],
+    "launched_date": "2025-05-25",
+    "relationship": "Dad & Son",
+    "theme": "Family",
+    "occasion": "Father's Day",
+    "price_range": "Under \u20b9800",
+    "is_customizable": false
+  },
+  {
+    "id": 25,
+    "name": "Custom Magic",
+    "category": "Tree",
+    "images": [
+      "Image/Designs/t5.png",
+      "Image/Designs/t3.png"
+    ],
+    "mrp": 1050,
+    "size": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL"
+    ],
+    "offer": 25,
+    "offer_price": 788,
+    "saved_amount": 262,
+    "rating": 4.8,
+    "description": {
+      "summary": [
+        "Custom Magic design stands out with unique flair and comfort",
+        "Crafted with premium cotton, it blends art and apparel effortlessly",
+        "Perfect for casual days or special occasions, this tee celebrates individuality and emotional bonds",
+        "Wear your heart on your sleeve\u2014literally",
+        "With attention to detail, this shirt symbolizes love, loyalty, and style",
+        "A keepsake for memories or a standout fashion piece",
+        "Each print tells a story",
+        "The feel is soft, the statement is bold",
+        "Gift it or flaunt it\u2014this tee does it all."
+      ],
+      "details": {
+        "Country Of Origin": "India",
+        "MRP (Inc. of all taxes)": "\u20b91050.00 (inclusive of all taxes)",
+        "Shelf Life": "12 Months",
+        "Ingredients": "100% Cotton, Premium Print",
+        "Processed, Packed & Marketed by": "YourBrand Clothing Co., India"
+      }
+    },
+    "reviews": [
+      {
+        "customer": "Ayesha",
+        "review": "I uploaded a personal message and it came out perfectly. Truly one of a kind!",
+        "date": "2025-06-04"
+      },
+      {
+        "customer": "Karthik",
+        "review": "Custom designs usually lack quality, but this one was outstanding!",
+        "date": "2025-06-07"
+      },
+      {
+        "customer": "Shalini",
+        "review": "Made a memorable birthday gift. Loved the idea and loved the result.",
+        "date": "2025-06-10"
+      }
+    ],
+    "launched_date": "2025-05-26",
+    "relationship": "Personalized",
+    "theme": "Personalized",
+    "occasion": "Birthday",
+    "price_range": "Under \u20b9800",
+    "is_customizable": true
+  }
+]
