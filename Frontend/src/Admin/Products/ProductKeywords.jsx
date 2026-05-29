@@ -27,6 +27,7 @@ const ProductKeywords = () => {
 
   const [newKeyword, setNewKeyword] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
+  const [showAddPopup, setShowAddPopup] = useState(false);
 
   const [editingId, setEditingId] = useState(null);
   const [editKeywordName, setEditKeywordName] = useState("");
@@ -61,6 +62,7 @@ const ProductKeywords = () => {
       if (res.data.success) {
         toast.success("Keyword added!");
         setNewKeyword("");
+        setShowAddPopup(false);
         fetchData();
       }
     } catch (error) {
@@ -190,50 +192,63 @@ const ProductKeywords = () => {
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-
-        {/* Add New Form */}
-        <div className="md:col-span-1">
-          <div className="bg-white p-6 rounded-xl shadow border border-gray-200">
-            <h3 className="text-lg font-bold text-gray-700 mb-4 border-b pb-2">Add New Keyword</h3>
-            <form onSubmit={handleAddKeyword}>
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Keyword Name</label>
+      {/* Add New Keyword Popup */}
+      {showAddPopup && (
+        <div className="fixed inset-0 z-50 flex justify-end bg-black/50 transition-opacity">
+          <div className="w-full sm:w-96 bg-white h-full shadow-2xl p-6 relative flex flex-col animate-[slideIn_0.3s_ease-out]">
+            <button 
+              onClick={() => setShowAddPopup(false)}
+              className="absolute top-5 right-5 text-gray-500 hover:text-red-500 transition-colors"
+            >
+              <FaTimes size={20} />
+            </button>
+            <h3 className="text-xl font-bold text-gray-800 mb-6 border-b pb-3">Add New Keyword</h3>
+            <form onSubmit={handleAddKeyword} className="flex flex-col flex-1">
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2">Keyword Name</label>
                 <input
                   type="text"
                   required
                   value={newKeyword}
                   onChange={(e) => setNewKeyword(e.target.value)}
                   placeholder="e.g. Trending, Oversize..."
-                  className="w-full border border-gray-300 rounded px-3 py-2 focus:ring focus:ring-blue-200 focus:outline-none"
+                  className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-shadow"
                 />
               </div>
               <button
                 type="submit"
-                className="w-full bg-blue-900 text-white font-semibold py-2 rounded flex items-center justify-center gap-2 hover:bg-blue-800 transition cursor-pointer"
+                className="w-full bg-blue-900 text-white font-semibold py-3 rounded-lg flex items-center justify-center gap-2 hover:bg-blue-800 transition shadow-md cursor-pointer mt-auto sm:mt-0"
               >
                 <FaPlus size={14} /> Add Keyword
               </button>
             </form>
           </div>
         </div>
+      )}
 
-        {/* List & Search */}
-        <div className="md:col-span-2">
-          <div className="bg-white p-6 rounded-xl shadow border border-gray-200 min-h-[400px]">
-            <div className="flex justify-between items-center mb-4 border-b pb-3">
-              <h3 className="text-lg font-bold text-gray-700">All Keywords</h3>
-              <div className="relative">
-                <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={14} />
-                <input
-                  type="text"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="Search keywords..."
-                  className="pl-9 pr-3 py-1.5 border border-gray-300 rounded text-sm focus:outline-none focus:ring focus:ring-blue-100 w-48 sm:w-64"
-                />
-              </div>
+      {/* List & Search (Full Width) */}
+      <div className="bg-white p-6 rounded-xl shadow border border-gray-200 min-h-[400px]">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4 border-b pb-4">
+          <h3 className="text-lg font-bold text-gray-700">All Keywords</h3>
+          <div className="flex items-center gap-3 w-full sm:w-auto">
+            <div className="relative flex-1 sm:flex-none">
+              <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={14} />
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Search keywords..."
+                className="pl-9 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 w-full sm:w-64"
+              />
             </div>
+            <button
+              onClick={() => setShowAddPopup(true)}
+              className="bg-blue-900 text-white font-semibold py-2 px-4 rounded-lg flex items-center justify-center gap-2 hover:bg-blue-800 transition shadow-sm cursor-pointer whitespace-nowrap"
+            >
+              <FaPlus size={14} /> Add New
+            </button>
+          </div>
+        </div>
 
             <div className="overflow-x-auto max-h-[500px]">
               <table className="w-full text-left text-sm text-gray-600">
@@ -336,8 +351,6 @@ const ProductKeywords = () => {
               </table>
             </div>
 
-          </div>
-        </div>
       </div>
     </div>
   );
