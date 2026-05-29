@@ -2,7 +2,7 @@ const getKeywords = async (req, res) => {
   try {
     const pool = req.app.locals.pool;
     const [keywords] = await pool.query(
-      "SELECT * FROM keyword_master ORDER BY created_at DESC"
+      "SELECT * FROM keyword_master ORDER BY display_order ASC, created_at DESC"
     );
     res.status(200).json({ success: true, keywords });
   } catch (error) {
@@ -34,11 +34,7 @@ const createKeyword = async (req, res) => {
 
 const updateKeyword = async (req, res) => {
   const { id } = req.params;
-  const { keywordName, status } = req.body;
-  
-  if (!keywordName && !status) {
-    return res.status(400).json({ success: false, message: "No fields to update." });
-  }
+  const { keywordName, status, show_on_home, display_order } = req.body;
 
   try {
     const pool = req.app.locals.pool;
@@ -52,6 +48,18 @@ const updateKeyword = async (req, res) => {
     if (status !== undefined) {
       fields.push("status = ?");
       values.push(status);
+    }
+    if (show_on_home !== undefined) {
+      fields.push("show_on_home = ?");
+      values.push(show_on_home ? 1 : 0);
+    }
+    if (display_order !== undefined) {
+      fields.push("display_order = ?");
+      values.push(display_order);
+    }
+
+    if (fields.length === 0) {
+      return res.status(400).json({ success: false, message: "No fields to update." });
     }
     values.push(id);
 
@@ -169,4 +177,17 @@ const bulkAssignKeywords = async (req, res) => {
   }
 };
 
-module.exports = { getKeywords, createKeyword, updateKeyword, deleteKeyword, getKeywordStats, bulkAssignKeywords };
+const getHomeKeywords = async (req, res) => {
+  try {
+    const pool = req.app.locals.pool;
+    const [keywords] = await pool.query(
+      "SELECT * FROM keyword_master WHERE show_on_home = 1 AND status = 'active' ORDER BY display_order ASC"
+    );
+    res.status(200).json({ success: true, keywords });
+  } catch (error) {
+    console.error("Get home keywords error:", error);
+    res.status(500).json({ success: false, message: "Could not fetch home keywords." });
+  }
+};
+
+module.exports = { getKeywords, createKeyword, updateKeyword, deleteKeyword, getKeywordStats, bulkAssignKeywords, getHomeKeywords };
