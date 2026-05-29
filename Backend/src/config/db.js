@@ -128,12 +128,14 @@ async function ensureTables() {
     `
       CREATE TABLE IF NOT EXISTS invoices (
         id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-        invoice_id VARCHAR(50) NOT NULL UNIQUE,
-        order_id VARCHAR(50),
-        user_id VARCHAR(36),
-        amount DECIMAL(12,2) DEFAULT 0,
-        status VARCHAR(50) DEFAULT 'pending',
-        data JSON,
+        invoice_no VARCHAR(100) NOT NULL,
+        invoice_date VARCHAR(50),
+        invoice_value DECIMAL(12,2) DEFAULT 0,
+        gst_value DECIMAL(12,2) DEFAULT 0,
+        total_value DECIMAL(12,2) DEFAULT 0,
+        transport_amount DECIMAL(12,2) DEFAULT 0,
+        bill_pdf_base64 LONGTEXT,
+        bill_pdf_name VARCHAR(255),
         created_at DATETIME NOT NULL,
         updated_at DATETIME NULL
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

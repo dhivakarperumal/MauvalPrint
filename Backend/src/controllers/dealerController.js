@@ -102,9 +102,9 @@ const deleteDealer = async (req, res) => {
 const getInvoicesOptions = async (req, res) => {
   try {
     const pool = req.app.locals.pool;
-    const [invoices] = await pool.query("SELECT invoice_id FROM invoices ORDER BY created_at DESC");
-    const invoiceIds = invoices.map(inv => inv.invoice_id);
-    res.status(200).json({ success: true, invoices: invoiceIds });
+    const [invoices] = await pool.query("SELECT invoice_no FROM invoices ORDER BY created_at DESC");
+    const invoiceNos = invoices.map(inv => inv.invoice_no).filter(Boolean);
+    res.status(200).json({ success: true, invoices: invoiceNos });
   } catch (error) {
     console.error("Get invoice options error:", error);
     res.status(500).json({ success: false, message: "Could not fetch invoices." });

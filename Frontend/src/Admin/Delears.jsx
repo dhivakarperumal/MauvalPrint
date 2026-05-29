@@ -1,13 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { db } from "../firebase";
-import {
-  collection,
-  addDoc,
-  getDocs,
-  updateDoc,
-  deleteDoc,
-  doc,
-} from "firebase/firestore";
+import api from "../api";
 import toast from "react-hot-toast";
 import { FaEdit, FaTrash } from "react-icons/fa";
 
@@ -29,13 +21,28 @@ const Dealers = () => {
 
   const fetchDealers = async () => {
     try {
-      const snapshot = await getDocs(collection(db, "dealers"));
-      const data = snapshot.docs.map((doc, index) => ({
-        id: doc.id,
-        dealerId: `MD${String(index + 1).padStart(3, "0")}`,
-        ...doc.data(),
-      }));
-      setDealersList(data);
+      const res = await api.get("/dealers");
+      if (res.data.success) {
+        const data = res.data.dealers.map((d) => {
+          let extraData = {};
+          try {
+            if (d.data) {
+              extraData = JSON.parse(d.data);
+            }
+          } catch (err) {}
+          return {
+            id: d.id,
+            dealerId: d.dealer_id,
+            dealerName: d.name,
+            email: d.email,
+            phone: d.phone,
+            address: d.address,
+            gstNumber: extraData.gstNumber || "",
+            invoiceNumber: extraData.invoiceNumber || "",
+          };
+        });
+        setDealersList(data);
+      }
     } catch (error) {
       console.error("Error fetching dealers:", error);
       toast.error("Failed to fetch dealers.");
@@ -44,9 +51,10 @@ const Dealers = () => {
 
   const fetchInvoiceOptions = async () => {
     try {
-      const snapshot = await getDocs(collection(db, "invoices"));
-      const data = snapshot.docs.map((doc) => doc.data().invoiceNo);
-      setInvoiceOptions(data);
+      const res = await api.get("/dealers/invoices/options");
+      if (res.data.success) {
+        setInvoiceOptions(res.data.invoices);
+      }
     } catch (error) {
       console.error("Error fetching invoice numbers:", error);
       toast.error("Failed to load invoice numbers.");
@@ -81,13 +89,10 @@ const Dealers = () => {
 
     try {
       if (editingId) {
-        // Update dealer
-        const ref = doc(db, "dealers", editingId);
-        await updateDoc(ref, dealer);
+        await api.put(`/dealers/${editingId}`, dealer);
         toast.success("Dealer updated successfully!");
       } else {
-        // Add dealer
-        await addDoc(collection(db, "dealers"), dealer);
+        await api.post("/dealers", dealer);
         toast.success("Dealer added successfully!");
       }
       resetForm();
@@ -117,7 +122,7 @@ const Dealers = () => {
   const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this dealer?")) {
       try {
-        await deleteDoc(doc(db, "dealers", id));
+        await api.delete(`/dealers/${id}`);
         toast.success("Dealer deleted!");
         fetchDealers();
       } catch (error) {

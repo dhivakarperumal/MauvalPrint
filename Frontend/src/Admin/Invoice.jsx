@@ -1,14 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { db } from "../firebase";
-import {
-  collection,
-  addDoc,
-  getDocs,
-  updateDoc,
-  deleteDoc,
-  doc,
-  serverTimestamp,
-} from "firebase/firestore";
+import api from "../api";
 import toast from "react-hot-toast";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
@@ -55,12 +46,21 @@ const Invoice = () => {
 
   const fetchInvoices = async () => {
     try {
-      const snapshot = await getDocs(collection(db, "invoices"));
-      const data = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
-      setInvoiceList(data);
+      const res = await api.get("/invoices");
+      if (res.data.success) {
+        const data = res.data.invoices.map((inv) => ({
+          id: inv.id,
+          invoiceNo: inv.invoice_no,
+          invoiceDate: inv.invoice_date,
+          invoiceValue: inv.invoice_value,
+          invoiceGSTValue: inv.gst_value,
+          invoiceTotalValue: inv.total_value,
+          transportAmount: inv.transport_amount,
+          billPdfBase64: inv.bill_pdf_base64,
+          billPdfName: inv.bill_pdf_name,
+        }));
+        setInvoiceList(data);
+      }
     } catch (err) {
       console.error("Error fetching invoices:", err);
       toast.error("Failed to fetch invoices.");
@@ -87,23 +87,15 @@ const Invoice = () => {
 
   const handleAddOrUpdateInvoice = async (e) => {
     e.preventDefault();
-    if (!invoiceData.invoiceNo) {
-      toast.error("Invoice Number is required.");
-      return;
-    }
 
     try {
       if (editingId) {
         // Update invoice
-        const ref = doc(db, "invoices", editingId);
-        await updateDoc(ref, { ...invoiceData, updatedAt: serverTimestamp() });
+        await api.put(`/invoices/${editingId}`, invoiceData);
         toast.success("Invoice updated successfully!");
       } else {
         // Add invoice
-        await addDoc(collection(db, "invoices"), {
-          ...invoiceData,
-          createdAt: serverTimestamp(),
-        });
+        await api.post("/invoices", invoiceData);
         toast.success("Invoice added successfully!");
       }
       resetForm();
@@ -133,7 +125,7 @@ const Invoice = () => {
   const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this invoice?")) {
       try {
-        await deleteDoc(doc(db, "invoices", id));
+        await api.delete(`/invoices/${id}`);
         toast.success("Invoice deleted!");
         fetchInvoices();
       } catch (err) {
@@ -205,8 +197,19 @@ const Invoice = () => {
           onSubmit={handleAddOrUpdateInvoice}
           className="grid gap-4 md:grid-cols-2 bg-white p-6 rounded-lg shadow"
         >
+          {editingId && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Invoice Number</label>
+              <input
+                type="text"
+                name="invoiceNo"
+                value={invoiceData.invoiceNo}
+                disabled
+                className="w-full border border-gray-300 rounded-lg px-4 py-2 bg-gray-100 cursor-not-allowed text-gray-500"
+              />
+            </div>
+          )}
           {[
-            { label: "Invoice Number *", name: "invoiceNo", placeholder: "e.g., INV001" },
             { label: "Invoice Date", name: "invoiceDate", type: "date", placeholder: "Select date" },
             { label: "Invoice Value (₹)", name: "invoiceValue", type: "number", placeholder: "e.g., 1000" },
             { label: "GST Value (₹)", name: "invoiceGSTValue", type: "number", placeholder: "e.g., 180" },
@@ -222,7 +225,6 @@ const Invoice = () => {
                 value={invoiceData[field.name]}
                 onChange={handleChange}
                 className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                required={field.name === "invoiceNo"}
               />
             </div>
           ))}
