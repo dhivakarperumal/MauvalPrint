@@ -467,6 +467,29 @@ const updateStock = async (req, res) => {
   }
 };
 
+const fixProductDesignFlag = async (req, res) => {
+  try {
+    const pool = req.app.locals.pool;
+    
+    // Set all products with our_design=1 to our_design=0 (make them regular products)
+    const [result] = await pool.query(
+      "UPDATE products SET our_design = 0 WHERE our_design = 1"
+    );
+
+    res.status(200).json({
+      success: true,
+      message: `Fixed ${result.affectedRows} products - set our_design to 0`,
+      affectedRows: result.affectedRows,
+    });
+  } catch (error) {
+    console.error("Fix product design flag error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Could not fix product design flags.",
+    });
+  }
+};
+
 module.exports = {
   getProducts,
   addProduct,
@@ -477,4 +500,5 @@ module.exports = {
   addCategory,
   updateCategory,
   deleteCategory,
+  fixProductDesignFlag,
 };
