@@ -1,31 +1,55 @@
-import React, { useState, useEffect } from "react";
-import { doc, getDoc, updateDoc } from "firebase/firestore";
-import { db, auth } from "../../firebase";
+import React, { useState, useEffect, useContext } from "react";
 import imageCompression from "browser-image-compression";
 import toast from "react-hot-toast";
+import api from "../../api";
+import { AuthContext } from "../../Context/AuthContext";
 
 const Profile = () => {
+  const { user, updateUserProfile } = useContext(AuthContext);
   const [userData, setUserData] = useState({
+    id: "",
     name: "",
     email: "",
     phone: "",
     photoURL: "",
+    role: "",
   });
 
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
-      const uid = auth?.currentUser?.uid;
-      if (!uid) return;
+      if (!user) return;
 
       try {
-        const docRef = doc(db, "users", uid);
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-          setUserData(docSnap.data());
+        const { data } = await api.get("/users");
+        const users = data?.users || [];
+        const currentUser = users.find(
+          (u) =>
+            u.user_id === user.user_id ||
+            u.user_id === user.uid ||
+            u.id === user.id ||
+            u.id === user.uid
+        );
+
+        if (currentUser) {
+          setUserData({
+            id: currentUser.id,
+            name: currentUser.username || currentUser.name || "",
+            email: currentUser.email || "",
+            phone: currentUser.phone || "",
+            photoURL: currentUser.photoURL || "",
+            role: currentUser.role || user.role || "",
+          });
         } else {
-          toast.error("Admin data not found");
+          setUserData({
+            id: user.id || "",
+            name: user.username || user.name || "",
+            email: user.email || "",
+            phone: user.phone || "",
+            photoURL: user.photoURL || "",
+            role: user.role || "",
+          });
         }
       } catch (error) {
         console.error("Error fetching admin data:", error);
@@ -34,7 +58,7 @@ const Profile = () => {
     };
 
     fetchData();
-  }, []);
+  }, [user]);
 
   const handleImageChange = async (e) => {
     const file = e.target.files?.[0];
@@ -67,18 +91,25 @@ const Profile = () => {
   };
 
   const handleUpdate = async () => {
-    const uid = auth?.currentUser?.uid;
-    if (!uid) return;
+    if (!userData.id) {
+      toast.error("Unable to update profile");
+      return;
+    }
 
     setLoading(true);
 
     try {
-      await updateDoc(doc(db, "users", uid), {
-        name: userData.name,
+      await api.put(`/users/${userData.id}`, {
+        username: userData.name,
         phone: userData.phone,
-        photoURL: userData.photoURL,
       });
       toast.success("Profile updated successfully");
+      if (updateUserProfile) {
+        updateUserProfile({
+          username: userData.name,
+          phone: userData.phone,
+        });
+      }
     } catch (error) {
       console.error("Update failed:", error);
       toast.error("Failed to update profile");
@@ -136,6 +167,16 @@ const Profile = () => {
                 value={userData.email}
               />
               <p className="text-xs text-gray-400 mt-1">Email cannot be changed</p>
+            </div>
+
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700">Role</label>
+              <input
+                type="text"
+                disabled
+                className="mt-1 block w-full bg-gray-100 border px-3 py-2 rounded-md shadow-sm cursor-not-allowed"
+                value={userData.role}
+              />
             </div>
 
             <div className="mb-6">

@@ -319,6 +319,13 @@ export function AuthProvider({ children }) {
     toast.success("All wishlist items added to cart");
   };
 
+  const updateUserProfile = (updates) => {
+    if (!user) return;
+    const updatedUser = { ...user, ...updates };
+    setUser(updatedUser);
+    localStorage.setItem(API_USER_KEY, JSON.stringify(updatedUser));
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -326,6 +333,7 @@ export function AuthProvider({ children }) {
         registerUser: () => {},
         loginWithEmail,
         logout,
+        updateUserProfile,
         designs,
         products,
         cart,
