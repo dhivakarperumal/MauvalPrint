@@ -77,9 +77,16 @@ export function AuthProvider({ children }) {
     const loadBackendProducts = async () => {
       try {
         const { data } = await api.get("/products");
-        if (!isMounted) return;
+        console.log("✅ Backend API response:", data);
+
+        if (!isMounted) {
+          console.log("⛔ Component unmounted, skipping state update");
+          return;
+        }
 
         if (data?.success && Array.isArray(data.products)) {
+          console.log("📦 Raw products from backend:", data.products.length, "items");
+
           const normalized = data.products.map((product) => ({
             ...product,
             id: product.product_id || product.id || product.productId || `${product.product_id}`,
@@ -118,9 +125,15 @@ export function AuthProvider({ children }) {
               product.ourDesign === true,
           }));
 
-          setProducts(normalized.filter((item) => !item.ourDesign));
-          setDesigns(normalized.filter((item) => item.ourDesign));
+          console.log("✨ Normalized products:", normalized.length, "items");
+          const regularProducts = normalized.filter((item) => !item.ourDesign);
+          const designProducts = normalized.filter((item) => item.ourDesign);
+          console.log("📄 Regular products:", regularProducts.length, "| Designs:", designProducts.length);
+
+          setProducts(regularProducts);
+          setDesigns(designProducts);
         } else {
+          console.warn("⚠️ API response missing success flag or products array:", data);
           setProducts([]);
           setDesigns([]);
         }
