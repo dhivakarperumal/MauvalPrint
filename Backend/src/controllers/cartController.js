@@ -34,8 +34,16 @@ exports.addCart = async (req, res) => {
 
     // Determine some friendly columns from item_data for easier querying
     const product_name = (item_data && (item_data.name || item_data.title || '')) || '';
-    const mrp = (item_data && (item_data.mrp || 0)) || 0;
-    const sale_price = (item_data && (item_data.salePrice || item_data.sale_price || 0)) || 0;
+    const mrp =
+      item_data?.mrp ||
+      item_data?.price ||
+      0;
+
+    const sale_price =
+      item_data?.salePrice ||
+      item_data?.sale_price ||
+      item_data?.price ||
+      0;
     const product_image = (item_data && item_data.images && item_data.images[0]) || (item_data && item_data.product_image) || '';
 
     await pool.execute(
