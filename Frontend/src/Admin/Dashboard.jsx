@@ -782,7 +782,8 @@ const Dashboard = () => {
 
         {Orders.filter((order) => {
           const today = new Date().toISOString().split('T')[0];
-          const orderDate = order.createdAt?.toDate?.().toISOString().split('T')[0];
+          const createdAtDate = order.createdAt?.toDate ? order.createdAt.toDate() : (order.createdAt ? new Date(order.createdAt) : new Date(0));
+          const orderDate = createdAtDate.toISOString().split('T')[0];
           return order.status === "Placed" && orderDate === today;
         }).length === 0 ? (
           <p className="text-gray-500 text-sm">No orders found for today.</p>
@@ -801,7 +802,8 @@ const Dashboard = () => {
               <tbody>
                 {Orders.filter((order) => {
                   const today = new Date().toISOString().split('T')[0];
-                  const orderDate = order.createdAt?.toDate?.().toISOString().split('T')[0];
+                  const createdAtDate = order.createdAt?.toDate ? order.createdAt.toDate() : (order.createdAt ? new Date(order.createdAt) : new Date(0));
+                  const orderDate = createdAtDate.toISOString().split('T')[0];
                   return order.status === "Placed" && orderDate === today;
                 }).map(
                   (order, idx) => (

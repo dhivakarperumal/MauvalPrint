@@ -9,10 +9,10 @@ const {
 
 const router = express.Router();
 
-router.get("/dealers", getDealers);
-router.post("/dealers", createDealer);
-router.put("/dealers/:id", updateDealer);
-router.delete("/dealers/:id", deleteDealer);
-router.get("/dealers/invoices/options", getInvoicesOptions);
+router.get("/", getDealers);
+router.post("/", createDealer);
+router.put("/:id", updateDealer);
+router.delete("/:id", deleteDealer);
+router.get("/invoices/options", getInvoicesOptions);
 
 module.exports = router;
