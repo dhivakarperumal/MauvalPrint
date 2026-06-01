@@ -87,7 +87,7 @@ function ProductCard({ product, index, addToCart, addToWishlist, cardSize, setCa
           style={{ borderTop: "2px solid white", borderRight: "1px solid white", backdropFilter: "blur(2px)" }}
         >
           <div className="absolute top-2 right-2">
-            <Link to={`/productdetails/${product.productId}`}>
+            <Link to={`/productdetails/${product.product_id}`}>
               <button
                 className="text-white cursor-pointer bg-white/20 p-2 rounded-full hover:bg-white hover:text-primary transition"
                 title="View Details"

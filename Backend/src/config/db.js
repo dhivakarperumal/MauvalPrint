@@ -87,6 +87,7 @@ async function ensureTables() {
         fabric_gsm JSON,
         images JSON,
         our_design BOOLEAN DEFAULT FALSE,
+        customizable BOOLEAN DEFAULT FALSE,
         keyword VARCHAR(255),
         washing_details JSON,
         notes TEXT,
@@ -263,6 +264,13 @@ async function ensureTables() {
   if (productsKeywordsColumnRows.length === 0) {
     await pool.query(
       "ALTER TABLE products ADD COLUMN keywords JSON AFTER keyword"
+    );
+  }
+
+  const [productsCustomizableRows] = await pool.query("SHOW COLUMNS FROM products LIKE 'customizable'");
+  if (productsCustomizableRows.length === 0) {
+    await pool.query(
+      "ALTER TABLE products ADD COLUMN customizable BOOLEAN NOT NULL DEFAULT FALSE AFTER our_design"
     );
   }
 

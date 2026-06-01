@@ -236,7 +236,7 @@ function Product() {
                     >
                       <div className="absolute top-2 right-2">
                         <Link
-                          to={`/productdetails/${product.productId}`}
+                          to={`/productdetails/${product.product_id}`}
                           state={{ product }}
                         >
                           <button

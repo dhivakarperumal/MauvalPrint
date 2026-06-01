@@ -23,6 +23,7 @@ const AddProducts = ({ selectedProduct, setSelectedProduct, setActiveTab }) => {
     fabricGSM: [],
     images: [],
     ourDesign: false,
+    customizable: false,
     keyword: "",
     keywords: [],
     washingDetails: [],
@@ -179,6 +180,7 @@ const AddProducts = ({ selectedProduct, setSelectedProduct, setActiveTab }) => {
       fabricGSM: [],
       images: [],
       ourDesign: false,
+      customizable: false,
       keyword: "",
       keywords: [],
       washingDetails: [],
@@ -233,6 +235,7 @@ const AddProducts = ({ selectedProduct, setSelectedProduct, setActiveTab }) => {
         fabricGSM: selectedProduct.fabric_gsm ? (Array.isArray(selectedProduct.fabric_gsm) ? selectedProduct.fabric_gsm : JSON.parse(selectedProduct.fabric_gsm || "[]")) : [],
         images: selectedProduct.images ? (Array.isArray(selectedProduct.images) ? selectedProduct.images : JSON.parse(selectedProduct.images || "[]")) : [],
         ourDesign: selectedProduct.our_design || false,
+        customizable: selectedProduct.customizable || false,
         keyword: selectedProduct.keyword || "",
         keywords: selectedProduct.keywords ? (Array.isArray(selectedProduct.keywords) ? selectedProduct.keywords : JSON.parse(selectedProduct.keywords || "[]")) : [],
         washingDetails: selectedProduct.washing_details ? (Array.isArray(selectedProduct.washing_details) ? selectedProduct.washing_details : JSON.parse(selectedProduct.washing_details || "[]")) : [],
@@ -325,6 +328,7 @@ const handleImageUpload = async (e) => {
         fabric_gsm: product.fabricGSM,
         images: product.images,
         our_design: product.ourDesign,
+        customizable: product.customizable,
         keyword: product.keyword,
         keywords: product.keywords,
         washing_details: product.washingDetails,
@@ -825,22 +829,40 @@ const handleImageUpload = async (e) => {
         </div>
 
         {/* Our Design Checkbox */}
-        <div className="md:col-span-2 flex items-center">
-          <input
-            type="checkbox"
-            name="ourDesign"
-            checked={product.ourDesign}
-            onChange={(e) =>
-              setProduct((prev) => ({ ...prev, ourDesign: e.target.checked }))
-            }
-            className="h-4 w-4 mr-2"
-          />
-          <label
-            htmlFor="ourDesign"
-            className="text-sm font-medium text-gray-700"
-          >
-            Our Design Product
-          </label>
+        <div className="md:col-span-2 flex flex-col lg:flex-row items-center justify-between gap-6">
+          <div className="flex items-center">
+            <input
+              type="checkbox"
+              name="ourDesign"
+              checked={product.ourDesign}
+              onChange={(e) =>
+                setProduct((prev) => ({ ...prev, ourDesign: e.target.checked }))
+              }
+              className="h-4 w-4 mr-2"
+            />
+            <label
+              htmlFor="ourDesign"
+              className="text-sm font-medium text-gray-700"
+            >
+              Our Design Product
+            </label>
+          </div>
+
+          <div className="flex items-center justify-between w-full md:w-auto gap-4 bg-gray-50 p-4 rounded-xl border border-gray-200">
+            <div>
+              <p className="text-sm font-medium text-gray-700">Customize</p>
+              <p className="text-xs text-gray-500">Enable or disable product customization</p>
+            </div>
+            <button
+              type="button"
+              onClick={() =>
+                setProduct((prev) => ({ ...prev, customizable: !prev.customizable }))
+              }
+              className={`px-4 py-2 rounded-lg font-semibold transition ${product.customizable ? "bg-green-600 text-white hover:bg-green-700" : "bg-gray-200 text-gray-800 hover:bg-gray-300"}`}
+            >
+              {product.customizable ? "Enabled" : "Disabled"}
+            </button>
+          </div>
         </div>
 
         {/* ✅ Keyword Field */}

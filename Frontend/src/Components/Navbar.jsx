@@ -362,7 +362,7 @@ export default function Navbar() {
               placeholder="Search for products..."
               onSelect={(product) => {
                 setShowSearch(false);
-                navigate(`/productdetails/${product.productId}`);
+                navigate(`/productdetails/${product.product_id}`);
               }}
             />
             <button

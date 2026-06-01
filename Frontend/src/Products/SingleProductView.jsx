@@ -511,9 +511,7 @@ const SingleProductView = () => {
               >
                 Buy Now
               </button>
-              {["custom your tees", "collared"].includes(
-                product.category?.toLowerCase()
-              ) && (
+              {product.customizable && (
                 <button
                   onClick={() => {
                     user ? setShowPopup(true) : setShowLogin(true);

@@ -47,6 +47,7 @@ const addProduct = async (req, res) => {
     fabric_gsm,
     images,
     our_design,
+    customizable,
     keyword,
     keywords,
     washing_details,
@@ -71,9 +72,9 @@ const addProduct = async (req, res) => {
       `INSERT INTO products (
         product_id, title, name, category, subcategory, color, size, 
         offer, rating, mrp, sale_price, stock, description, fabric_details, 
-        fabric_gsm, images, our_design, keyword, keywords, washing_details, notes, 
+        fabric_gsm, images, our_design, customizable, keyword, keywords, washing_details, notes, 
         stock_by_variant, size_chart_image, created_at, updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         productId,
         title,
@@ -92,6 +93,7 @@ const addProduct = async (req, res) => {
         JSON.stringify(fabric_gsm || []),
         JSON.stringify(images || []),
         our_design ? 1 : 0,
+        customizable ? 1 : 0,
         keyword || null,
         JSON.stringify(keywords || []),
         JSON.stringify(washing_details || []),
@@ -136,23 +138,7 @@ const updateProduct = async (req, res) => {
     fabric_gsm,
     images,
     our_design,
-    keyword,
-    keywords,
-    washing_details,
-    notes,
-    stock_by_variant,
-    size_chart_image,
-  } = req.body;
-
-  try {
-    const pool = req.app.locals.pool;
-    const timestamp = new Date().toISOString().slice(0, 19).replace("T", " ");
-
-    let query = "UPDATE products SET ";
-    let values = [];
-    let fields = [];
-
-    if (title !== undefined) {
+    customizable,
       fields.push("title = ?");
       values.push(title);
     }
@@ -215,6 +201,10 @@ const updateProduct = async (req, res) => {
     if (our_design !== undefined) {
       fields.push("our_design = ?");
       values.push(our_design ? 1 : 0);
+    }
+    if (customizable !== undefined) {
+      fields.push("customizable = ?");
+      values.push(customizable ? 1 : 0);
     }
     if (keyword !== undefined) {
       fields.push("keyword = ?");
