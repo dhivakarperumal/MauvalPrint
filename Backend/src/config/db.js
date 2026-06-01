@@ -223,6 +223,23 @@ async function ensureTables() {
     await pool.query(statement);
   }
 
+  // Ensure additional columns exist on user_cart for easier querying
+  const userCartCols = [
+    { name: 'product_name', def: "VARCHAR(255)" },
+    { name: 'mrp', def: "DECIMAL(10,2) DEFAULT 0" },
+    { name: 'sale_price', def: "DECIMAL(10,2) DEFAULT 0" },
+    { name: 'product_image', def: "LONGTEXT" },
+    { name: 'selected_size', def: "VARCHAR(50)" },
+    { name: 'selected_color', def: "VARCHAR(50)" },
+  ];
+
+  for (const col of userCartCols) {
+    const [rows] = await pool.query(`SHOW COLUMNS FROM user_cart LIKE ?`, [col.name]);
+    if (rows.length === 0) {
+      await pool.query(`ALTER TABLE user_cart ADD COLUMN ${col.name} ${col.def}`);
+    }
+  }
+
   const [userIdColumnRows] = await pool.query("SHOW COLUMNS FROM users LIKE 'user_id'");
   if (userIdColumnRows.length === 0) {
     await pool.query(

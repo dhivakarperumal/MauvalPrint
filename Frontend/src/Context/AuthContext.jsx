@@ -186,10 +186,6 @@ export function AuthProvider({ children }) {
 
   const addToCart = async (product, quantity = 1) => {
     if (!user) return toast.error("Login required");
-
-    const cartRef = doc(db, "users", user.uid, "cart", product.id);
-    const cartSnap = await getDoc(cartRef);
-
     let customizedImageUrl = product.customizedImage;
     toast.success("Added to cart");
     if (
@@ -239,10 +235,11 @@ export function AuthProvider({ children }) {
     }
   };
 
-  const removeFromCart = async (id) => {
+  const removeFromCart = async (id, size = "", color = "") => {
     if (!user) return;
     try {
-      await api.delete(`/cart/${user.uid}/${id}`);
+      const q = `?size=${encodeURIComponent(size || '')}&color=${encodeURIComponent(color || '')}`;
+      await api.delete(`/cart/${user.uid}/${id}${q}`);
       const { data } = await api.get(`/cart/${user.uid}`);
       if (data.success) setCart(data.cart);
       toast.info("Removed from cart");
@@ -256,15 +253,12 @@ export function AuthProvider({ children }) {
     const item = cart.find((item) => item.id === id && item.selectedSize === size);
     if (!item) return;
 
-    const delta = qty - item.quantity;
-    if (delta === 0) return;
-
     try {
-      await api.post("/cart/add", {
+      await api.patch('/cart/update', {
         user_id: user.uid,
         product_id: id,
-        quantity: delta,
-        item_data: item,
+        selectedSize: size,
+        quantity: qty,
       });
 
       const { data } = await api.get(`/cart/${user.uid}`);
@@ -277,9 +271,10 @@ export function AuthProvider({ children }) {
   const clearCart = async () => {
     if (!user) return;
     try {
-      // delete each cart item via API
+      // delete each cart item via API with variant query
       for (const item of cart) {
-        await api.delete(`/cart/${user.uid}/${item.id}`);
+        const q = `?size=${encodeURIComponent(item.selectedSize || '')}&color=${encodeURIComponent(item.selectedColor || '')}`;
+        await api.delete(`/cart/${user.uid}/${item.id}${q}`);
       }
       setCart([]);
     } catch (err) {
