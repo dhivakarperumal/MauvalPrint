@@ -41,14 +41,10 @@ const createInvoice = async (req, res) => {
       }
     }
 
-    const crypto = require("crypto");
-    const uniqueInvoiceId = crypto.randomUUID();
-
     const [result] = await pool.query(
-      `INSERT INTO invoices (invoice_id, invoice_no, invoice_date, invoice_value, gst_value, total_value, transport_amount, bill_pdf_base64, bill_pdf_name, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO invoices (invoice_no, invoice_date, invoice_value, gst_value, total_value, transport_amount, bill_pdf_base64, bill_pdf_name, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
-        uniqueInvoiceId,
         nextInvoiceNo,
         invoiceDate || null,
         invoiceValue || 0,
