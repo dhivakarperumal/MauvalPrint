@@ -217,6 +217,17 @@ async function ensureTables() {
         updated_at DATETIME NULL
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
     `,
+    `
+      CREATE TABLE IF NOT EXISTS keyword_master (
+        keyword_id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+        keyword_name VARCHAR(255) NOT NULL UNIQUE,
+        status VARCHAR(20) NOT NULL DEFAULT 'active',
+        show_on_home TINYINT(1) NOT NULL DEFAULT 0,
+        display_order INT NOT NULL DEFAULT 0,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    `,
   ];
 
   for (const statement of statements) {
@@ -245,6 +256,13 @@ async function ensureTables() {
   if (reviewImageColumnRows.length === 0) {
     await pool.query(
       "ALTER TABLE reviews ADD COLUMN image LONGTEXT AFTER comment"
+    );
+  }
+
+  const [productsKeywordsColumnRows] = await pool.query("SHOW COLUMNS FROM products LIKE 'keywords'");
+  if (productsKeywordsColumnRows.length === 0) {
+    await pool.query(
+      "ALTER TABLE products ADD COLUMN keywords JSON AFTER keyword"
     );
   }
 
