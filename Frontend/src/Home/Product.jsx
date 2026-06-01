@@ -8,14 +8,81 @@ import AOS from "aos";
 import "aos/dist/aos.css";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
+import api from "../api";
 
 function Product() {
-  const { products, addToCart, addToWishlist } = useContext(AuthContext);
+  const { addToCart, addToWishlist } = useContext(AuthContext);
+
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [clickedProductId, setClickedProductId] = useState(null);
   const [cardSize, setCardSize] = useState({});
 
   useEffect(() => {
     AOS.init({ duration: 800, once: true });
+  }, []);
+
+  useEffect(() => {
+    const loadProducts = async () => {
+      try {
+        setLoading(true);
+
+        const { data } = await api.get("/products");
+
+        if (data?.success && Array.isArray(data.products)) {
+          const normalized = data.products.map((product) => ({
+            ...product,
+            id:
+              product.product_id ||
+              product.id ||
+              product.productId,
+
+            productId:
+              product.product_id ||
+              product.productId ||
+              product.id,
+
+            salePrice: Number(
+              product.sale_price ??
+              product.salePrice ??
+              0
+            ),
+
+            mrp: Number(product.mrp ?? 0),
+
+            color:
+              typeof product.color === "string"
+                ? JSON.parse(product.color || "[]")
+                : product.color || [],
+
+            size:
+              typeof product.size === "string"
+                ? JSON.parse(product.size || "[]")
+                : product.size || [],
+
+            images:
+              typeof product.images === "string"
+                ? JSON.parse(product.images || "[]")
+                : product.images || [],
+
+            stockByVariant:
+              typeof product.stock_by_variant === "string"
+                ? JSON.parse(product.stock_by_variant || "{}")
+                : product.stock_by_variant || {},
+          }));
+
+          setProducts(normalized);
+          console.log("Total Products:", normalized.length);
+          console.log(normalized);
+        }
+      } catch (error) {
+        console.error("Failed to load products:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadProducts();
   }, []);
 
   const toggleBubble = (productId) => {
@@ -52,7 +119,7 @@ function Product() {
   };
 
   // Loading state when products haven't loaded yet
-  if (!products || products.length === 0) {
+  if (loading) {
     return (
       <section className="p-6 md:p-10 bg-white">
         <div className="flex justify-center items-center mt-20">
@@ -62,12 +129,22 @@ function Product() {
     );
   }
 
+  if (!loading && products.length === 0) {
+    return (
+      <section className="p-6 md:p-10 bg-white">
+        <p className="text-center py-10">
+          No products found
+        </p>
+      </section>
+    );
+  }
+
   return (
     <section className="p-6 md:p-10 bg-white">
       {Object.entries(groupedProducts).map(([category, items]) => (
         <div key={category} className="mb-14" data-aos="fade-up">
           <h3 className="text-2xl font-semibold text-gray-800 mb-6">
-            {getHeaderTitle(category)} 
+            {getHeaderTitle(category)}
           </h3>
 
           <Slider {...sliderSettings}>
@@ -81,11 +158,10 @@ function Product() {
                   <div className="relative w-full h-52 bg-primary/5 rounded-[30px] overflow-hidden shadow-lg transition-transform duration-1000 ease-in-out hover:scale-105 group">
                     {/* Cart Bubble */}
                     <div
-                      className={`absolute w-[70%] h-[70%] transition-all duration-400 ease-in-out z-10 rounded-[10%_13%_42%_0%/10%_12%_75%_0%] bg-primary/30 ${
-                        clickedProductId === product.id
-                          ? "bottom-0 left-0"
-                          : "bottom-[-70%] left-[-70%] group-hover:bottom-0 group-hover:left-0"
-                      }`}
+                      className={`absolute w-[70%] h-[70%] transition-all duration-400 ease-in-out z-10 rounded-[10%_13%_42%_0%/10%_12%_75%_0%] bg-primary/30 ${clickedProductId === product.id
+                        ? "bottom-0 left-0"
+                        : "bottom-[-70%] left-[-70%] group-hover:bottom-0 group-hover:left-0"
+                        }`}
                       style={{
                         borderTop: "2px solid white",
                         borderRight: "1px solid white",
@@ -109,7 +185,7 @@ function Product() {
                               selectedSize,
                               selectedColor: defaultColor,
                             });
-                            
+
                           }}
                           className="text-white bg-white/20 p-2 cursor-pointer rounded-full hover:bg-white hover:text-primary transition"
                           title="Add to Cart"
@@ -121,11 +197,10 @@ function Product() {
 
                     {/* Wishlist Bubble */}
                     <div
-                      className={`absolute w-[50%] h-[50%] transition-all duration-700 ease-in-out z-10 rounded-[10%_13%_42%_0%/10%_12%_75%_0%] bg-primary/30 ${
-                        clickedProductId === product.id
-                          ? "bottom-0 left-0"
-                          : "bottom-[-70%] left-[-70%] group-hover:bottom-0 group-hover:left-0"
-                      }`}
+                      className={`absolute w-[50%] h-[50%] transition-all duration-700 ease-in-out z-10 rounded-[10%_13%_42%_0%/10%_12%_75%_0%] bg-primary/30 ${clickedProductId === product.id
+                        ? "bottom-0 left-0"
+                        : "bottom-[-70%] left-[-70%] group-hover:bottom-0 group-hover:left-0"
+                        }`}
                       style={{
                         borderTop: "2px solid white",
                         borderRight: "1px solid white",
@@ -149,11 +224,10 @@ function Product() {
 
                     {/* View Details Bubble */}
                     <div
-                      className={`absolute w-[32%] h-[32%] transition-all duration-1000 ease-in-out z-10 rounded-[10%_13%_42%_0%/10%_12%_75%_0%] bg-primary/30 ${
-                        clickedProductId === product.id
-                          ? "bottom-0 left-0"
-                          : "bottom-[-70%] left-[-70%] group-hover:bottom-0 group-hover:left-0"
-                      }`}
+                      className={`absolute w-[32%] h-[32%] transition-all duration-1000 ease-in-out z-10 rounded-[10%_13%_42%_0%/10%_12%_75%_0%] bg-primary/30 ${clickedProductId === product.id
+                        ? "bottom-0 left-0"
+                        : "bottom-[-70%] left-[-70%] group-hover:bottom-0 group-hover:left-0"
+                        }`}
                       style={{
                         borderTop: "2px solid white",
                         borderRight: "1px solid white",
@@ -163,7 +237,7 @@ function Product() {
                       <div className="absolute top-2 right-2">
                         <Link
                           to={`/productdetails/${product.productId}`}
-                          state={{ product }} 
+                          state={{ product }}
                         >
                           <button
                             // onClick={(e) => e.stopPropagation()}
@@ -229,13 +303,12 @@ function Product() {
                                 [product.id]: sz,
                               }));
                           }}
-                          className={`px-2 py-0.5 rounded-full text-xs border ${
-                            cardSize[product.id] === sz
-                              ? "bg-primary text-white border-primary"
-                              : isAvailable
+                          className={`px-2 py-0.5 rounded-full text-xs border ${cardSize[product.id] === sz
+                            ? "bg-primary text-white border-primary"
+                            : isAvailable
                               ? "bg-white text-gray-700 border-gray-300 cursor-pointer"
                               : "bg-gray-200 text-gray-400 border-gray-300 cursor-not-allowed"
-                          }`}
+                            }`}
                           disabled={!isAvailable}
                         >
                           {sz}

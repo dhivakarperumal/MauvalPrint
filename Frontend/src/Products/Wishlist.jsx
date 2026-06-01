@@ -76,7 +76,7 @@ const Wishlist = ({ show, onClose }) => {
           ) : (
             wishlist.map((item) => (
               <div
-                key={`${item.id}`}
+                key={`${item.id}-${Math.random()}`}
                 className="flex items-center gap-3 mb-4 border-b border-primary/50 pb-4"
               >
                 <img
@@ -91,7 +91,7 @@ const Wishlist = ({ show, onClose }) => {
                     {item.name}
                   </h3>
                   <p className="font-bold text-md text-primary">
-                    ₹{item.price?.toFixed(2)}
+                    ₹{Number(item.salePrice || item.sale_price || item.price || 0).toFixed(2)}
                   </p>
                   <div className="mt-2 flex flex-wrap gap-1">
                     {item.size?.map((sz) => (
