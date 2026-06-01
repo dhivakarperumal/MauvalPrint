@@ -112,9 +112,9 @@ const TrendingDesigns = () => {
       </h1>
       <Slider {...settings} className="mx-5">
         {designs?.slice(0, 8).map((design) => (
-          <div key={design.id} className="px-3">
+          <div key={design.product_id} className="px-3">
             <DesignCard
-              id={design.id}
+              id={design.product_id}
               name={design.name}
               rating={design.rating}
               images={design.images || [design.image]}

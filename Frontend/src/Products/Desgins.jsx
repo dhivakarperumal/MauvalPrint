@@ -170,7 +170,7 @@ const DesignCard = ({ product, images }) => {
           style={{ borderTop: "2px solid white", borderRight: "1px solid white", backdropFilter: "blur(2px)" }}
         >
           <div className="absolute top-2 right-2">
-            <Link to={`/designdetails/${product.productId}`}>
+            <Link to={`/designdetails/${product.product_id}`}>
               <button
                 className="text-white bg-white/20 p-2 rounded-full cursor-pointer hover:bg-white hover:text-primary transition"
                 title="View Details"

@@ -65,7 +65,7 @@ const SingleProductView = () => {
   const memoizedProducts = useMemo(() => products, [products]);
 
   useEffect(() => {
-    const found = memoizedProducts.find((p) => `${p.productId || p.id}` === id);
+    const found = memoizedProducts.find((p) => `${p.product_id || p.productId || p.id}` === id);
 
     if (found) {
       // Coerce numeric fields to numbers to avoid `.toFixed` errors

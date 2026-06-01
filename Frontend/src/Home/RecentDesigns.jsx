@@ -332,7 +332,7 @@ const RecentDesigns = () => {
                 {items.map((design) => (
                   <SwiperSlide key={design.id}>
                     <DesignCard
-                      id={design.productId || design.id}
+                      id={design.product_id}
                       name={design.name}
                       rating={design.rating}
                       images={design.images || [design.image]}
