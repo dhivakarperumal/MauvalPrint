@@ -3,18 +3,7 @@ import React, { createContext, useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import { db } from "../firebase";
 import api from "../api";
-import {
-  doc,
-  getDoc,
-  setDoc,
-  collection,
-  getDocs,
-  deleteDoc,
-  onSnapshot,
-  query,
-  orderBy,
-  limit,
-} from "firebase/firestore";
+import { collection, onSnapshot } from "firebase/firestore";
 import {
   getStorage,
   ref as storageRef,
@@ -45,15 +34,17 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     if (user?.uid) {
-      const cartRef = collection(db, "users", user.uid, "cart");
-
-      const unsubscribeCart = onSnapshot(cartRef, (snapshot) => {
-        const items = snapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-        setCart(items);
-      });
+      const fetchCart = async () => {
+        try {
+          const { data } = await api.get(`/cart/${user.uid}`);
+          if (data.success) {
+            setCart(data.cart);
+          }
+        } catch (error) {
+          console.error("Cart fetch error:", error);
+          setCart([]);
+        }
+      };
 
       const fetchWishlist = async () => {
         try {
@@ -67,11 +58,10 @@ export function AuthProvider({ children }) {
         }
       };
 
+      fetchCart();
       fetchWishlist();
 
-      return () => {
-        unsubscribeCart();
-      };
+      return () => {};
     } else {
       setCart([]);
       setWishlist([]);
@@ -231,49 +221,70 @@ export function AuthProvider({ children }) {
       customizedImage: customizedImageUrl || "",
     };
 
-    if (cartSnap.exists()) {
-      const existingItem = cartSnap.data();
-      const updatedQty = existingItem.quantity + quantity;
-      await setDoc(cartRef, {
-        ...existingItem,
-        quantity: updatedQty,
+    try {
+      await api.post("/cart/add", {
+        user_id: user.uid,
+        product_id: product.id,
+        quantity,
+        item_data: newItem,
       });
-      toast.success("Cart updated");
-    } else {
-      await setDoc(cartRef, newItem);
+
+      // refresh cart from server
+      const { data } = await api.get(`/cart/${user.uid}`);
+      if (data.success) setCart(data.cart);
+      toast.success("Added to cart");
+    } catch (err) {
+      console.error("Add to cart failed:", err);
+      toast.error("Failed to add to cart");
     }
   };
 
   const removeFromCart = async (id) => {
     if (!user) return;
-    await deleteDoc(doc(db, "users", user.uid, "cart", id));
-    toast.info("Removed from cart");
+    try {
+      await api.delete(`/cart/${user.uid}/${id}`);
+      const { data } = await api.get(`/cart/${user.uid}`);
+      if (data.success) setCart(data.cart);
+      toast.info("Removed from cart");
+    } catch (err) {
+      console.error("Remove from cart failed:", err);
+    }
   };
 
   const updateQuantity = async (id, size, qty) => {
     if (!user) return;
-    const item = cart.find(
-      (item) => item.id === id && item.selectedSize === size
-    );
-    if (item) {
-      await setDoc(doc(db, "users", user.uid, "cart", id), {
-        ...item,
-        quantity: qty,
+    const item = cart.find((item) => item.id === id && item.selectedSize === size);
+    if (!item) return;
+
+    const delta = qty - item.quantity;
+    if (delta === 0) return;
+
+    try {
+      await api.post("/cart/add", {
+        user_id: user.uid,
+        product_id: id,
+        quantity: delta,
+        item_data: item,
       });
+
+      const { data } = await api.get(`/cart/${user.uid}`);
+      if (data.success) setCart(data.cart);
+    } catch (err) {
+      console.error("Update quantity failed:", err);
     }
   };
 
   const clearCart = async () => {
     if (!user) return;
-
-    const snapshot = await getDocs(collection(db, "users", user.uid, "cart"));
-
-    const deletePromises = snapshot.docs.map((docSnap) =>
-      deleteDoc(docSnap.ref)
-    );
-    await Promise.all(deletePromises);
-
-    // toast.info("Cart cleared");
+    try {
+      // delete each cart item via API
+      for (const item of cart) {
+        await api.delete(`/cart/${user.uid}/${item.id}`);
+      }
+      setCart([]);
+    } catch (err) {
+      console.error("Clear cart failed:", err);
+    }
   };
 
   const addToWishlist = async (product) => {
