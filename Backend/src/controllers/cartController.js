@@ -38,27 +38,15 @@ exports.addCart = async (req, res) => {
         user_id,
         product_id,
         quantity,
-        product_name,
-        mrp,
-        sale_price,
-        product_image,
-        selected_size,
-        selected_color,
         item_data,
         created_at
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      VALUES (?, ?, ?, ?, ?)`,
       [
         user_id,
         product_id,
         quantity,
-        item_data.name || "",
-        item_data.mrp || 0,
-        item_data.salePrice || item_data.sale_price || 0,
-        item_data.images?.[0] || "",
-        item_data.selectedSize || "",
-        item_data.selectedColor || "",
-        JSON.stringify(item_data),
+        JSON.stringify(item_data || {}),
         new Date()
       ]
     );
@@ -88,12 +76,27 @@ exports.getCart = async (req, res) => {
       [user_id]
     );
 
-    const cart = rows.map(item => ({
-      ...JSON.parse(item.item_data),
-      quantity: item.quantity,
-      selectedSize: item.selected_size,
-      selectedColor: item.selected_color,
-    }));
+    const cart = rows.map(item => {
+      let parsed = {};
+      try {
+        parsed = JSON.parse(item.item_data || "{}");
+      } catch (e) {
+        parsed = {};
+      }
+
+      return {
+        id: item.product_id || item.id,
+        name: parsed.name || parsed.title || parsed.product_name || "",
+        price: parsed.salePrice || parsed.sale_price || parsed.price || parsed.mrp || 0,
+        mrp: parsed.mrp || 0,
+        image: (parsed.images && parsed.images[0]) || parsed.product_image || parsed.image || "",
+        images: parsed.images || [],
+        quantity: item.quantity,
+        selectedSize: parsed.selectedSize || parsed.selected_size || "",
+        selectedColor: parsed.selectedColor || parsed.selected_color || "",
+        item_data: parsed,
+      };
+    });
 
     res.json({
       success: true,
