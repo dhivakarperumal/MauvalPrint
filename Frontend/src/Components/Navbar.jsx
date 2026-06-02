@@ -65,11 +65,8 @@ export default function Navbar() {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const querySnapshot = await getDocs(collection(db, "products"));
-        const products = querySnapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
+        const { data } = await api.get("/products");
+        const products = data?.products || [];
 
         const filtered = ["round neck", "collared"];
         const grouped = [];
