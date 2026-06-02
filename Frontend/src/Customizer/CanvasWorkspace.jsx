@@ -32,6 +32,7 @@ const CanvasWorkspace = ({ onCanvasReady, product, imageSrc }) => {
       fill: 'transparent',
       selectable: false,
       evented: false,
+      id: 'clip-path',
     });
     
     // Allow elements to render over the edge but you can only drag within

@@ -17,6 +17,7 @@ const CustomizerLayout = () => {
   const [canvas, setCanvas] = useState(null);
   const [activeObject, setActiveObject] = useState(null);
   const [currentViewIndex, setCurrentViewIndex] = useState(0);
+  const [viewStates, setViewStates] = useState({});
 
   useEffect(() => {
     if (products && products.length > 0) {
@@ -111,7 +112,34 @@ const CustomizerLayout = () => {
     setActiveObject(canvas.getActiveObject());
   };
 
-  const views = ['Front View', 'Back View', 'Left Sleeve', 'Right Sleeve'];
+  const views = ['Front View', 'Back View', 'Left Sleeve', 'Right Sleeve', 'Neck Label'];
+
+  const handleViewChange = (idx) => {
+    if (idx === currentViewIndex) return;
+    
+    if (canvas) {
+      // Save current state including custom properties like 'id'
+      const currentState = canvas.toJSON(['id', 'selectable', 'evented']);
+      setViewStates(prev => ({ ...prev, [currentViewIndex]: currentState }));
+      
+      // Load new state
+      if (viewStates[idx]) {
+        canvas.loadFromJSON(viewStates[idx], () => {
+          canvas.requestRenderAll();
+        });
+      } else {
+        // Clear canvas but keep clipPath
+        canvas.getObjects().forEach(obj => {
+          if (obj.id !== 'clip-path') {
+            canvas.remove(obj);
+          }
+        });
+        canvas.requestRenderAll();
+      }
+    }
+    
+    setCurrentViewIndex(idx);
+  };
 
   const handleAddToCart = () => {
     if (!product) return;
@@ -247,11 +275,11 @@ const CustomizerLayout = () => {
              <span className="text-sm font-medium w-12 text-center">100%</span>
              <button className="text-gray-300 hover:text-white">+</button>
              <div className="w-px h-4 bg-gray-700"></div>
-             {views.map((viewName, idx) => (
+              {views.map((viewName, idx) => (
                 <button 
                   key={idx}
-                  onClick={() => setCurrentViewIndex(idx)}
-                  className={`text-sm ${currentViewIndex === idx ? 'text-white font-medium' : 'text-gray-500 hover:text-gray-300'}`}
+                  onClick={() => handleViewChange(idx)}
+                  className={`text-sm whitespace-nowrap ${currentViewIndex === idx ? 'text-white font-medium' : 'text-gray-500 hover:text-gray-300'}`}
                 >
                   {viewName}
                 </button>
