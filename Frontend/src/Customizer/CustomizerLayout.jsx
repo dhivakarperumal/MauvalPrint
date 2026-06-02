@@ -5,6 +5,7 @@ import { IText, Rect, Circle, Triangle, FabricImage } from 'fabric';
 import { AuthContext } from '../Context/AuthContext';
 import SidebarTools from './SidebarTools';
 import CanvasWorkspace from './CanvasWorkspace';
+import PropertiesPanel from './PropertiesPanel';
 
 const CustomizerLayout = () => {
   const { productId } = useParams();
@@ -15,6 +16,7 @@ const CustomizerLayout = () => {
   const [activeTab, setActiveTab] = useState('text');
   const [canvas, setCanvas] = useState(null);
   const [activeObject, setActiveObject] = useState(null);
+  const [currentViewIndex, setCurrentViewIndex] = useState(0);
 
   useEffect(() => {
     if (products && products.length > 0) {
@@ -108,6 +110,8 @@ const CustomizerLayout = () => {
     // Force state update to re-render the color picker value
     setActiveObject(canvas.getActiveObject());
   };
+
+  const views = ['Front View', 'Back View', 'Left Sleeve', 'Right Sleeve'];
 
   const handleAddToCart = () => {
     if (!product) return;
@@ -222,32 +226,20 @@ const CustomizerLayout = () => {
           )}
 
           {/* Properties Panel (Shows when an object is selected) */}
-          {activeObject && (
-            <div className="mt-8 pt-6 border-t border-gray-800">
-               <h3 className="text-sm font-semibold mb-4 text-gray-400 uppercase tracking-wider">Properties</h3>
-               
-               {/* Color Picker for Text & Shapes */}
-               {(activeObject.type === 'i-text' || activeObject.type === 'rect' || activeObject.type === 'circle' || activeObject.type === 'triangle') && (
-                 <div className="flex items-center justify-between bg-gray-800 p-3 rounded-xl border border-gray-700">
-                    <span className="text-sm font-medium">Color</span>
-                    <div className="flex items-center gap-2">
-                      <input 
-                        type="color" 
-                        value={activeObject.fill || '#000000'} 
-                        onChange={handleChangeColor}
-                        className="w-8 h-8 rounded cursor-pointer bg-transparent border-0 p-0"
-                      />
-                      <span className="text-xs text-gray-400 font-mono uppercase">{activeObject.fill}</span>
-                    </div>
-                 </div>
-               )}
-            </div>
-          )}
+          <PropertiesPanel 
+            activeObject={activeObject} 
+            canvas={canvas} 
+            setActiveObject={setActiveObject} 
+          />
         </div>
 
         {/* Canvas Workspace */}
         <div className="flex-1 bg-gray-900 relative flex items-center justify-center overflow-auto p-8 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCI+PHBhdGggZD0iTTIwIDBoLTIwdjIwaDIweiIgZmlsbD0ibm9uZSIvPjxwYXRoIGQ9Ik0xOSAxOUgxVjFoMTh2MTh6IiBmaWxsPSJub25lIi8+PHBhdGggZD0iTTIwIDBoLTF2MTloLTE5djFoMjB6IiBmaWxsPSIjMjIyMjIyIiBvcGFjaXR5PSIuNSIvPjwvc3ZnPg==')]">
-          <CanvasWorkspace product={product} onCanvasReady={(c) => setCanvas(c)} />
+          <CanvasWorkspace 
+            product={product} 
+            imageSrc={product.images?.[currentViewIndex] || product.images?.[0]} 
+            onCanvasReady={(c) => setCanvas(c)} 
+          />
           
           {/* Bottom Zoom/View Controls */}
           <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-gray-900/80 backdrop-blur border border-gray-700 rounded-full px-4 py-2 flex items-center gap-4 shadow-lg">
@@ -255,8 +247,15 @@ const CustomizerLayout = () => {
              <span className="text-sm font-medium w-12 text-center">100%</span>
              <button className="text-gray-300 hover:text-white">+</button>
              <div className="w-px h-4 bg-gray-700"></div>
-             <button className="text-gray-300 hover:text-white text-sm">Front</button>
-             <button className="text-gray-500 hover:text-gray-300 text-sm">Back</button>
+             {views.map((viewName, idx) => (
+                <button 
+                  key={idx}
+                  onClick={() => setCurrentViewIndex(idx)}
+                  className={`text-sm ${currentViewIndex === idx ? 'text-white font-medium' : 'text-gray-500 hover:text-gray-300'}`}
+                >
+                  {viewName}
+                </button>
+             ))}
           </div>
         </div>
       </main>

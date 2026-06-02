@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Canvas, Rect } from 'fabric';
 
-const CanvasWorkspace = ({ onCanvasReady, product }) => {
+const CanvasWorkspace = ({ onCanvasReady, product, imageSrc }) => {
   const canvasRef = useRef(null);
   const [fabricCanvas, setFabricCanvas] = useState(null);
 
@@ -46,9 +46,9 @@ const CanvasWorkspace = ({ onCanvasReady, product }) => {
     <div className="w-[500px] h-[600px] bg-white rounded-2xl shadow-2xl relative flex items-center justify-center overflow-hidden">
       {/* Background T-Shirt Image (Mocked) */}
       <img 
-        src={product?.images?.[0] || "https://via.placeholder.com/500x600.png?text=T-Shirt+Mockup"} 
+        src={imageSrc || "https://via.placeholder.com/500x600.png?text=T-Shirt+Mockup"} 
         alt={product?.name || "T-Shirt Mockup"} 
-        className="absolute inset-0 w-full h-full object-contain z-0 pointer-events-none"
+        className="absolute inset-0 w-full h-full object-contain z-0 pointer-events-none transition-opacity duration-300"
       />
       
       {/* Canvas Area (Overlay on the T-shirt print area) */}
