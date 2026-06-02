@@ -10,6 +10,7 @@ const dealerRoutes = require("./src/routers/dealerRoutes");
 const invoiceRoutes = require("./src/routers/invoiceRoutes");
 const keywordRoutes = require("./src/routers/keywordRoutes");
 const wishlistRouter = require("./src/routers/wishlist");
+const cartRouter = require("./src/routers/cart");
 require("dotenv").config();
 
 const app = express();
@@ -36,6 +37,7 @@ app.use("/api/dealers", dealerRoutes);
 app.use("/api/invoices", invoiceRoutes);
 app.use("/api/keywords", keywordRoutes);
 app.use("/api/wishlist", wishlistRouter);
+app.use("/api/cart", cartRouter);
 
 // Health Check
 app.get("/api/health", (req, res) => {
