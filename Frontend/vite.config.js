@@ -5,4 +5,13 @@ import tailwindcss from '@tailwindcss/vite'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react(),tailwindcss()],
+  server: {
+    proxy: {
+      '/proxy-uploads': {
+        target: 'https://mauvalprint.in/uploads',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/proxy-uploads/, '')
+      }
+    }
+  }
 })

@@ -185,7 +185,10 @@ export function AuthProvider({ children }) {
   };
 
   const addToCart = async (product, quantity = 1) => {
-    if (!user) return toast.error("Login required");
+    if (!user) {
+      toast.error("Login required");
+      return false;
+    }
     let customizedImageUrl = product.customizedImage;
     if (
       product.customizedImage &&
@@ -201,7 +204,7 @@ export function AuthProvider({ children }) {
       } catch (err) {
         console.error("Image upload failed:", err);
         toast.error("Failed to upload custom image");
-        return;
+        return false;
       }
     }
 
@@ -228,9 +231,11 @@ export function AuthProvider({ children }) {
       const { data } = await api.get(`/cart/${user.uid}`);
       if (data.success) setCart(data.cart);
       toast.success("Added to cart");
+      return true;
     } catch (err) {
       console.error("Add to cart failed:", err);
       toast.error("Failed to add to cart");
+      return false;
     }
   };
 

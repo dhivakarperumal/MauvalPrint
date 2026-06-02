@@ -43,6 +43,16 @@ const CanvasWorkspace = ({ onCanvasReady, product, imageSrc, selectedProductColo
     };
   }, []);
 
+  const getProxyUrl = (url) => {
+    if (!url) return url;
+    if (url.startsWith('https://mauvalprint.in/uploads/')) {
+      return url.replace('https://mauvalprint.in/uploads/', '/proxy-uploads/');
+    }
+    return url;
+  };
+  
+  const proxiedImageSrc = getProxyUrl(imageSrc || "https://via.placeholder.com/500x600.png?text=T-Shirt+Mockup");
+
   return (
     <div className="w-[500px] h-[600px] bg-white rounded-2xl shadow-2xl relative flex items-center justify-center overflow-hidden">
       {/* Colored Mask layer */}
@@ -50,11 +60,11 @@ const CanvasWorkspace = ({ onCanvasReady, product, imageSrc, selectedProductColo
         className="absolute inset-0 w-full h-full pointer-events-none transition-colors duration-300 z-0"
         style={{ 
           backgroundColor: selectedProductColor || '#ffffff',
-          WebkitMaskImage: `url("${imageSrc || 'https://via.placeholder.com/500x600.png?text=T-Shirt+Mockup'}")`,
+          WebkitMaskImage: `url("${proxiedImageSrc}")`,
           WebkitMaskSize: 'contain',
           WebkitMaskRepeat: 'no-repeat',
           WebkitMaskPosition: 'center',
-          maskImage: `url("${imageSrc || 'https://via.placeholder.com/500x600.png?text=T-Shirt+Mockup'}")`,
+          maskImage: `url("${proxiedImageSrc}")`,
           maskSize: 'contain',
           maskRepeat: 'no-repeat',
           maskPosition: 'center',
@@ -63,7 +73,7 @@ const CanvasWorkspace = ({ onCanvasReady, product, imageSrc, selectedProductColo
 
       {/* Texture/Shadows layer */}
       <img 
-        src={imageSrc || "https://via.placeholder.com/500x600.png?text=T-Shirt+Mockup"} 
+        src={proxiedImageSrc} 
         alt={product?.name || "T-Shirt Mockup"} 
         className="absolute inset-0 w-full h-full object-contain mix-blend-multiply pointer-events-none z-0"
       />

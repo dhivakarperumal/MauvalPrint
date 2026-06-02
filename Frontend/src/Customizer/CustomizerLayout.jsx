@@ -142,16 +142,20 @@ const CustomizerLayout = () => {
     setCurrentViewIndex(idx);
   };
 
-  const handleAddToCart = () => {
+  const handlePlaceOrder = async () => {
     if (!product) return;
     
     let customizedImage = product.images?.[0];
     if (canvas) {
-      customizedImage = canvas.toDataURL({
-        format: 'png',
-        quality: 1,
-        multiplier: 2 // High res
-      });
+      try {
+        customizedImage = canvas.toDataURL({
+          format: 'png',
+          quality: 1,
+          multiplier: 2 // High res
+        });
+      } catch (err) {
+        console.error("Canvas export error:", err);
+      }
     }
 
     const customizedProduct = {
@@ -160,11 +164,16 @@ const CustomizerLayout = () => {
       isCustomized: true,
       selectedSize: 'M', // Defaulting for now
       selectedColor: selectedProductColor,
+      quantity: 1,
+      price: product.salePrice || product.price || 0,
     };
 
-    addToCart(customizedProduct, 1);
-    // Note: react-toastify or react-hot-toast should be used here, let's assume it's handled by addToCart or we can navigate to cart
-    navigate('/cart');
+    navigate('/checkout', { 
+      state: { 
+        buyNowProduct: customizedProduct, 
+        fromCart: false 
+      } 
+    });
   };
 
   return (
@@ -188,8 +197,8 @@ const CustomizerLayout = () => {
           <button className="px-4 py-1.5 text-sm font-medium border border-gray-700 hover:bg-gray-800 rounded transition flex items-center gap-2">
             <IoDownloadOutline size={16} /> Preview
           </button>
-          <button onClick={handleAddToCart} className="px-4 py-1.5 text-sm font-medium bg-indigo-600 hover:bg-indigo-700 text-white rounded transition flex items-center gap-2 cursor-pointer">
-            <IoCartOutline size={16} /> Add to Cart
+          <button onClick={handlePlaceOrder} className="px-4 py-1.5 text-sm font-medium bg-indigo-600 hover:bg-indigo-700 text-white rounded transition flex items-center gap-2 cursor-pointer">
+            <IoCartOutline size={16} /> Place Order
           </button>
         </div>
       </header>

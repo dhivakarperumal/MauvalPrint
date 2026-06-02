@@ -154,7 +154,7 @@ const Checkout = () => {
     quantity: item.quantity || 0,
     color: item.selectedColor || "",
     size: item.selectedSize || "",
-    image: item.image || item.images?.[0] || item.customizedImage || "",
+    image: item.customizedImage || item.image || item.images?.[0] || "",
     subtotal: (item.price || 0) * (item.quantity || 0),
   }));
 
