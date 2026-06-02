@@ -1,52 +1,53 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import api from "../api";
 import imageCompression from "browser-image-compression";
 import toast from "react-hot-toast";
-import { FaEdit, FaTrash, FaPlus, FaTimes, FaCloudUploadAlt, FaTag } from "react-icons/fa";
+import {
+  FaEdit, FaTrash, FaPlus, FaTimes, FaCloudUploadAlt,
+  FaTag, FaSearch, FaTh, FaList, FaFilter, FaLayerGroup,
+} from "react-icons/fa";
 
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+const parseJSON = (val, fallback) => {
+  if (Array.isArray(val) || (val && typeof val === "object")) return val;
+  try { return JSON.parse(val); } catch { return fallback; }
+};
+
+const generateNextCatId = (list) =>
+  `CAT${String(list.length + 1).padStart(3, "0")}`;
+
+// ─── Component ────────────────────────────────────────────────────────────────
 const Category = () => {
-  const [category, setCategory] = useState({
-    category_id: "",
-    name: "",
-    description: "",
-    images: [],
-    subcategories: [],
-  });
-
-  const [subcatInput, setSubcatInput] = useState("");
+  const [categories, setCategories] = useState([]);
+  const [viewMode, setViewMode] = useState("card");
+  const [showModal, setShowModal] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [editId, setEditId] = useState(null);
   const [previewImgs, setPreviewImgs] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [categories, setCategories] = useState([]);
-  const [showModal, setShowModal] = useState(false);
+  const [subcatInput, setSubcatInput] = useState("");
 
-  // ─── Helpers ──────────────────────────────────────────────────────────────
-  const parseJSON = (val, fallback) => {
-    if (Array.isArray(val) || (val && typeof val === "object")) return val;
-    try {
-      return JSON.parse(val);
-    } catch (e) {
-      return fallback;
-    }
-  };
+  // ── Filter state ────────────────────────────────────────────────────────────
+  const [search, setSearch] = useState("");
+  const [filterSubcatCount, setFilterSubcatCount] = useState("all");
+  const [filterHasImage, setFilterHasImage] = useState("all");
+  const [sortBy, setSortBy] = useState("default");
 
-  const generateNextCatId = (list) => {
-    const count = list.length + 1;
-    return `CAT${String(count).padStart(3, "0")}`;
-  };
+  // ── Form state ──────────────────────────────────────────────────────────────
+  const [category, setCategory] = useState({
+    category_id: "", name: "", description: "", images: [], subcategories: [],
+  });
 
-  // ─── Fetch ────────────────────────────────────────────────────────────────
+  // ── Fetch ───────────────────────────────────────────────────────────────────
   const fetchCategories = async () => {
     try {
       const { data } = await api.get("/categories");
-      const list = data.categories || [];
-      const parsed = list.map((c) => ({
+      const list = (data.categories || []).map((c) => ({
         ...c,
         images: parseJSON(c.images, []),
         subcategories: parseJSON(c.subcategories, []),
       }));
-      setCategories(parsed);
-      return parsed;
+      setCategories(list);
+      return list;
     } catch (err) {
       console.error("Error fetching categories:", err);
       return [];
@@ -56,90 +57,97 @@ const Category = () => {
   useEffect(() => {
     (async () => {
       const list = await fetchCategories();
-      setCategory((prev) => ({ ...prev, category_id: generateNextCatId(list) }));
+      setCategory((p) => ({ ...p, category_id: generateNextCatId(list) }));
     })();
   }, []);
 
-  // ─── Image handling ───────────────────────────────────────────────────────
+  // ── Filtered & sorted categories ────────────────────────────────────────────
+  const filtered = useMemo(() => {
+    let list = [...categories];
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      list = list.filter(
+        (c) =>
+          c.name?.toLowerCase().includes(q) ||
+          c.description?.toLowerCase().includes(q) ||
+          c.category_id?.toLowerCase().includes(q) ||
+          (c.subcategories || []).some((s) => s.toLowerCase().includes(q))
+      );
+    }
+    if (filterHasImage === "yes") list = list.filter((c) => c.images?.length > 0);
+    if (filterHasImage === "no")  list = list.filter((c) => !c.images?.length);
+    if (filterSubcatCount === "0")   list = list.filter((c) => (c.subcategories || []).length === 0);
+    if (filterSubcatCount === "1-3") list = list.filter((c) => { const n = (c.subcategories || []).length; return n >= 1 && n <= 3; });
+    if (filterSubcatCount === "4+")  list = list.filter((c) => (c.subcategories || []).length >= 4);
+    if (sortBy === "name-asc")  list.sort((a, b) => a.name.localeCompare(b.name));
+    if (sortBy === "name-desc") list.sort((a, b) => b.name.localeCompare(a.name));
+    if (sortBy === "subcats")   list.sort((a, b) => (b.subcategories || []).length - (a.subcategories || []).length);
+    return list;
+  }, [categories, search, filterHasImage, filterSubcatCount, sortBy]);
+
+  const hasActiveFilters = search || filterSubcatCount !== "all" || filterHasImage !== "all" || sortBy !== "default";
+
+  const clearFilters = () => {
+    setSearch("");
+    setFilterSubcatCount("all");
+    setFilterHasImage("all");
+    setSortBy("default");
+  };
+
+  // ── Image handling ──────────────────────────────────────────────────────────
   const handleImageChange = async (e) => {
     const files = Array.from(e.target.files);
     try {
-      const compressedFiles = await Promise.all(
-        files.map((file) =>
-          imageCompression(file, {
-            maxSizeMB: 0.15,
-            maxWidthOrHeight: 700,
-            useWebWorker: true,
-          })
-        )
+      const compressed = await Promise.all(
+        files.map((f) => imageCompression(f, { maxSizeMB: 0.15, maxWidthOrHeight: 700, useWebWorker: true }))
       );
-
-      const base64Images = await Promise.all(
-        compressedFiles.map(
-          (file) =>
-            new Promise((resolve, reject) => {
-              const reader = new FileReader();
-              reader.onload = () => resolve(reader.result);
-              reader.onerror = reject;
-              reader.readAsDataURL(file);
-            })
-        )
+      const b64 = await Promise.all(
+        compressed.map((f) => new Promise((res, rej) => {
+          const r = new FileReader();
+          r.onload = () => res(r.result);
+          r.onerror = rej;
+          r.readAsDataURL(f);
+        }))
       );
-
-      setCategory((prev) => ({ ...prev, images: base64Images }));
-      setPreviewImgs(base64Images);
+      setCategory((p) => ({ ...p, images: b64 }));
+      setPreviewImgs(b64);
       toast.success("Images uploaded & compressed!");
-    } catch (error) {
-      console.error("Image upload error:", error);
-      toast.error("Failed to compress or upload images.");
-    }
+    } catch { toast.error("Failed to compress/upload images."); }
   };
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setCategory((prev) => ({ ...prev, [name]: value }));
-  };
+  const handleChange = (e) =>
+    setCategory((p) => ({ ...p, [e.target.name]: e.target.value }));
 
-  // ─── Submit (Add / Update) ────────────────────────────────────────────────
+  // ── Submit ──────────────────────────────────────────────────────────────────
   const handleSubmit = async (e) => {
     e.preventDefault();
     const { category_id, name, description, images, subcategories } = category;
-
     if (!name || !description || images.length === 0) {
       toast.error("Please fill all required fields and upload images.");
       return;
     }
-
-    const payload = { category_id, name, description, images, subcategories };
-
     setLoading(true);
     try {
       if (editId) {
-        await api.put(`/categories/${editId}`, payload);
+        await api.put(`/categories/${editId}`, { category_id, name, description, images, subcategories });
         toast.success("Category updated!");
         setEditId(null);
       } else {
-        await api.post("/categories", payload);
+        await api.post("/categories", { category_id, name, description, images, subcategories });
         toast.success("Category added!");
       }
-
       const list = await fetchCategories();
       resetForm(list);
       setShowModal(false);
-    } catch (err) {
-      console.error(err);
-      toast.error("Failed to save category.");
-    }
+    } catch { toast.error("Failed to save category."); }
     setLoading(false);
   };
 
-  // ─── Edit ─────────────────────────────────────────────────────────────────
+  // ── Edit / Delete ───────────────────────────────────────────────────────────
   const handleEdit = (cat) => {
     setCategory({
-      category_id: cat.category_id,
-      name: cat.name,
-      description: cat.description,
-      images: cat.images || [],
+      category_id: cat.category_id, name: cat.name,
+      description: cat.description, images: cat.images || [],
       subcategories: cat.subcategories || [],
     });
     setSubcatInput("");
@@ -148,49 +156,32 @@ const Category = () => {
     setShowModal(true);
   };
 
-  // ─── Delete ───────────────────────────────────────────────────────────────
-  const handleDelete = async (category_id) => {
+  const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this category?")) return;
     try {
-      await api.delete(`/categories/${category_id}`);
+      await api.delete(`/categories/${id}`);
       toast.success("Category deleted.");
       const list = await fetchCategories();
       resetForm(list);
-    } catch (err) {
-      console.error(err);
-      toast.error("Failed to delete category.");
-    }
+    } catch { toast.error("Failed to delete category."); }
   };
 
-  // ─── Subcategories ────────────────────────────────────────────────────────
+  // ── Subcategories ───────────────────────────────────────────────────────────
   const handleAddSubcategory = () => {
-    const trimmed = subcatInput.trim();
-    if (trimmed && !category.subcategories.includes(trimmed)) {
-      setCategory((prev) => ({
-        ...prev,
-        subcategories: [...prev.subcategories, trimmed],
-      }));
+    const t = subcatInput.trim();
+    if (t && !category.subcategories.includes(t)) {
+      setCategory((p) => ({ ...p, subcategories: [...p.subcategories, t] }));
       setSubcatInput("");
     }
   };
 
-  const handleRemoveSubcategory = (sub) => {
-    setCategory((prev) => ({
-      ...prev,
-      subcategories: prev.subcategories.filter((s) => s !== sub),
-    }));
-  };
+  const handleRemoveSubcategory = (sub) =>
+    setCategory((p) => ({ ...p, subcategories: p.subcategories.filter((s) => s !== sub) }));
 
-  // ─── Reset form ───────────────────────────────────────────────────────────
+  // ── Reset ───────────────────────────────────────────────────────────────────
   const resetForm = (list) => {
     setEditId(null);
-    setCategory({
-      category_id: generateNextCatId(list || categories),
-      name: "",
-      description: "",
-      images: [],
-      subcategories: [],
-    });
+    setCategory({ category_id: generateNextCatId(list || categories), name: "", description: "", images: [], subcategories: [] });
     setSubcatInput("");
     setPreviewImgs([]);
   };
@@ -201,183 +192,335 @@ const Category = () => {
     setShowModal(true);
   };
 
-  // ─── UI ───────────────────────────────────────────────────────────────────
+  // ─────────────────────────────────────────────────────────────────────────────
   return (
-    <div className="max-w-7xl mx-auto px-4 py-6 min-h-screen">
-      {/* Header */}
-      <div className="flex justify-between items-start sm:items-center mb-8 gap-4 flex-col sm:flex-row">
+    <div className="min-h-screen bg-gray-50 px-4 sm:px-6 py-6">
+
+      {/* ── Page Header ── */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
-          <h2 className="text-3xl font-bold text-blue-900 mb-1">Categories</h2>
-          <p className="text-gray-500">Manage your product categories and subcategories.</p>
+          <h2 className="text-2xl font-bold text-blue-900">Categories</h2>
+          <p className="text-sm text-gray-500 mt-0.5">
+            Manage your product categories and subcategories
+          </p>
         </div>
         <button
           onClick={openAddModal}
-          className="px-5 py-2.5 cursor-pointer bg-blue-900 text-white rounded-lg font-medium text-sm flex items-center gap-2 hover:bg-blue-800 transition-colors shadow-md hover:shadow-lg"
+          className="flex items-center gap-2 px-5 py-2.5 bg-blue-900 text-white rounded-xl text-sm font-medium hover:bg-blue-800 transition-colors shadow-md cursor-pointer self-start sm:self-auto"
         >
-          <FaPlus /> Add New Category
+          <FaPlus size={12} /> Add New Category
         </button>
       </div>
 
-      {/* ── Categories Table (Desktop) ── */}
-      <div className="hidden md:block overflow-x-auto w-full shadow-md rounded-xl border border-gray-100">
-        <table className="min-w-[800px] w-full text-sm text-left">
-          <thead className="bg-gradient-to-r from-gray-800 to-gray-900 text-white">
-            <tr>
-              <th className="px-5 py-4 font-semibold">Cat ID</th>
-              <th className="px-5 py-4 font-semibold">Name</th>
-              <th className="px-5 py-4 font-semibold">Subcategories</th>
-              <th className="px-5 py-4 font-semibold">Images</th>
-              <th className="px-5 py-4 font-semibold text-center">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {categories.length > 0 ? (
-              categories.map((cat, idx) => (
-                <tr
-                  key={cat.category_id}
-                  className={`border-b border-gray-100 hover:bg-blue-50/50 transition-colors ${idx % 2 === 0 ? "bg-white" : "bg-gray-50/50"}`}
-                >
-                  <td className="px-5 py-3">
-                    <span className="bg-blue-100 text-blue-800 text-xs font-bold px-2.5 py-1 rounded-md">
-                      {cat.category_id}
-                    </span>
-                  </td>
-                  <td className="px-5 py-3 font-medium text-gray-800">{cat.name}</td>
-                  <td className="px-5 py-3">
-                    <div className="flex gap-1.5 flex-wrap">
-                      {(cat.subcategories || []).map((sub, i) => (
-                        <span
-                          key={i}
-                          className="bg-purple-50 text-purple-700 text-[11px] font-semibold px-2 py-0.5 rounded-full border border-purple-100"
-                        >
-                          {sub}
-                        </span>
-                      ))}
-                      {(!cat.subcategories || cat.subcategories.length === 0) && (
-                        <span className="text-gray-400 text-xs">—</span>
-                      )}
-                    </div>
-                  </td>
-                  <td className="px-5 py-3">
-                    <div className="flex gap-2 flex-wrap">
-                      {(cat.images || []).map((img, i) => (
-                        <img
-                          key={i}
-                          src={img}
-                          className="h-12 w-12 object-cover rounded-lg border border-gray-200 shadow-sm"
-                          alt={`cat-${i}`}
-                        />
-                      ))}
-                    </div>
-                  </td>
-                  <td className="px-5 py-3 text-center">
-                    <div className="flex justify-center gap-2">
-                      <button
-                        onClick={() => handleEdit(cat)}
-                        className="bg-emerald-50 text-emerald-600 p-2 rounded-lg hover:bg-emerald-600 hover:text-white transition-colors cursor-pointer"
-                        title="Edit"
-                      >
-                        <FaEdit size={14} />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(cat.category_id)}
-                        className="bg-red-50 text-red-500 p-2 rounded-lg hover:bg-red-600 hover:text-white transition-colors cursor-pointer"
-                        title="Delete"
-                      >
-                        <FaTrash size={14} />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan="5" className="text-center py-12 text-gray-400">
-                  No categories found. Click "Add New Category" to get started.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+      {/* ── Filter / Search Bar ── */}
+      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm px-4 py-4 mb-5">
+        <div className="flex flex-col lg:flex-row gap-3">
 
-      {/* ── Categories Cards (Mobile) ── */}
-      <div className="md:hidden grid grid-cols-1 gap-4">
-        {categories.map((cat) => (
-          <div key={cat.category_id} className="bg-white p-4 rounded-xl shadow-md border border-gray-100">
-            <div className="flex justify-between items-start">
-              <div>
-                <span className="bg-blue-100 text-blue-800 text-[10px] font-bold px-2 py-0.5 rounded">
-                  {cat.category_id}
-                </span>
-                <h4 className="text-lg font-semibold text-blue-900 mt-1">{cat.name}</h4>
-                {cat.subcategories?.length > 0 && (
-                  <div className="flex flex-wrap gap-1.5 mt-2">
-                    {cat.subcategories.map((sub, i) => (
-                      <span
-                        key={i}
-                        className="bg-purple-50 text-purple-700 text-[10px] font-semibold px-2 py-0.5 rounded-full border border-purple-100"
-                      >
-                        {sub}
-                      </span>
-                    ))}
-                  </div>
-                )}
-              </div>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => handleEdit(cat)}
-                  className="bg-emerald-50 text-emerald-600 p-2 rounded-lg hover:bg-emerald-600 hover:text-white transition-colors cursor-pointer"
-                >
-                  <FaEdit size={14} />
-                </button>
-                <button
-                  onClick={() => handleDelete(cat.category_id)}
-                  className="bg-red-50 text-red-500 p-2 rounded-lg hover:bg-red-600 hover:text-white transition-colors cursor-pointer"
-                >
-                  <FaTrash size={14} />
-                </button>
-              </div>
-            </div>
-            <div className="grid grid-cols-3 gap-2 mt-3">
-              {(cat.images || []).map((img, i) => (
-                <img
-                  key={i}
-                  src={img}
-                  className="h-24 w-full object-cover rounded-lg border border-gray-200"
-                  alt={`cat-mobile-${i}`}
-                />
-              ))}
-            </div>
+          {/* Search */}
+          <div className="relative flex-1 min-w-0">
+            <FaSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" size={13} />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search by name, ID, subcategory…"
+              className="w-full pl-10 pr-9 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50 transition-shadow"
+            />
+            {search && (
+              <button
+                onClick={() => setSearch("")}
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-red-500 cursor-pointer"
+              >
+                <FaTimes size={12} />
+              </button>
+            )}
           </div>
-        ))}
-        {categories.length === 0 && (
-          <div className="text-center py-12 text-gray-400 bg-white rounded-xl shadow-sm border border-gray-100">
-            No categories found.
+
+          {/* Has Images filter */}
+          <select
+            value={filterHasImage}
+            onChange={(e) => setFilterHasImage(e.target.value)}
+            className="py-2.5 px-3 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50 cursor-pointer min-w-[150px]"
+          >
+            <option value="all">🖼 All Images</option>
+            <option value="yes">✅ With Images</option>
+            <option value="no">❌ No Images</option>
+          </select>
+
+          {/* Subcategory Count filter */}
+          <select
+            value={filterSubcatCount}
+            onChange={(e) => setFilterSubcatCount(e.target.value)}
+            className="py-2.5 px-3 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50 cursor-pointer min-w-[160px]"
+          >
+            <option value="all">🔖 All Subcats</option>
+            <option value="0">None (0)</option>
+            <option value="1-3">Few (1–3)</option>
+            <option value="4+">Many (4+)</option>
+          </select>
+
+          {/* Sort */}
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value)}
+            className="py-2.5 px-3 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50 cursor-pointer min-w-[170px]"
+          >
+            <option value="default">↕ Default Order</option>
+            <option value="name-asc">A → Z</option>
+            <option value="name-desc">Z → A</option>
+            <option value="subcats">Most Subcategories</option>
+          </select>
+
+          {/* View toggle */}
+          <div className="flex items-center bg-gray-100 rounded-xl p-1 gap-1">
+            <button
+              onClick={() => setViewMode("card")}
+              className={`p-2.5 rounded-lg cursor-pointer transition-all ${viewMode === "card" ? "bg-white text-blue-900 shadow-sm" : "text-gray-400 hover:text-gray-600"}`}
+              title="Card View"
+            >
+              <FaTh size={14} />
+            </button>
+            <button
+              onClick={() => setViewMode("table")}
+              className={`p-2.5 rounded-lg cursor-pointer transition-all ${viewMode === "table" ? "bg-white text-blue-900 shadow-sm" : "text-gray-400 hover:text-gray-600"}`}
+              title="Table View"
+            >
+              <FaList size={14} />
+            </button>
+          </div>
+        </div>
+
+        {/* Active filter pills row */}
+        {hasActiveFilters && (
+          <div className="flex flex-wrap items-center gap-2 mt-3 pt-3 border-t border-gray-100">
+            <span className="text-xs text-gray-500 font-medium">Active:</span>
+            {search && (
+              <span className="flex items-center gap-1.5 text-xs bg-blue-100 text-blue-800 px-3 py-1 rounded-full font-medium">
+                "{search}"
+                <button onClick={() => setSearch("")} className="hover:text-red-600 cursor-pointer"><FaTimes size={9} /></button>
+              </span>
+            )}
+            {filterHasImage !== "all" && (
+              <span className="flex items-center gap-1.5 text-xs bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full font-medium">
+                {filterHasImage === "yes" ? "With Images" : "No Images"}
+                <button onClick={() => setFilterHasImage("all")} className="hover:text-red-600 cursor-pointer"><FaTimes size={9} /></button>
+              </span>
+            )}
+            {filterSubcatCount !== "all" && (
+              <span className="flex items-center gap-1.5 text-xs bg-purple-100 text-purple-800 px-3 py-1 rounded-full font-medium">
+                Subcats: {filterSubcatCount}
+                <button onClick={() => setFilterSubcatCount("all")} className="hover:text-red-600 cursor-pointer"><FaTimes size={9} /></button>
+              </span>
+            )}
+            {sortBy !== "default" && (
+              <span className="flex items-center gap-1.5 text-xs bg-amber-100 text-amber-800 px-3 py-1 rounded-full font-medium">
+                Sort: {sortBy}
+                <button onClick={() => setSortBy("default")} className="hover:text-red-600 cursor-pointer"><FaTimes size={9} /></button>
+              </span>
+            )}
+            <button
+              onClick={clearFilters}
+              className="ml-auto text-xs text-red-600 hover:text-red-800 font-medium underline cursor-pointer"
+            >
+              Clear all
+            </button>
           </div>
         )}
       </div>
 
-      {/* ══════════════════════════════════════════════════════════════════════
-          ADD / EDIT MODAL POPUP
-         ══════════════════════════════════════════════════════════════════════ */}
+      {/* Results count */}
+      <p className="text-xs text-gray-400 mb-4 px-1">
+        Showing <span className="font-semibold text-gray-600">{filtered.length}</span> of{" "}
+        <span className="font-semibold text-gray-600">{categories.length}</span> categories
+      </p>
+
+      {/* ════════════════════ CARD MODE ════════════════════ */}
+      {viewMode === "card" && (
+        <>
+          {filtered.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+              {filtered.map((cat) => (
+                <div
+                  key={cat.category_id}
+                  className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-200 overflow-hidden group"
+                >
+                  {/* Image */}
+                  <div className="h-40 bg-gradient-to-br from-gray-100 to-gray-200 relative overflow-hidden">
+                    {cat.images?.length > 0 ? (
+                      <img
+                        src={cat.images[0]}
+                        alt={cat.name}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                    ) : (
+                      <div className="flex items-center justify-center h-full">
+                        <FaTag className="text-gray-300" size={36} />
+                      </div>
+                    )}
+                    {cat.images?.length > 1 && (
+                      <span className="absolute top-2 right-2 bg-black/60 text-white text-[10px] px-2 py-0.5 rounded-full font-medium">
+                        +{cat.images.length - 1}
+                      </span>
+                    )}
+                    {/* Hover actions */}
+                    <div className="absolute top-2 left-2 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button onClick={() => handleEdit(cat)} className="bg-white text-emerald-600 p-2 rounded-lg shadow-md hover:bg-emerald-600 hover:text-white transition-colors cursor-pointer">
+                        <FaEdit size={12} />
+                      </button>
+                      <button onClick={() => handleDelete(cat.category_id)} className="bg-white text-red-500 p-2 rounded-lg shadow-md hover:bg-red-600 hover:text-white transition-colors cursor-pointer">
+                        <FaTrash size={12} />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Body */}
+                  <div className="p-4">
+                    <div className="flex items-start justify-between gap-2 mb-1">
+                      <h4 className="font-bold text-gray-800 text-sm leading-tight">{cat.name}</h4>
+                      <span className="bg-blue-100 text-blue-800 text-[10px] font-bold px-2 py-0.5 rounded-md shrink-0">
+                        {cat.category_id}
+                      </span>
+                    </div>
+                    {cat.description && (
+                      <p className="text-xs text-gray-500 line-clamp-2 mb-3">{cat.description}</p>
+                    )}
+                    {cat.subcategories?.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mb-3">
+                        {cat.subcategories.slice(0, 3).map((sub, i) => (
+                          <span key={i} className="bg-purple-50 text-purple-700 text-[10px] font-semibold px-2 py-0.5 rounded-full border border-purple-100">
+                            {sub}
+                          </span>
+                        ))}
+                        {cat.subcategories.length > 3 && (
+                          <span className="text-[10px] text-gray-400 self-center">
+                            +{cat.subcategories.length - 3} more
+                          </span>
+                        )}
+                      </div>
+                    )}
+                    <div className="flex gap-2 pt-3 border-t border-gray-100">
+                      <button
+                        onClick={() => handleEdit(cat)}
+                        className="flex-1 text-xs font-medium py-1.5 rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-600 hover:text-white transition-colors cursor-pointer flex items-center justify-center gap-1"
+                      >
+                        <FaEdit size={11} /> Edit
+                      </button>
+                      <button
+                        onClick={() => handleDelete(cat.category_id)}
+                        className="flex-1 text-xs font-medium py-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-600 hover:text-white transition-colors cursor-pointer flex items-center justify-center gap-1"
+                      >
+                        <FaTrash size={11} /> Delete
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <EmptyState hasFilters={hasActiveFilters} onClear={clearFilters} onAdd={openAddModal} />
+          )}
+        </>
+      )}
+
+      {/* ════════════════════ TABLE MODE ════════════════════ */}
+      {viewMode === "table" && (
+        <div className="overflow-x-auto rounded-2xl border border-gray-200 shadow-sm bg-white">
+          <table className="min-w-[750px] w-full text-sm text-left">
+            <thead className="bg-gradient-to-r from-blue-900 to-blue-800 text-white">
+              <tr>
+                <th className="px-5 py-4 font-semibold text-xs uppercase tracking-wider">Cat ID</th>
+                <th className="px-5 py-4 font-semibold text-xs uppercase tracking-wider">Name</th>
+                <th className="px-5 py-4 font-semibold text-xs uppercase tracking-wider">Description</th>
+                <th className="px-5 py-4 font-semibold text-xs uppercase tracking-wider">Subcategories</th>
+                <th className="px-5 py-4 font-semibold text-xs uppercase tracking-wider">Images</th>
+                <th className="px-5 py-4 font-semibold text-xs uppercase tracking-wider text-center">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.length > 0 ? (
+                filtered.map((cat, idx) => (
+                  <tr
+                    key={cat.category_id}
+                    className={`border-b border-gray-100 hover:bg-blue-50/40 transition-colors ${idx % 2 === 0 ? "bg-white" : "bg-gray-50/40"}`}
+                  >
+                    <td className="px-5 py-3.5">
+                      <span className="bg-blue-100 text-blue-800 text-[11px] font-bold px-2.5 py-1 rounded-md">
+                        {cat.category_id}
+                      </span>
+                    </td>
+                    <td className="px-5 py-3.5 font-semibold text-gray-800">{cat.name}</td>
+                    <td className="px-5 py-3.5 text-gray-500 max-w-[200px]">
+                      <p className="line-clamp-2 text-xs">{cat.description || "—"}</p>
+                    </td>
+                    <td className="px-5 py-3.5">
+                      <div className="flex gap-1.5 flex-wrap">
+                        {(cat.subcategories || []).length > 0 ? (
+                          cat.subcategories.map((sub, i) => (
+                            <span key={i} className="bg-purple-50 text-purple-700 text-[10px] font-semibold px-2 py-0.5 rounded-full border border-purple-100">
+                              {sub}
+                            </span>
+                          ))
+                        ) : (
+                          <span className="text-gray-400 text-xs">—</span>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-5 py-3.5">
+                      <div className="flex gap-1.5 flex-wrap">
+                        {(cat.images || []).slice(0, 3).map((img, i) => (
+                          <img key={i} src={img} className="h-10 w-10 object-cover rounded-lg border border-gray-200 shadow-sm" alt={`cat-${i}`} />
+                        ))}
+                        {cat.images?.length > 3 && (
+                          <div className="h-10 w-10 rounded-lg bg-gray-100 border border-gray-200 flex items-center justify-center text-[10px] text-gray-500 font-bold">
+                            +{cat.images.length - 3}
+                          </div>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-5 py-3.5 text-center">
+                      <div className="flex justify-center gap-2">
+                        <button
+                          onClick={() => handleEdit(cat)}
+                          className="bg-emerald-50 text-emerald-600 p-2 rounded-lg hover:bg-emerald-600 hover:text-white transition-colors cursor-pointer"
+                          title="Edit"
+                        >
+                          <FaEdit size={13} />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(cat.category_id)}
+                          className="bg-red-50 text-red-500 p-2 rounded-lg hover:bg-red-600 hover:text-white transition-colors cursor-pointer"
+                          title="Delete"
+                        >
+                          <FaTrash size={13} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="6" className="py-16">
+                    <EmptyState hasFilters={hasActiveFilters} onClear={clearFilters} onAdd={openAddModal} />
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* ════════════════════ ADD / EDIT MODAL ════════════════════ */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          {/* Backdrop */}
           <div
             className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-            onClick={() => {
-              setShowModal(false);
-              resetForm();
-            }}
-          ></div>
-
-          {/* Modal */}
+            onClick={() => { setShowModal(false); resetForm(); }}
+          />
           <div
             className="relative bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto"
             style={{ animation: "modalSlideUp 0.3s ease-out" }}
           >
-            {/* Modal Header */}
+            {/* Header */}
             <div className="sticky top-0 z-10 bg-gradient-to-r from-blue-900 to-blue-700 px-6 py-4 rounded-t-2xl flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="bg-white/20 p-2.5 rounded-xl backdrop-blur-sm border border-white/10">
@@ -388,34 +531,25 @@ const Category = () => {
                     {editId ? "Edit Category" : "Add New Category"}
                   </h3>
                   <p className="text-blue-200 text-xs">
-                    {editId
-                      ? "Update the category details below"
-                      : "Fill in the details to create a new category"}
+                    {editId ? "Update the category details below" : "Fill in the details to create a new category"}
                   </p>
                 </div>
               </div>
               <button
-                onClick={() => {
-                  setShowModal(false);
-                  resetForm();
-                }}
+                onClick={() => { setShowModal(false); resetForm(); }}
                 className="text-white/70 hover:text-white hover:bg-white/20 p-2 rounded-xl transition-all cursor-pointer"
               >
                 <FaTimes size={18} />
               </button>
             </div>
 
-            {/* Modal Body */}
+            {/* Body */}
             <form onSubmit={handleSubmit} className="p-6 space-y-5">
-              {/* Row: Category ID + Name */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm font-semibold text-gray-700 block mb-1.5">
-                    Category ID
-                  </label>
+                  <label className="text-sm font-semibold text-gray-700 block mb-1.5">Category ID</label>
                   <input
-                    readOnly
-                    value={category.category_id || "Auto generated"}
+                    readOnly value={category.category_id || "Auto generated"}
                     className="w-full border border-gray-200 rounded-xl px-4 py-2.5 bg-gray-50 text-gray-500 text-sm focus:outline-none"
                   />
                 </div>
@@ -424,71 +558,48 @@ const Category = () => {
                     Category Name <span className="text-red-500">*</span>
                   </label>
                   <input
-                    type="text"
-                    name="name"
-                    value={category.name}
-                    onChange={handleChange}
-                    required
-                    placeholder="e.g. T-Shirts, Hoodies"
+                    type="text" name="name" value={category.name} onChange={handleChange}
+                    required placeholder="e.g. T-Shirts, Hoodies"
                     className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow"
                   />
                 </div>
               </div>
 
-              {/* Description */}
               <div>
                 <label className="text-sm font-semibold text-gray-700 block mb-1.5">
                   Description <span className="text-red-500">*</span>
                 </label>
                 <textarea
-                  name="description"
-                  value={category.description}
-                  onChange={handleChange}
-                  required
-                  placeholder="Brief description of this category..."
+                  name="description" value={category.description} onChange={handleChange}
+                  required placeholder="Brief description of this category..."
                   className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow resize-none"
                   rows={3}
                 />
               </div>
 
-              {/* Subcategories */}
               <div>
-                <label className="text-sm font-semibold text-gray-700 block mb-1.5">
-                  Subcategories
-                </label>
+                <label className="text-sm font-semibold text-gray-700 block mb-1.5">Subcategories</label>
                 <div className="flex gap-2">
                   <input
-                    type="text"
-                    value={subcatInput}
+                    type="text" value={subcatInput}
                     onChange={(e) => setSubcatInput(e.target.value)}
-                    onKeyDown={(e) =>
-                      e.key === "Enter" && (e.preventDefault(), handleAddSubcategory())
-                    }
+                    onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleAddSubcategory())}
                     placeholder="e.g. Regular Fit, Oversize, Kids"
                     className="flex-1 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow"
                   />
                   <button
-                    type="button"
-                    onClick={handleAddSubcategory}
+                    type="button" onClick={handleAddSubcategory}
                     className="bg-blue-900 cursor-pointer text-white px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-blue-800 transition-colors"
                   >
                     Add
                   </button>
                 </div>
-
                 {category.subcategories.length > 0 && (
                   <div className="mt-3 flex flex-wrap gap-2">
                     {category.subcategories.map((sub, idx) => (
-                      <div
-                        key={idx}
-                        className="flex items-center gap-1.5 bg-purple-50 border border-purple-100 px-3 py-1.5 rounded-full text-sm text-purple-700 font-medium"
-                      >
+                      <div key={idx} className="flex items-center gap-1.5 bg-purple-50 border border-purple-100 px-3 py-1.5 rounded-full text-sm text-purple-700 font-medium">
                         {sub}
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveSubcategory(sub)}
-                          className="text-purple-400 cursor-pointer hover:text-red-500 transition-colors ml-0.5"
-                        >
+                        <button type="button" onClick={() => handleRemoveSubcategory(sub)} className="text-purple-400 cursor-pointer hover:text-red-500 transition-colors">
                           <FaTimes size={10} />
                         </button>
                       </div>
@@ -497,7 +608,6 @@ const Category = () => {
                 )}
               </div>
 
-              {/* Images */}
               <div>
                 <label className="text-sm font-semibold text-gray-700 block mb-1.5">
                   Upload Images <span className="text-red-500">*</span>
@@ -507,63 +617,37 @@ const Category = () => {
                   className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:border-blue-400 hover:bg-blue-50/30 transition-all group"
                 >
                   <FaCloudUploadAlt className="text-3xl text-gray-400 mb-2 group-hover:text-blue-500 transition-colors" />
-                  <p className="text-sm text-gray-500 group-hover:text-blue-600 transition-colors">
-                    Click to upload images
-                  </p>
-                  <p className="text-[11px] text-gray-400 mt-0.5">
-                    PNG, JPG, WEBP (auto-compressed)
-                  </p>
+                  <p className="text-sm text-gray-500 group-hover:text-blue-600">Click to upload images</p>
+                  <p className="text-[11px] text-gray-400 mt-0.5">PNG, JPG, WEBP (auto-compressed)</p>
                 </label>
-                <input
-                  id="cimgs-modal"
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  onChange={handleImageChange}
-                  required={!editId}
-                  className="hidden"
-                />
+                <input id="cimgs-modal" type="file" accept="image/*" multiple onChange={handleImageChange} required={!editId} className="hidden" />
                 {previewImgs.length > 0 && (
                   <div className="mt-3 grid grid-cols-3 sm:grid-cols-4 gap-3">
-                    {previewImgs.map((img, index) => (
-                      <img
-                        key={index}
-                        src={img}
-                        alt={`preview-${index}`}
-                        className="h-24 w-full object-cover rounded-xl border border-gray-200 shadow-sm"
-                      />
+                    {previewImgs.map((img, i) => (
+                      <img key={i} src={img} alt={`preview-${i}`} className="h-24 w-full object-cover rounded-xl border border-gray-200 shadow-sm" />
                     ))}
                   </div>
                 )}
               </div>
 
-              {/* Action Buttons */}
               <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
                 <button
                   type="button"
-                  onClick={() => {
-                    setShowModal(false);
-                    resetForm();
-                  }}
+                  onClick={() => { setShowModal(false); resetForm(); }}
                   className="px-5 py-2.5 cursor-pointer rounded-xl text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
-                  type="submit"
-                  disabled={loading}
-                  className="px-6 py-2.5 cursor-pointer rounded-xl text-sm font-medium bg-blue-900 text-white hover:bg-blue-800 transition-colors shadow-md hover:shadow-lg disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2"
+                  type="submit" disabled={loading}
+                  className="px-6 py-2.5 cursor-pointer rounded-xl text-sm font-medium bg-blue-900 text-white hover:bg-blue-800 transition-colors shadow-md disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2"
                 >
                   {loading ? (
                     <>
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                       {editId ? "Updating..." : "Adding..."}
                     </>
-                  ) : editId ? (
-                    "Update Category"
-                  ) : (
-                    "Add Category"
-                  )}
+                  ) : editId ? "Update Category" : "Add Category"}
                 </button>
               </div>
             </form>
@@ -571,21 +655,38 @@ const Category = () => {
         </div>
       )}
 
-      {/* Slide-up animation */}
       <style>{`
         @keyframes modalSlideUp {
-          from {
-            opacity: 0;
-            transform: translateY(30px) scale(0.97);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0) scale(1);
-          }
+          from { opacity: 0; transform: translateY(30px) scale(0.97); }
+          to   { opacity: 1; transform: translateY(0) scale(1); }
         }
       `}</style>
     </div>
   );
 };
+
+// ─── Empty State ──────────────────────────────────────────────────────────────
+const EmptyState = ({ hasFilters, onClear, onAdd }) => (
+  <div className="text-center py-16 px-6">
+    <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+      <FaTag className="text-gray-300" size={24} />
+    </div>
+    <h3 className="text-gray-700 font-semibold mb-1">
+      {hasFilters ? "No matching categories" : "No categories yet"}
+    </h3>
+    <p className="text-gray-400 text-sm mb-4">
+      {hasFilters ? "Try adjusting your search or filters." : `Click "Add New Category" to get started.`}
+    </p>
+    {hasFilters ? (
+      <button onClick={onClear} className="text-sm text-blue-700 underline cursor-pointer hover:text-blue-900">
+        Clear filters
+      </button>
+    ) : (
+      <button onClick={onAdd} className="text-sm bg-blue-900 text-white px-4 py-2 rounded-lg cursor-pointer hover:bg-blue-800 transition-colors">
+        Add Category
+      </button>
+    )}
+  </div>
+);
 
 export default Category;
