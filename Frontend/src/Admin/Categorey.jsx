@@ -364,21 +364,7 @@ const Category = () => {
                       </h4>
                     </div>
 
-                    {/* Edit / Delete — hover overlay buttons */}
-                    <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center gap-3">
-                      <button
-                        onClick={() => handleEdit(cat)}
-                        className="flex items-center gap-1.5 bg-white text-emerald-700 text-xs font-semibold px-4 py-2 rounded-xl shadow-lg hover:bg-emerald-600 hover:text-white transition-colors cursor-pointer"
-                      >
-                        <FaEdit size={12} /> Edit
-                      </button>
-                      <button
-                        onClick={() => handleDelete(cat.category_id)}
-                        className="flex items-center gap-1.5 bg-white text-red-600 text-xs font-semibold px-4 py-2 rounded-xl shadow-lg hover:bg-red-600 hover:text-white transition-colors cursor-pointer"
-                      >
-                        <FaTrash size={12} /> Delete
-                      </button>
-                    </div>
+
                   </div>
 
                   {/* ── Card body ── */}
