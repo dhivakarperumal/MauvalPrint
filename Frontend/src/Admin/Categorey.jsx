@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import api from "../api";
 import imageCompression from "browser-image-compression";
 import toast from "react-hot-toast";
-import { FaEdit, FaTrash } from "react-icons/fa";
+import { FaEdit, FaTrash, FaPlus, FaTimes, FaCloudUploadAlt, FaTag } from "react-icons/fa";
 
 const Category = () => {
   const [category, setCategory] = useState({
@@ -14,11 +14,11 @@ const Category = () => {
   });
 
   const [subcatInput, setSubcatInput] = useState("");
-  const [editId, setEditId] = useState(null); // holds category_id when editing
+  const [editId, setEditId] = useState(null);
   const [previewImgs, setPreviewImgs] = useState([]);
   const [loading, setLoading] = useState(false);
   const [categories, setCategories] = useState([]);
-  const [activeTab, setActiveTab] = useState("add");
+  const [showModal, setShowModal] = useState(false);
 
   // ─── Helpers ──────────────────────────────────────────────────────────────
   const parseJSON = (val, fallback) => {
@@ -110,13 +110,7 @@ const Category = () => {
       return;
     }
 
-    const payload = {
-      category_id,
-      name,
-      description,
-      images,
-      subcategories,
-    };
+    const payload = { category_id, name, description, images, subcategories };
 
     setLoading(true);
     try {
@@ -130,17 +124,8 @@ const Category = () => {
       }
 
       const list = await fetchCategories();
-      setCategory({
-        category_id: generateNextCatId(list),
-        name: "",
-        description: "",
-        images: [],
-        subcategories: [],
-      });
-      setSubcatInput("");
-      setPreviewImgs([]);
-      const fileInput = document.getElementById("cimgs");
-      if (fileInput) fileInput.value = "";
+      resetForm(list);
+      setShowModal(false);
     } catch (err) {
       console.error(err);
       toast.error("Failed to save category.");
@@ -157,11 +142,10 @@ const Category = () => {
       images: cat.images || [],
       subcategories: cat.subcategories || [],
     });
-    setSubcatInput((cat.subcategories || []).join(", "));
+    setSubcatInput("");
     setPreviewImgs(cat.images || []);
     setEditId(cat.category_id);
-    setActiveTab("add");
-    toast("Editing category...");
+    setShowModal(true);
   };
 
   // ─── Delete ───────────────────────────────────────────────────────────────
@@ -170,14 +154,8 @@ const Category = () => {
     try {
       await api.delete(`/categories/${category_id}`);
       toast.success("Category deleted.");
-      await fetchCategories();
-      setCategory({
-        category_id: "",
-        name: "",
-        description: "",
-        images: [],
-        subcategories: [],
-      });
+      const list = await fetchCategories();
+      resetForm(list);
     } catch (err) {
       console.error(err);
       toast.error("Failed to delete category.");
@@ -204,11 +182,10 @@ const Category = () => {
   };
 
   // ─── Reset form ───────────────────────────────────────────────────────────
-  const resetForm = async () => {
+  const resetForm = (list) => {
     setEditId(null);
-    await fetchCategories();
     setCategory({
-      category_id: "",
+      category_id: generateNextCatId(list || categories),
       name: "",
       description: "",
       images: [],
@@ -218,267 +195,395 @@ const Category = () => {
     setPreviewImgs([]);
   };
 
+  const openAddModal = async () => {
+    const list = await fetchCategories();
+    resetForm(list);
+    setShowModal(true);
+  };
+
   // ─── UI ───────────────────────────────────────────────────────────────────
   return (
     <div className="max-w-7xl mx-auto px-4 py-6 min-h-screen">
-      <div className="flex justify-between items-start sm:items-center mb-6 gap-4 flex-col sm:flex-row">
+      {/* Header */}
+      <div className="flex justify-between items-start sm:items-center mb-8 gap-4 flex-col sm:flex-row">
         <div>
-          <h2 className="text-3xl font-bold text-blue-900 mb-1">
-            {editId ? "Edit Category" : "Add New Category"}
-          </h2>
-          <p className="text-gray-500">Fill in the details below.</p>
+          <h2 className="text-3xl font-bold text-blue-900 mb-1">Categories</h2>
+          <p className="text-gray-500">Manage your product categories and subcategories.</p>
         </div>
-        <div className="flex gap-3">
-          <button
-            onClick={() => { setActiveTab("add"); resetForm(); }}
-            className={`px-4 py-2 cursor-pointer rounded-full font-medium text-sm ${
-              activeTab === "add"
-                ? "bg-blue-900 text-white"
-                : "bg-gray-100 text-blue-900 hover:bg-gray-200"
-            }`}
-          >
-            Add Category
-          </button>
-          <button
-            onClick={() => setActiveTab("show")}
-            className={`px-4 py-2 cursor-pointer rounded-full font-medium text-sm ${
-              activeTab === "show"
-                ? "bg-blue-900 text-white"
-                : "bg-gray-100 text-blue-900 hover:bg-gray-200"
-            }`}
-          >
-            Show Categories
-          </button>
-        </div>
+        <button
+          onClick={openAddModal}
+          className="px-5 py-2.5 cursor-pointer bg-blue-900 text-white rounded-lg font-medium text-sm flex items-center gap-2 hover:bg-blue-800 transition-colors shadow-md hover:shadow-lg"
+        >
+          <FaPlus /> Add New Category
+        </button>
       </div>
 
-      {/* ── Add / Edit Form ── */}
-      {activeTab === "add" && (
-        <form
-          onSubmit={handleSubmit}
-          className="bg-white p-6 rounded-lg shadow grid grid-cols-1 md:grid-cols-2 gap-6"
-        >
-          {/* Category ID */}
-          <div>
-            <label className="text-sm font-medium block mb-1">Category ID</label>
-            <input
-              readOnly
-              value={category.category_id || "Auto generated"}
-              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none bg-gray-100"
-            />
-          </div>
+      {/* ── Categories Table (Desktop) ── */}
+      <div className="hidden md:block overflow-x-auto w-full shadow-md rounded-xl border border-gray-100">
+        <table className="min-w-[800px] w-full text-sm text-left">
+          <thead className="bg-gradient-to-r from-gray-800 to-gray-900 text-white">
+            <tr>
+              <th className="px-5 py-4 font-semibold">Cat ID</th>
+              <th className="px-5 py-4 font-semibold">Name</th>
+              <th className="px-5 py-4 font-semibold">Subcategories</th>
+              <th className="px-5 py-4 font-semibold">Images</th>
+              <th className="px-5 py-4 font-semibold text-center">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {categories.length > 0 ? (
+              categories.map((cat, idx) => (
+                <tr
+                  key={cat.category_id}
+                  className={`border-b border-gray-100 hover:bg-blue-50/50 transition-colors ${idx % 2 === 0 ? "bg-white" : "bg-gray-50/50"}`}
+                >
+                  <td className="px-5 py-3">
+                    <span className="bg-blue-100 text-blue-800 text-xs font-bold px-2.5 py-1 rounded-md">
+                      {cat.category_id}
+                    </span>
+                  </td>
+                  <td className="px-5 py-3 font-medium text-gray-800">{cat.name}</td>
+                  <td className="px-5 py-3">
+                    <div className="flex gap-1.5 flex-wrap">
+                      {(cat.subcategories || []).map((sub, i) => (
+                        <span
+                          key={i}
+                          className="bg-purple-50 text-purple-700 text-[11px] font-semibold px-2 py-0.5 rounded-full border border-purple-100"
+                        >
+                          {sub}
+                        </span>
+                      ))}
+                      {(!cat.subcategories || cat.subcategories.length === 0) && (
+                        <span className="text-gray-400 text-xs">—</span>
+                      )}
+                    </div>
+                  </td>
+                  <td className="px-5 py-3">
+                    <div className="flex gap-2 flex-wrap">
+                      {(cat.images || []).map((img, i) => (
+                        <img
+                          key={i}
+                          src={img}
+                          className="h-12 w-12 object-cover rounded-lg border border-gray-200 shadow-sm"
+                          alt={`cat-${i}`}
+                        />
+                      ))}
+                    </div>
+                  </td>
+                  <td className="px-5 py-3 text-center">
+                    <div className="flex justify-center gap-2">
+                      <button
+                        onClick={() => handleEdit(cat)}
+                        className="bg-emerald-50 text-emerald-600 p-2 rounded-lg hover:bg-emerald-600 hover:text-white transition-colors cursor-pointer"
+                        title="Edit"
+                      >
+                        <FaEdit size={14} />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(cat.category_id)}
+                        className="bg-red-50 text-red-500 p-2 rounded-lg hover:bg-red-600 hover:text-white transition-colors cursor-pointer"
+                        title="Delete"
+                      >
+                        <FaTrash size={14} />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan="5" className="text-center py-12 text-gray-400">
+                  No categories found. Click "Add New Category" to get started.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
 
-          {/* Category Name */}
-          <div>
-            <label className="text-sm font-medium block mb-1">Category Name *</label>
-            <input
-              type="text"
-              name="name"
-              value={category.name}
-              onChange={handleChange}
-              required
-              placeholder="Category Name"
-              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            />
+      {/* ── Categories Cards (Mobile) ── */}
+      <div className="md:hidden grid grid-cols-1 gap-4">
+        {categories.map((cat) => (
+          <div key={cat.category_id} className="bg-white p-4 rounded-xl shadow-md border border-gray-100">
+            <div className="flex justify-between items-start">
+              <div>
+                <span className="bg-blue-100 text-blue-800 text-[10px] font-bold px-2 py-0.5 rounded">
+                  {cat.category_id}
+                </span>
+                <h4 className="text-lg font-semibold text-blue-900 mt-1">{cat.name}</h4>
+                {cat.subcategories?.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 mt-2">
+                    {cat.subcategories.map((sub, i) => (
+                      <span
+                        key={i}
+                        className="bg-purple-50 text-purple-700 text-[10px] font-semibold px-2 py-0.5 rounded-full border border-purple-100"
+                      >
+                        {sub}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => handleEdit(cat)}
+                  className="bg-emerald-50 text-emerald-600 p-2 rounded-lg hover:bg-emerald-600 hover:text-white transition-colors cursor-pointer"
+                >
+                  <FaEdit size={14} />
+                </button>
+                <button
+                  onClick={() => handleDelete(cat.category_id)}
+                  className="bg-red-50 text-red-500 p-2 rounded-lg hover:bg-red-600 hover:text-white transition-colors cursor-pointer"
+                >
+                  <FaTrash size={14} />
+                </button>
+              </div>
+            </div>
+            <div className="grid grid-cols-3 gap-2 mt-3">
+              {(cat.images || []).map((img, i) => (
+                <img
+                  key={i}
+                  src={img}
+                  className="h-24 w-full object-cover rounded-lg border border-gray-200"
+                  alt={`cat-mobile-${i}`}
+                />
+              ))}
+            </div>
           </div>
-
-          {/* Description */}
-          <div className="md:col-span-2">
-            <label className="text-sm font-medium block mb-1">Description *</label>
-            <textarea
-              name="description"
-              value={category.description}
-              onChange={handleChange}
-              required
-              placeholder="Description"
-              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              rows={2}
-            />
+        ))}
+        {categories.length === 0 && (
+          <div className="text-center py-12 text-gray-400 bg-white rounded-xl shadow-sm border border-gray-100">
+            No categories found.
           </div>
+        )}
+      </div>
 
-          {/* Subcategories */}
-          <div className="md:col-span-2">
-            <label className="text-sm font-medium block mb-1">Subcategory</label>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={subcatInput}
-                onChange={(e) => setSubcatInput(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleAddSubcategory())}
-                placeholder="e.g. Regular Fit, Oversize, Kids"
-                className="flex-1 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              />
+      {/* ══════════════════════════════════════════════════════════════════════
+          ADD / EDIT MODAL POPUP
+         ══════════════════════════════════════════════════════════════════════ */}
+      {showModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            onClick={() => {
+              setShowModal(false);
+              resetForm();
+            }}
+          ></div>
+
+          {/* Modal */}
+          <div
+            className="relative bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto"
+            style={{ animation: "modalSlideUp 0.3s ease-out" }}
+          >
+            {/* Modal Header */}
+            <div className="sticky top-0 z-10 bg-gradient-to-r from-blue-900 to-blue-700 px-6 py-4 rounded-t-2xl flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="bg-white/20 p-2.5 rounded-xl backdrop-blur-sm border border-white/10">
+                  <FaTag className="text-white text-lg" />
+                </div>
+                <div>
+                  <h3 className="text-white text-lg font-bold">
+                    {editId ? "Edit Category" : "Add New Category"}
+                  </h3>
+                  <p className="text-blue-200 text-xs">
+                    {editId
+                      ? "Update the category details below"
+                      : "Fill in the details to create a new category"}
+                  </p>
+                </div>
+              </div>
               <button
-                type="button"
-                onClick={handleAddSubcategory}
-                className="bg-blue-900 cursor-pointer text-white px-4 py-2 rounded hover:bg-blue-800"
+                onClick={() => {
+                  setShowModal(false);
+                  resetForm();
+                }}
+                className="text-white/70 hover:text-white hover:bg-white/20 p-2 rounded-xl transition-all cursor-pointer"
               >
-                Add
+                <FaTimes size={18} />
               </button>
             </div>
 
-            {category.subcategories.length > 0 && (
-              <div className="mt-3 flex flex-wrap gap-2">
-                {category.subcategories.map((sub, idx) => (
-                  <div
-                    key={idx}
-                    className="flex items-center gap-2 bg-gray-100 px-3 py-1 rounded-full text-sm"
-                  >
-                    {sub}
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveSubcategory(sub)}
-                      className="text-red-500 cursor-pointer hover:text-red-700"
-                    >
-                      ×
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Images */}
-          <div className="md:col-span-2">
-            <label className="text-sm font-medium block mb-1">Upload Images *</label>
-            <input
-              id="cimgs"
-              type="file"
-              accept="image/*"
-              multiple
-              onChange={handleImageChange}
-              required={!editId}
-            />
-            {previewImgs.length > 0 && (
-              <div className="mt-3 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                {previewImgs.map((img, index) => (
-                  <img
-                    key={index}
-                    src={img}
-                    alt={`preview-${index}`}
-                    className="h-28 w-full object-cover rounded border"
+            {/* Modal Body */}
+            <form onSubmit={handleSubmit} className="p-6 space-y-5">
+              {/* Row: Category ID + Name */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-semibold text-gray-700 block mb-1.5">
+                    Category ID
+                  </label>
+                  <input
+                    readOnly
+                    value={category.category_id || "Auto generated"}
+                    className="w-full border border-gray-200 rounded-xl px-4 py-2.5 bg-gray-50 text-gray-500 text-sm focus:outline-none"
                   />
-                ))}
+                </div>
+                <div>
+                  <label className="text-sm font-semibold text-gray-700 block mb-1.5">
+                    Category Name <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    name="name"
+                    value={category.name}
+                    onChange={handleChange}
+                    required
+                    placeholder="e.g. T-Shirts, Hoodies"
+                    className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow"
+                  />
+                </div>
               </div>
-            )}
-          </div>
 
-          {/* Submit */}
-          <div className="md:col-span-2 text-right">
-            <button
-              type="submit"
-              disabled={loading}
-              className="bg-blue-900 cursor-pointer text-white px-6 py-2 rounded hover:bg-blue-800"
-            >
-              {loading
-                ? editId ? "Updating..." : "Adding..."
-                : editId ? "Update Category" : "Add Category"}
-            </button>
-          </div>
-        </form>
-      )}
+              {/* Description */}
+              <div>
+                <label className="text-sm font-semibold text-gray-700 block mb-1.5">
+                  Description <span className="text-red-500">*</span>
+                </label>
+                <textarea
+                  name="description"
+                  value={category.description}
+                  onChange={handleChange}
+                  required
+                  placeholder="Brief description of this category..."
+                  className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow resize-none"
+                  rows={3}
+                />
+              </div>
 
-      {/* ── Show Categories ── */}
-      {activeTab === "show" && (
-        <div className="mt-6">
-          {/* Desktop Table */}
-          <div className="hidden md:block overflow-x-auto w-full shadow rounded-lg">
-            <table className="min-w-[800px] w-full text-sm text-left">
-              <thead className="bg-gray-800 text-white">
-                <tr>
-                  <th className="px-4 py-4">Cat ID</th>
-                  <th className="px-4 py-4">Name</th>
-                  <th className="px-4 py-4">Subcategories</th>
-                  <th className="px-4 py-4">Images</th>
-                  <th className="px-4 py-4 text-center">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {categories.length > 0 ? (
-                  categories.map((cat) => (
-                    <tr key={cat.category_id} className="border border-gray-300 hover:bg-gray-50">
-                      <td className="px-4 py-2">{cat.category_id}</td>
-                      <td className="px-4 py-2">{cat.name}</td>
-                      <td className="px-4 py-2">
-                        {(cat.subcategories || []).join(", ")}
-                      </td>
-                      <td className="px-4 py-2">
-                        <div className="flex gap-2 flex-wrap">
-                          {(cat.images || []).map((img, i) => (
-                            <img
-                              key={i}
-                              src={img}
-                              className="h-12 w-12 object-cover rounded border"
-                              alt={`cat-${i}`}
-                            />
-                          ))}
-                        </div>
-                      </td>
-                      <td className="px-4 py-2 text-center">
-                        <div className="flex justify-center gap-3 text-gray-600">
-                          <FaEdit
-                            onClick={() => handleEdit(cat)}
-                            className="hover:text-green-600 cursor-pointer border-2 border-gray-300 h-7 w-7 rounded-lg p-1"
-                          />
-                          <FaTrash
-                            onClick={() => handleDelete(cat.category_id)}
-                            className="hover:text-red-600 cursor-pointer border-2 border-gray-300 h-7 w-7 rounded-lg p-1"
-                          />
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan="5" className="text-center py-4 text-gray-500">
-                      No categories found.
-                    </td>
-                  </tr>
+              {/* Subcategories */}
+              <div>
+                <label className="text-sm font-semibold text-gray-700 block mb-1.5">
+                  Subcategories
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={subcatInput}
+                    onChange={(e) => setSubcatInput(e.target.value)}
+                    onKeyDown={(e) =>
+                      e.key === "Enter" && (e.preventDefault(), handleAddSubcategory())
+                    }
+                    placeholder="e.g. Regular Fit, Oversize, Kids"
+                    className="flex-1 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleAddSubcategory}
+                    className="bg-blue-900 cursor-pointer text-white px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-blue-800 transition-colors"
+                  >
+                    Add
+                  </button>
+                </div>
+
+                {category.subcategories.length > 0 && (
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {category.subcategories.map((sub, idx) => (
+                      <div
+                        key={idx}
+                        className="flex items-center gap-1.5 bg-purple-50 border border-purple-100 px-3 py-1.5 rounded-full text-sm text-purple-700 font-medium"
+                      >
+                        {sub}
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveSubcategory(sub)}
+                          className="text-purple-400 cursor-pointer hover:text-red-500 transition-colors ml-0.5"
+                        >
+                          <FaTimes size={10} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
                 )}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Mobile Cards */}
-          <div className="md:hidden grid grid-cols-1 gap-4">
-            {categories.map((cat) => (
-              <div key={cat.category_id} className="bg-white p-4 rounded-lg shadow border">
-                <div className="flex justify-between">
-                  <div>
-                    <p className="text-sm text-gray-500">ID: {cat.category_id}</p>
-                    <h4 className="text-lg font-semibold text-blue-900">{cat.name}</h4>
-                    {cat.subcategories?.length > 0 && (
-                      <p className="text-sm mt-1 text-gray-600">
-                        Subcategories: {cat.subcategories.join(", ")}
-                      </p>
-                    )}
-                  </div>
-                  <div className="flex gap-2">
-                    <FaEdit
-                      onClick={() => handleEdit(cat)}
-                      className="hover:text-green-600 cursor-pointer border-2 border-gray-300 h-7 w-7 rounded-lg p-1"
-                    />
-                    <FaTrash
-                      onClick={() => handleDelete(cat.category_id)}
-                      className="hover:text-red-600 cursor-pointer border-2 border-gray-300 h-7 w-7 rounded-lg p-1"
-                    />
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-2 mt-3">
-                  {(cat.images || []).map((img, i) => (
-                    <img
-                      key={i}
-                      src={img}
-                      className="h-24 w-full object-cover rounded border"
-                      alt={`cat-mobile-${i}`}
-                    />
-                  ))}
-                </div>
               </div>
-            ))}
+
+              {/* Images */}
+              <div>
+                <label className="text-sm font-semibold text-gray-700 block mb-1.5">
+                  Upload Images <span className="text-red-500">*</span>
+                </label>
+                <label
+                  htmlFor="cimgs-modal"
+                  className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:border-blue-400 hover:bg-blue-50/30 transition-all group"
+                >
+                  <FaCloudUploadAlt className="text-3xl text-gray-400 mb-2 group-hover:text-blue-500 transition-colors" />
+                  <p className="text-sm text-gray-500 group-hover:text-blue-600 transition-colors">
+                    Click to upload images
+                  </p>
+                  <p className="text-[11px] text-gray-400 mt-0.5">
+                    PNG, JPG, WEBP (auto-compressed)
+                  </p>
+                </label>
+                <input
+                  id="cimgs-modal"
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={handleImageChange}
+                  required={!editId}
+                  className="hidden"
+                />
+                {previewImgs.length > 0 && (
+                  <div className="mt-3 grid grid-cols-3 sm:grid-cols-4 gap-3">
+                    {previewImgs.map((img, index) => (
+                      <img
+                        key={index}
+                        src={img}
+                        alt={`preview-${index}`}
+                        className="h-24 w-full object-cover rounded-xl border border-gray-200 shadow-sm"
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowModal(false);
+                    resetForm();
+                  }}
+                  className="px-5 py-2.5 cursor-pointer rounded-xl text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="px-6 py-2.5 cursor-pointer rounded-xl text-sm font-medium bg-blue-900 text-white hover:bg-blue-800 transition-colors shadow-md hover:shadow-lg disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2"
+                >
+                  {loading ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      {editId ? "Updating..." : "Adding..."}
+                    </>
+                  ) : editId ? (
+                    "Update Category"
+                  ) : (
+                    "Add Category"
+                  )}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
+
+      {/* Slide-up animation */}
+      <style>{`
+        @keyframes modalSlideUp {
+          from {
+            opacity: 0;
+            transform: translateY(30px) scale(0.97);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+          }
+        }
+      `}</style>
     </div>
   );
 };
