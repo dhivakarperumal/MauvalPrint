@@ -51,6 +51,7 @@ const ProductList = ({ setSelectedProduct, setActiveTab }) => {
         fabric_gsm: parseJSON(p.fabric_gsm, []),
         washing_details: parseJSON(p.washing_details, []),
         stock_by_variant: parseJSON(p.stock_by_variant, {}),
+        our_design: p.our_design === true || p.our_design === 1 || p.our_design === "1" || p.our_design === "true",
       }));
 
       // Sort by title (MP001, MP002 …)
@@ -164,7 +165,7 @@ const ProductList = ({ setSelectedProduct, setActiveTab }) => {
     if (productTypeFilter === "Normal") {
       matchesType = p.our_design === true;
     } else if (productTypeFilter === "Customise") {
-      matchesType = p.our_design === false || p.our_design === 0 || p.our_design === "false";
+      matchesType = p.our_design === false;
     }
 
     return matchesSearch && matchesCategory && matchesPrice && matchesRating && matchesOffer && matchesOfferRange && matchesType;
@@ -183,12 +184,75 @@ const ProductList = ({ setSelectedProduct, setActiveTab }) => {
   // ─── UI ───────────────────────────────────────────────────────────────────
   return (
     <div className="p-4 bg-gray-50 min-h-screen relative">
+
+       {/* Product Count Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <div
+          onClick={() => setProductTypeFilter("All")}
+          className={`cursor-pointer rounded-xl p-4 flex items-center gap-4 border transition-all duration-300 ${
+            productTypeFilter === "All"
+              ? "bg-blue-900 text-white border-blue-900 shadow-lg shadow-blue-900/20"
+              : "bg-white text-gray-800 border-gray-200 hover:shadow-md hover:border-blue-200"
+          }`}
+        >
+          <div className={`p-3 rounded-lg ${productTypeFilter === "All" ? "bg-white/20" : "bg-blue-50"}`}>
+            <FaCubes className={`text-xl ${productTypeFilter === "All" ? "text-white" : "text-blue-600"}`} />
+          </div>
+          <div>
+            <p className={`text-2xl font-extrabold ${productTypeFilter === "All" ? "text-white" : "text-blue-900"}`}>{products.length}</p>
+            <p className={`text-xs font-semibold uppercase tracking-wider ${productTypeFilter === "All" ? "text-blue-100" : "text-gray-500"}`}>All Products</p>
+          </div>
+        </div>
+
+        <div
+          onClick={() => setProductTypeFilter("Normal")}
+          className={`cursor-pointer rounded-xl p-4 flex items-center gap-4 border transition-all duration-300 ${
+            productTypeFilter === "Normal"
+              ? "bg-emerald-600 text-white border-emerald-600 shadow-lg shadow-emerald-600/20"
+              : "bg-white text-gray-800 border-gray-200 hover:shadow-md hover:border-emerald-200"
+          }`}
+        >
+          <div className={`p-3 rounded-lg ${productTypeFilter === "Normal" ? "bg-white/20" : "bg-emerald-50"}`}>
+            <FaBox className={`text-xl ${productTypeFilter === "Normal" ? "text-white" : "text-emerald-600"}`} />
+          </div>
+          <div>
+            <p className={`text-2xl font-extrabold ${productTypeFilter === "Normal" ? "text-white" : "text-emerald-700"}`}>{products.filter(p => p.our_design === true).length}</p>
+            <p className={`text-xs font-semibold uppercase tracking-wider ${productTypeFilter === "Normal" ? "text-emerald-100" : "text-gray-500"}`}>Normal</p>
+          </div>
+        </div>
+
+        <div
+          onClick={() => setProductTypeFilter("Customise")}
+          className={`cursor-pointer rounded-xl p-4 flex items-center gap-4 border transition-all duration-300 ${
+            productTypeFilter === "Customise"
+              ? "bg-purple-600 text-white border-purple-600 shadow-lg shadow-purple-600/20"
+              : "bg-white text-gray-800 border-gray-200 hover:shadow-md hover:border-purple-200"
+          }`}
+        >
+          <div className={`p-3 rounded-lg ${productTypeFilter === "Customise" ? "bg-white/20" : "bg-purple-50"}`}>
+            <FaPaintBrush className={`text-xl ${productTypeFilter === "Customise" ? "text-white" : "text-purple-600"}`} />
+          </div>
+          <div>
+            <p className={`text-2xl font-extrabold ${productTypeFilter === "Customise" ? "text-white" : "text-purple-700"}`}>{products.filter(p => p.our_design === false).length}</p>
+            <p className={`text-xs font-semibold uppercase tracking-wider ${productTypeFilter === "Customise" ? "text-purple-100" : "text-gray-500"}`}>Customise</p>
+          </div>
+        </div>
+
+        <div
+          className="bg-white text-gray-800 border border-gray-200 rounded-xl p-4 flex items-center gap-4 hover:shadow-md hover:border-amber-200 transition-all duration-300"
+        >
+          <div className="p-3 rounded-lg bg-amber-50">
+            <FaStar className="text-xl text-amber-500" />
+          </div>
+          <div>
+            <p className="text-2xl font-extrabold text-amber-600">{filteredProducts.length}</p>
+            <p className="text-xs font-semibold uppercase tracking-wider text-gray-500">Filtered Results</p>
+          </div>
+        </div>
+      </div>
       {/* Top bar */}
       <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-4 gap-4">
-        <div>
-          <h2 className="text-2xl md:text-3xl font-bold text-blue-900">Product List</h2>
-          <p className="text-gray-600">Manage your uploaded product designs here.</p>
-        </div>
+        
 
         {/* Search */}
         <div className="relative w-full md:w-1/3">
@@ -239,71 +303,7 @@ const ProductList = ({ setSelectedProduct, setActiveTab }) => {
         </div>
       </div>
 
-      {/* Product Count Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <div
-          onClick={() => setProductTypeFilter("All")}
-          className={`cursor-pointer rounded-xl p-4 flex items-center gap-4 border transition-all duration-300 ${
-            productTypeFilter === "All"
-              ? "bg-blue-900 text-white border-blue-900 shadow-lg shadow-blue-900/20"
-              : "bg-white text-gray-800 border-gray-200 hover:shadow-md hover:border-blue-200"
-          }`}
-        >
-          <div className={`p-3 rounded-lg ${productTypeFilter === "All" ? "bg-white/20" : "bg-blue-50"}`}>
-            <FaCubes className={`text-xl ${productTypeFilter === "All" ? "text-white" : "text-blue-600"}`} />
-          </div>
-          <div>
-            <p className={`text-2xl font-extrabold ${productTypeFilter === "All" ? "text-white" : "text-blue-900"}`}>{products.length}</p>
-            <p className={`text-xs font-semibold uppercase tracking-wider ${productTypeFilter === "All" ? "text-blue-100" : "text-gray-500"}`}>All Products</p>
-          </div>
-        </div>
-
-        <div
-          onClick={() => setProductTypeFilter("Normal")}
-          className={`cursor-pointer rounded-xl p-4 flex items-center gap-4 border transition-all duration-300 ${
-            productTypeFilter === "Normal"
-              ? "bg-emerald-600 text-white border-emerald-600 shadow-lg shadow-emerald-600/20"
-              : "bg-white text-gray-800 border-gray-200 hover:shadow-md hover:border-emerald-200"
-          }`}
-        >
-          <div className={`p-3 rounded-lg ${productTypeFilter === "Normal" ? "bg-white/20" : "bg-emerald-50"}`}>
-            <FaBox className={`text-xl ${productTypeFilter === "Normal" ? "text-white" : "text-emerald-600"}`} />
-          </div>
-          <div>
-            <p className={`text-2xl font-extrabold ${productTypeFilter === "Normal" ? "text-white" : "text-emerald-700"}`}>{products.filter(p => p.our_design === true).length}</p>
-            <p className={`text-xs font-semibold uppercase tracking-wider ${productTypeFilter === "Normal" ? "text-emerald-100" : "text-gray-500"}`}>Normal</p>
-          </div>
-        </div>
-
-        <div
-          onClick={() => setProductTypeFilter("Customise")}
-          className={`cursor-pointer rounded-xl p-4 flex items-center gap-4 border transition-all duration-300 ${
-            productTypeFilter === "Customise"
-              ? "bg-purple-600 text-white border-purple-600 shadow-lg shadow-purple-600/20"
-              : "bg-white text-gray-800 border-gray-200 hover:shadow-md hover:border-purple-200"
-          }`}
-        >
-          <div className={`p-3 rounded-lg ${productTypeFilter === "Customise" ? "bg-white/20" : "bg-purple-50"}`}>
-            <FaPaintBrush className={`text-xl ${productTypeFilter === "Customise" ? "text-white" : "text-purple-600"}`} />
-          </div>
-          <div>
-            <p className={`text-2xl font-extrabold ${productTypeFilter === "Customise" ? "text-white" : "text-purple-700"}`}>{products.filter(p => p.our_design === false || p.our_design === 0 || p.our_design === "false").length}</p>
-            <p className={`text-xs font-semibold uppercase tracking-wider ${productTypeFilter === "Customise" ? "text-purple-100" : "text-gray-500"}`}>Customise</p>
-          </div>
-        </div>
-
-        <div
-          className="bg-white text-gray-800 border border-gray-200 rounded-xl p-4 flex items-center gap-4 hover:shadow-md hover:border-amber-200 transition-all duration-300"
-        >
-          <div className="p-3 rounded-lg bg-amber-50">
-            <FaStar className="text-xl text-amber-500" />
-          </div>
-          <div>
-            <p className="text-2xl font-extrabold text-amber-600">{filteredProducts.length}</p>
-            <p className="text-xs font-semibold uppercase tracking-wider text-gray-500">Filtered Results</p>
-          </div>
-        </div>
-      </div>
+     
 
       {/* Product Type Tabs */}
       <div className="flex gap-2 mt-2 mb-6 border-b border-gray-200 pb-2 overflow-x-auto">
