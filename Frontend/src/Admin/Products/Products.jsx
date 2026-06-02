@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { FaEye, FaEdit, FaTrash, FaFilter, FaStar, FaPlus, FaTh, FaList, FaSearch } from "react-icons/fa";
+import React, { useEffect, useState, useMemo } from "react";
+import { FaEye, FaEdit, FaTrash, FaFilter, FaStar, FaPlus, FaTh, FaList, FaSearch, FaBox, FaPaintBrush, FaCubes } from "react-icons/fa";
 import api from "../../api";
 import toast from "react-hot-toast";
 import * as XLSX from "xlsx";
@@ -238,7 +238,73 @@ const ProductList = ({ setSelectedProduct, setActiveTab }) => {
           </button>
         </div>
       </div>
-      
+
+      {/* Product Count Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <div
+          onClick={() => setProductTypeFilter("All")}
+          className={`cursor-pointer rounded-xl p-4 flex items-center gap-4 border transition-all duration-300 ${
+            productTypeFilter === "All"
+              ? "bg-blue-900 text-white border-blue-900 shadow-lg shadow-blue-900/20"
+              : "bg-white text-gray-800 border-gray-200 hover:shadow-md hover:border-blue-200"
+          }`}
+        >
+          <div className={`p-3 rounded-lg ${productTypeFilter === "All" ? "bg-white/20" : "bg-blue-50"}`}>
+            <FaCubes className={`text-xl ${productTypeFilter === "All" ? "text-white" : "text-blue-600"}`} />
+          </div>
+          <div>
+            <p className={`text-2xl font-extrabold ${productTypeFilter === "All" ? "text-white" : "text-blue-900"}`}>{products.length}</p>
+            <p className={`text-xs font-semibold uppercase tracking-wider ${productTypeFilter === "All" ? "text-blue-100" : "text-gray-500"}`}>All Products</p>
+          </div>
+        </div>
+
+        <div
+          onClick={() => setProductTypeFilter("Normal")}
+          className={`cursor-pointer rounded-xl p-4 flex items-center gap-4 border transition-all duration-300 ${
+            productTypeFilter === "Normal"
+              ? "bg-emerald-600 text-white border-emerald-600 shadow-lg shadow-emerald-600/20"
+              : "bg-white text-gray-800 border-gray-200 hover:shadow-md hover:border-emerald-200"
+          }`}
+        >
+          <div className={`p-3 rounded-lg ${productTypeFilter === "Normal" ? "bg-white/20" : "bg-emerald-50"}`}>
+            <FaBox className={`text-xl ${productTypeFilter === "Normal" ? "text-white" : "text-emerald-600"}`} />
+          </div>
+          <div>
+            <p className={`text-2xl font-extrabold ${productTypeFilter === "Normal" ? "text-white" : "text-emerald-700"}`}>{products.filter(p => p.our_design === true).length}</p>
+            <p className={`text-xs font-semibold uppercase tracking-wider ${productTypeFilter === "Normal" ? "text-emerald-100" : "text-gray-500"}`}>Normal</p>
+          </div>
+        </div>
+
+        <div
+          onClick={() => setProductTypeFilter("Customise")}
+          className={`cursor-pointer rounded-xl p-4 flex items-center gap-4 border transition-all duration-300 ${
+            productTypeFilter === "Customise"
+              ? "bg-purple-600 text-white border-purple-600 shadow-lg shadow-purple-600/20"
+              : "bg-white text-gray-800 border-gray-200 hover:shadow-md hover:border-purple-200"
+          }`}
+        >
+          <div className={`p-3 rounded-lg ${productTypeFilter === "Customise" ? "bg-white/20" : "bg-purple-50"}`}>
+            <FaPaintBrush className={`text-xl ${productTypeFilter === "Customise" ? "text-white" : "text-purple-600"}`} />
+          </div>
+          <div>
+            <p className={`text-2xl font-extrabold ${productTypeFilter === "Customise" ? "text-white" : "text-purple-700"}`}>{products.filter(p => p.our_design === false || p.our_design === 0 || p.our_design === "false").length}</p>
+            <p className={`text-xs font-semibold uppercase tracking-wider ${productTypeFilter === "Customise" ? "text-purple-100" : "text-gray-500"}`}>Customise</p>
+          </div>
+        </div>
+
+        <div
+          className="bg-white text-gray-800 border border-gray-200 rounded-xl p-4 flex items-center gap-4 hover:shadow-md hover:border-amber-200 transition-all duration-300"
+        >
+          <div className="p-3 rounded-lg bg-amber-50">
+            <FaStar className="text-xl text-amber-500" />
+          </div>
+          <div>
+            <p className="text-2xl font-extrabold text-amber-600">{filteredProducts.length}</p>
+            <p className="text-xs font-semibold uppercase tracking-wider text-gray-500">Filtered Results</p>
+          </div>
+        </div>
+      </div>
+
       {/* Product Type Tabs */}
       <div className="flex gap-2 mt-2 mb-6 border-b border-gray-200 pb-2 overflow-x-auto">
         {["All", "Normal", "Customise"].map((type) => (
