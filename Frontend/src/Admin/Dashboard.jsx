@@ -27,8 +27,7 @@ import { FaChartBar } from "react-icons/fa";
 import { FaUserFriends } from "react-icons/fa";
 import { Doughnut } from "react-chartjs-2";
 import { ArcElement } from "chart.js";
-import { collection, getDocs } from "firebase/firestore";
-import { db } from "../firebase";
+import api from "../api";
 import { AuthContext } from "../Context/AuthContext";
 
 ChartJS.register(
@@ -89,13 +88,11 @@ const Dashboard = () => {
   const [categoryOrderStats, setCategoryOrderStats] = useState({});
   const getCategoryCountFromOrders = async () => {
     try {
-      const snapshot = await getDocs(collection(db, "orders"));
+      const { data } = await api.get("/orders");
+      const orders = data?.orders || [];
       const categoryCount = {};
 
-      snapshot.forEach((doc) => {
-        const order = doc.data();
-
-        // Use cart or items field
+      orders.forEach((order) => {
         const items = order.cart || order.items || [];
 
         items.forEach((item) => {
@@ -167,25 +164,21 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchCounts = async () => {
       try {
-        const productsSnap = await getDocs(collection(db, "products"));
-        const usersSnap = await getDocs(collection(db, "users"));
-        const ordersSnap = await getDocs(collection(db, "orders"));
-        const reviewsSnap = await getDocs(collection(db, "reviews"));
-        const invoicesSnap = await getDocs(collection(db, "invoices"));
+        const [productsRes, usersRes, ordersRes, reviewsRes, invoicesRes] = await Promise.all([
+          api.get("/products"),
+          api.get("/users"),
+          api.get("/orders"),
+          api.get("/reviews"),
+          api.get("/invoices"),
+        ]);
 
-        setProductCount(productsSnap.size);
-        setUserCount(usersSnap.size);
-        setOrderCount(ordersSnap.size);
-        setReviewCount(reviewsSnap.size);
-        setInvoiceCount(invoicesSnap.size);
+        setProductCount(productsRes.data?.products?.length || 0);
+        setUserCount(usersRes.data?.users?.length || 0);
+        setOrderCount(ordersRes.data?.orders?.length || 0);
+        setReviewCount(reviewsRes.data?.reviews?.length || 0);
+        setInvoiceCount(invoicesRes.data?.invoices?.length || 0);
 
-        // ✅ Convert order snapshots to usable array
-        const ordersData = ordersSnap.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-
-        setOrders(ordersData); // store all orders here
+        setOrders(ordersRes.data?.orders || []);
       } catch (error) {
         console.error("Error fetching dashboard counts:", error);
       }
@@ -196,22 +189,26 @@ const Dashboard = () => {
 
   useEffect(() => {
     const fetchCategoryStats = async () => {
-      const productsSnapshot = await getDocs(collection(db, "products"));
-      const categoryCount = {};
+      try {
+        const { data } = await api.get("/products");
+        const products = data?.products || [];
+        const categoryCount = {};
 
-      productsSnapshot.forEach((doc) => {
-        const data = doc.data();
-        const category = data.category || "Unknown";
-        const stock = data.stock || 0;
+        products.forEach((product) => {
+          const category = product.category || "Unknown";
+          const stock = product.stock || 0;
 
-        if (categoryCount[category]) {
-          categoryCount[category] += stock;
-        } else {
-          categoryCount[category] = stock;
-        }
-      });
+          if (categoryCount[category]) {
+            categoryCount[category] += stock;
+          } else {
+            categoryCount[category] = stock;
+          }
+        });
 
-      setCategoryStats(categoryCount);
+        setCategoryStats(categoryCount);
+      } catch (error) {
+        console.error("Error fetching category stats:", error);
+      }
     };
 
     fetchCategoryStats();
@@ -290,25 +287,34 @@ const Dashboard = () => {
 
   useEffect(() => {
     const fetchWeeklyIncome = async () => {
-      const ordersSnapshot = await getDocs(collection(db, "orders"));
-      const orders = ordersSnapshot.docs.map((doc) => doc.data());
+      try {
+        const { data } = await api.get("/orders");
+        const orders = data?.orders || [];
 
-      const today = new Date();
-      const dayTotals = Array(7).fill(0);
+        const today = new Date();
+        const dayTotals = Array(7).fill(0);
 
-      orders.forEach((order) => {
-        if (order.status === "Delivered" && order.createdAt?.toDate) {
-          const orderDate = order.createdAt.toDate();
-          const diff = Math.floor((today - orderDate) / (1000 * 60 * 60 * 24));
+        orders.forEach((order) => {
+          if (order.status !== "Delivered") return;
+
+          const createdAt = order.created_at
+            ? new Date(order.created_at)
+            : null;
+
+          if (!createdAt || Number.isNaN(createdAt.getTime())) return;
+
+          const diff = Math.floor((today - createdAt) / (1000 * 60 * 60 * 24));
 
           if (diff >= 0 && diff < 7) {
             const dayIndex = 6 - diff;
-            dayTotals[dayIndex] += order.total || 0;
+            dayTotals[dayIndex] += parseFloat(order.total || 0);
           }
-        }
-      });
+        });
 
-      setWeeklyIncome(dayTotals);
+        setWeeklyIncome(dayTotals);
+      } catch (error) {
+        console.error("Error fetching weekly income:", error);
+      }
     };
 
     fetchWeeklyIncome();
@@ -362,16 +368,15 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchOrderStats = async () => {
       try {
-        const snapshot = await getDocs(collection(db, "orders"));
-        let orderTotal = snapshot.size;
+        const { data } = await api.get("/orders");
+        const orders = data?.orders || [];
+
+        let orderTotal = orders.length;
         let itemsSold = 0;
         let revenue = 0;
         let monthlyTotals = Array(12).fill(0);
 
-        snapshot.forEach((doc) => {
-          const order = doc.data();
-
-          // ✅ Sum quantities
+        orders.forEach((order) => {
           const cart = order.cart || [];
           const orderItemsQty = cart.reduce(
             (sum, item) => sum + (item.quantity || 0),
@@ -379,16 +384,15 @@ const Dashboard = () => {
           );
           itemsSold += orderItemsQty;
 
-          // ✅ Add total amount (ensure numeric)
-          revenue += parseFloat(order.total || 0);
+          revenue += parseFloat(order.total || 0) || 0;
 
-          // ✅ Process order date (assumes `order.date` is in ISO string like "2025-07-12")
-          if (order.date) {
-            const orderDate = new Date(order.date);
-            if (!isNaN(orderDate)) {
-              const monthIndex = orderDate.getMonth(); // 0 for Jan
-              monthlyTotals[monthIndex] += parseFloat(order.total || 0);
-            }
+          const createdAt = order.created_at
+            ? new Date(order.created_at)
+            : null;
+
+          if (createdAt && !Number.isNaN(createdAt.getTime())) {
+            const monthIndex = createdAt.getMonth();
+            monthlyTotals[monthIndex] += parseFloat(order.total || 0) || 0;
           }
         });
 
@@ -409,34 +413,34 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchTopSellingProducts = async () => {
       try {
-        const snapshot = await getDocs(collection(db, "orders"));
-        const orderData = snapshot.docs.map((doc) => doc.data());
+        const { data } = await api.get("/orders");
+        const orderData = data?.orders || [];
 
         const productSalesMap = {};
 
         orderData.forEach((order) => {
-          const items = order.products || [];
+          const items = order.cart || order.products || [];
 
           items.forEach((product) => {
-            const key = product.productId || product.name;
+            const key = product.productId || product.id || product.name;
 
             if (!productSalesMap[key]) {
               productSalesMap[key] = {
-                name: product.name,
-                category: product.category,
-                image: product.image,
-                price: product.price,
+                name: product.name || "Unknown",
+                category: product.category || "Unknown",
+                image: product.image || product.images?.[0] || "/no-image.png",
+                price: product.price || 0,
                 unitsSold: 0,
               };
             }
 
-            productSalesMap[key].unitsSold += parseInt(product.quantity || 1);
+            productSalesMap[key].unitsSold += parseInt(product.quantity || 1, 10);
           });
         });
 
         const sortedProducts = Object.values(productSalesMap)
           .sort((a, b) => b.unitsSold - a.unitsSold)
-          .slice(0, 5); // Top 5
+          .slice(0, 5);
 
         setTopSellingProducts(sortedProducts);
       } catch (error) {
@@ -451,7 +455,8 @@ const Dashboard = () => {
 
   const fetchOrders = async () => {
     try {
-      const snapshot = await getDocs(collection(db, "orders"));
+      const { data } = await api.get("/orders");
+      const orders = data?.orders || [];
       const todayStr = new Date().toISOString().split("T")[0];
       const currentMonth = new Date().getMonth();
       const currentYear = new Date().getFullYear();
@@ -459,17 +464,11 @@ const Dashboard = () => {
       let totalRevenue = 0;
       let monthlyRevenue = 0;
 
-      const data = snapshot.docs.map((doc) => {
-        const order = doc.data();
-        let createdAt = null;
+      const normalized = orders.map((order) => {
+        const createdAt = order.created_at
+          ? new Date(order.created_at)
+          : null;
 
-        if (order.createdAt?.toDate) {
-          createdAt = order.createdAt.toDate();
-        } else if (typeof order.createdAt === "string") {
-          createdAt = new Date(order.createdAt);
-        }
-
-        // Revenue calculation (only for Delivered orders)
         if (order.status === "Delivered") {
           const orderTotal = parseFloat(order.total) || 0;
           totalRevenue += orderTotal;
@@ -486,10 +485,16 @@ const Dashboard = () => {
         const firstItem = order.cart?.[0] || {};
 
         return {
-          id: doc.id,
+          id: order.order_id || order.id || "",
           ...order,
           createdAt,
-          customerName: order.fullname || order.name || "Unknown",
+          customerName:
+            order.checkout?.customerName ||
+            order.checkout?.name ||
+            order.user_email ||
+            order.fullname ||
+            order.name ||
+            "Unknown",
           image:
             firstItem.image ||
             firstItem.customizedImage ||
@@ -501,7 +506,7 @@ const Dashboard = () => {
         };
       });
 
-      const todayOrders = data.filter(
+      const todayOrders = normalized.filter(
         (order) =>
           order.createdAt &&
           order.createdAt.toISOString().split("T")[0] === todayStr &&
@@ -537,23 +542,20 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const snapshot = await getDocs(collection(db, "categories"));
-        const categoryList = snapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
+        const { data } = await api.get("/categories");
+        const categoryList = data?.categories || [];
 
         const topCategories = categoryList.slice(0, 5);
 
-        const labels = topCategories.map((cat) => cat.cname || "Unnamed");
-        const data = new Array(topCategories.length).fill(1);
+        const labels = topCategories.map((cat) => cat.name || cat.cname || "Unnamed");
+        const dataValues = new Array(topCategories.length).fill(1);
 
         setCategorySalesData({
           labels,
           datasets: [
             {
               label: "Categories",
-              data,
+              data: dataValues,
               backgroundColor: [
                 "#4F46E5",
                 "#10B981",
