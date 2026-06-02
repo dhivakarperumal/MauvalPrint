@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { FaEye, FaEdit, FaTrash, FaFilter, FaStar, FaPlus } from "react-icons/fa";
+import { FaEye, FaEdit, FaTrash, FaFilter, FaStar, FaPlus, FaTh, FaList, FaSearch } from "react-icons/fa";
 import api from "../../api";
 import toast from "react-hot-toast";
 import * as XLSX from "xlsx";
@@ -22,7 +22,9 @@ const ProductList = ({ setSelectedProduct, setActiveTab }) => {
   const [selectedRatings, setSelectedRatings] = useState([]);
   const [onlyOffers, setOnlyOffers] = useState(false);
   const [selectedOfferRange, setSelectedOfferRange] = useState("");
+  const [productTypeFilter, setProductTypeFilter] = useState("All"); // All, Normal, Customise
   const [currentPage, setCurrentPage] = useState(1);
+  const [viewMode, setViewMode] = useState("card");
   const productsPerPage = 40;
 
   useEffect(() => {
@@ -157,7 +159,15 @@ const ProductList = ({ setSelectedProduct, setActiveTab }) => {
       const [min, max] = selectedOfferRange.split("-").map(Number);
       matchesOfferRange = Number(p.offer) >= min && Number(p.offer) <= max;
     }
-    return matchesSearch && matchesCategory && matchesPrice && matchesRating && matchesOffer && matchesOfferRange;
+    
+    let matchesType = true;
+    if (productTypeFilter === "Normal") {
+      matchesType = p.our_design === true;
+    } else if (productTypeFilter === "Customise") {
+      matchesType = p.our_design === false || p.our_design === 0 || p.our_design === "false";
+    }
+
+    return matchesSearch && matchesCategory && matchesPrice && matchesRating && matchesOffer && matchesOfferRange && matchesType;
   });
 
   // ─── Pagination ───────────────────────────────────────────────────────────
@@ -174,12 +184,46 @@ const ProductList = ({ setSelectedProduct, setActiveTab }) => {
   return (
     <div className="p-4 bg-gray-50 min-h-screen relative">
       {/* Top bar */}
-      <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-4 gap-4 md:gap-0">
+      <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-4 gap-4">
         <div>
           <h2 className="text-2xl md:text-3xl font-bold text-blue-900">Product List</h2>
           <p className="text-gray-600">Manage your uploaded product designs here.</p>
         </div>
-        <div className="flex flex-wrap gap-2 justify-start md:justify-end">
+
+        {/* Search */}
+        <div className="relative w-full md:w-1/3">
+          <input
+            type="text"
+            placeholder="Search products..."
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setCurrentPage(1);
+            }}
+            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:border-blue-500"
+          />
+          <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2 justify-start md:justify-end">
+          {/* View Mode Toggle */}
+          <div className="flex items-center gap-2 bg-gray-200 p-1 rounded-lg mr-2">
+            <button
+              onClick={() => setViewMode("card")}
+              className={`p-2 rounded-md transition-all duration-300 ${viewMode === "card" ? "bg-white shadow text-blue-900" : "text-gray-500 hover:text-gray-700"}`}
+              title="Card View"
+            >
+              <FaTh size={18} />
+            </button>
+            <button
+              onClick={() => setViewMode("table")}
+              className={`p-2 rounded-md transition-all duration-300 ${viewMode === "table" ? "bg-white shadow text-blue-900" : "text-gray-500 hover:text-gray-700"}`}
+              title="Table View"
+            >
+              <FaList size={18} />
+            </button>
+          </div>
+
           <button
             onClick={() => setActiveTab("addProduct")}
             className="px-4 cursor-pointer md:px-6 bg-blue-900 text-white rounded py-2 flex items-center gap-2 hover:bg-blue-800"
@@ -194,19 +238,28 @@ const ProductList = ({ setSelectedProduct, setActiveTab }) => {
           </button>
         </div>
       </div>
+      
+      {/* Product Type Tabs */}
+      <div className="flex gap-2 mt-2 mb-6 border-b border-gray-200 pb-2 overflow-x-auto">
+        {["All", "Normal", "Customise"].map((type) => (
+          <button
+            key={type}
+            onClick={() => setProductTypeFilter(type)}
+            className={`px-4 py-2 rounded-full text-sm font-semibold transition-colors whitespace-nowrap ${
+              productTypeFilter === type
+                ? "bg-blue-100 text-blue-900 shadow-sm"
+                : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+            }`}
+          >
+            {type === "All" ? "All Products" : type === "Normal" ? "Normal Products" : "Customise Products"}
+          </button>
+        ))}
+      </div>
 
-      <div className="flex gap-4 mt-10">
+      <div className="flex gap-4 mt-6">
         {/* Filter Panel */}
         {showFilter && (
           <div className="w-64 bg-white p-4 rounded shadow space-y-4 flex-shrink-0">
-            <input
-              type="text"
-              placeholder="Search by name..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-
             <div className="space-y-2">
               <p className="font-semibold">Categories:</p>
               {categoryOptions.map((cat, i) => (
@@ -301,50 +354,166 @@ const ProductList = ({ setSelectedProduct, setActiveTab }) => {
           </div>
         )}
 
-        {/* Product Grid */}
-        <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {currentProducts.map((p) => (
-            <div key={p.product_id} className="bg-white rounded shadow p-4 flex flex-col gap-2">
-              <img
-                src={p.images?.[0] || "https://via.placeholder.com/150"}
-                alt={p.name}
-                className="w-full h-32 object-cover rounded"
-              />
-              <p className="font-semibold text-gray-800">{p.name}</p>
-              <p className="text-sm text-gray-600">ID: {p.product_id}</p>
-              <p className="text-sm text-gray-600">Category: {p.category}</p>
-              <div className="flex justify-between">
-                <p className="text-sm text-gray-600 line-through">MRP ₹{p.mrp}</p>
-                <p className="text-sm text-gray-600 font-bold">Selling ₹{p.sale_price}</p>
-              </div>
-              {Number(p.offer) > 0 && (
-                <p className="text-sm text-red-600 font-semibold">Offer: {p.offer}%</p>
-              )}
-              <div className="flex justify-between gap-2 mt-2">
-                <button
-                  onClick={() => handleView(p)}
-                  className="border cursor-pointer border-gray-300 px-2 py-2 rounded-full hover:text-blue-600 text-center"
-                >
-                  <FaEye />
-                </button>
-                <button
-                  onClick={() => handleEdit(p)}
-                  className="border cursor-pointer border-gray-300 px-2 py-2 rounded-full hover:text-yellow-600 text-center"
-                >
-                  <FaEdit />
-                </button>
-                <button
-                  onClick={() => handleDelete(p.product_id)}
-                  className="border cursor-pointer border-gray-300 px-2 py-2 rounded-full hover:text-red-600 text-center"
-                >
-                  <FaTrash />
-                </button>
-              </div>
+        {/* Product Grid / Table */}
+        <div className="flex-1">
+          {viewMode === "card" ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+              {currentProducts.map((p) => (
+                <div key={p.product_id} className="group relative bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100 flex flex-col h-full">
+                  {/* Image Section */}
+                  <div className="relative h-56 w-full overflow-hidden bg-gray-50 flex-shrink-0">
+                    <img
+                      src={p.images?.[0] || "https://via.placeholder.com/150"}
+                      alt={p.name}
+                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                    />
+                    
+                    {/* Badges */}
+                    <div className="absolute top-3 left-3 flex flex-col gap-2">
+                      {p.our_design ? (
+                        <span className="bg-blue-600/90 backdrop-blur-md text-white text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full shadow-sm w-max">
+                          Normal
+                        </span>
+                      ) : (
+                        <span className="bg-purple-600/90 backdrop-blur-md text-white text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full shadow-sm w-max">
+                          Customise
+                        </span>
+                      )}
+                      {Number(p.offer) > 0 && (
+                        <span className="bg-red-500/90 backdrop-blur-md text-white text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full shadow-sm w-max">
+                          {p.offer}% OFF
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Overlay Actions */}
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-4">
+                      <button onClick={() => handleView(p)} className="bg-white text-gray-800 p-3 rounded-full hover:bg-blue-600 hover:text-white transition-colors transform translate-y-4 group-hover:translate-y-0 duration-300 shadow-lg" title="View">
+                        <FaEye size={18} />
+                      </button>
+                      <button onClick={() => handleEdit(p)} className="bg-white text-gray-800 p-3 rounded-full hover:bg-yellow-500 hover:text-white transition-colors transform translate-y-4 group-hover:translate-y-0 duration-300 delay-75 shadow-lg" title="Edit">
+                        <FaEdit size={18} />
+                      </button>
+                      <button onClick={() => handleDelete(p.product_id)} className="bg-white text-gray-800 p-3 rounded-full hover:bg-red-600 hover:text-white transition-colors transform translate-y-4 group-hover:translate-y-0 duration-300 delay-150 shadow-lg" title="Delete">
+                        <FaTrash size={18} />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Content Section */}
+                  <div className="p-4 flex flex-col flex-grow">
+                    <div className="flex justify-between items-start mb-2">
+                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{p.category || "Uncategorized"}</p>
+                      <span className="text-[10px] font-semibold text-gray-500 bg-gray-100 px-2 py-0.5 rounded border border-gray-200">ID: {p.title || p.product_id}</span>
+                    </div>
+                    
+                    <h3 className="font-bold text-gray-800 text-sm leading-snug mb-3 line-clamp-2" title={p.name}>
+                      {p.name}
+                    </h3>
+                    
+                    <div className="mt-auto flex items-end justify-between pt-3 border-t border-gray-50">
+                      <div>
+                        {Number(p.offer) > 0 || Number(p.mrp) > Number(p.sale_price) ? (
+                          <p className="text-[11px] text-gray-400 line-through mb-0.5 font-medium">₹{p.mrp}</p>
+                        ) : (
+                          <p className="text-[11px] text-transparent mb-0.5">-</p>
+                        )}
+                        <p className="text-lg font-extrabold text-blue-900 tracking-tight">₹{p.sale_price}</p>
+                      </div>
+                      
+                      {/* Rating / Stock Indicator */}
+                      <div className="flex flex-col items-end gap-1.5">
+                        <div className="flex items-center gap-1 bg-yellow-50 px-2 py-0.5 rounded border border-yellow-100">
+                          <FaStar className="text-yellow-400 text-[10px]" />
+                          <span className="text-[11px] font-bold text-yellow-700">{p.rating || "0.0"}</span>
+                        </div>
+                        {p.stock <= 5 ? (
+                          <span className="text-[10px] font-bold text-red-500 tracking-wide">ONLY {p.stock} LEFT</span>
+                        ) : (
+                          <span className="text-[10px] font-bold text-green-600 tracking-wide">IN STOCK</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
-          ))}
+          ) : (
+            <div className="overflow-x-auto bg-white rounded-lg shadow-sm border border-gray-200">
+              <table className="w-full text-left border-collapse">
+                <thead className="bg-gray-50 text-gray-700">
+                  <tr>
+                    <th className="p-4 border-b border-gray-200 font-semibold">Image</th>
+                    <th className="p-4 border-b border-gray-200 font-semibold">ID / Name</th>
+                    <th className="p-4 border-b border-gray-200 font-semibold">Category</th>
+                    <th className="p-4 border-b border-gray-200 font-semibold">Price</th>
+                    <th className="p-4 border-b border-gray-200 font-semibold">Stock</th>
+                    <th className="p-4 border-b border-gray-200 font-semibold text-center">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {currentProducts.map((p) => (
+                    <tr key={p.product_id} className="hover:bg-gray-50 transition-colors border-b border-gray-100 last:border-b-0">
+                      <td className="p-4">
+                        <img
+                          src={p.images?.[0] || "https://via.placeholder.com/150"}
+                          alt={p.name}
+                          className="w-16 h-16 object-cover rounded-md border border-gray-200"
+                        />
+                      </td>
+                      <td className="p-4">
+                        <span className="text-[10px] font-semibold text-gray-500 bg-gray-100 px-2 py-0.5 rounded border border-gray-200 block w-max mb-1">
+                          ID: {p.title || p.product_id}
+                        </span>
+                        <span className="font-medium text-gray-800">{p.name}</span>
+                      </td>
+                      <td className="p-4 text-sm text-gray-600">
+                        {p.category || "Uncategorized"}
+                        <div className="mt-1">
+                          {p.our_design ? (
+                            <span className="bg-blue-100 text-blue-800 text-[10px] font-bold uppercase px-2 py-0.5 rounded">Normal</span>
+                          ) : (
+                            <span className="bg-purple-100 text-purple-800 text-[10px] font-bold uppercase px-2 py-0.5 rounded">Customise</span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="p-4">
+                        <div className="flex flex-col">
+                          {Number(p.offer) > 0 || Number(p.mrp) > Number(p.sale_price) ? (
+                            <span className="text-[11px] text-gray-400 line-through">₹{p.mrp}</span>
+                          ) : null}
+                          <span className="font-bold text-blue-900">₹{p.sale_price}</span>
+                        </div>
+                      </td>
+                      <td className="p-4">
+                        {p.stock <= 5 ? (
+                          <span className="text-xs font-bold text-red-500">{p.stock} Left</span>
+                        ) : (
+                          <span className="text-xs font-bold text-green-600">{p.stock}</span>
+                        )}
+                      </td>
+                      <td className="p-4">
+                        <div className="flex justify-center gap-2">
+                          <button onClick={() => handleView(p)} className="bg-gray-100 text-gray-700 p-2 rounded-full hover:bg-blue-600 hover:text-white transition-colors" title="View">
+                            <FaEye />
+                          </button>
+                          <button onClick={() => handleEdit(p)} className="bg-gray-100 text-gray-700 p-2 rounded-full hover:bg-yellow-500 hover:text-white transition-colors" title="Edit">
+                            <FaEdit />
+                          </button>
+                          <button onClick={() => handleDelete(p.product_id)} className="bg-gray-100 text-gray-700 p-2 rounded-full hover:bg-red-600 hover:text-white transition-colors" title="Delete">
+                            <FaTrash />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
 
           {currentProducts.length === 0 && (
-            <div className="col-span-4 text-center py-12 text-gray-500">
+            <div className="text-center py-12 text-gray-500 bg-white rounded-xl shadow-sm border border-gray-100">
               No products found.
             </div>
           )}
