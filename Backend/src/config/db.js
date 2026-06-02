@@ -204,6 +204,11 @@ async function ensureTables() {
         id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
         user_id VARCHAR(36),
         product_id VARCHAR(50),
+        product_name VARCHAR(255),
+        mrp DECIMAL(10,2) DEFAULT 0,
+        sale_price DECIMAL(10,2) DEFAULT 0,
+        offer DECIMAL(10,2) DEFAULT 0,
+        product_image LONGTEXT,
         item_data JSON,
         created_at DATETIME NOT NULL,
         updated_at DATETIME NULL
@@ -249,6 +254,21 @@ async function ensureTables() {
     const [rows] = await pool.query(`SHOW COLUMNS FROM user_cart LIKE ?`, [col.name]);
     if (rows.length === 0) {
       await pool.query(`ALTER TABLE user_cart ADD COLUMN ${col.name} ${col.def}`);
+    }
+  }
+
+  const userWishlistCols = [
+    { name: 'product_name', def: "VARCHAR(255)" },
+    { name: 'mrp', def: "DECIMAL(10,2) DEFAULT 0" },
+    { name: 'sale_price', def: "DECIMAL(10,2) DEFAULT 0" },
+    { name: 'offer', def: "DECIMAL(10,2) DEFAULT 0" },
+    { name: 'product_image', def: "LONGTEXT" },
+  ];
+
+  for (const col of userWishlistCols) {
+    const [rows] = await pool.query(`SHOW COLUMNS FROM user_wishlist LIKE ?`, [col.name]);
+    if (rows.length === 0) {
+      await pool.query(`ALTER TABLE user_wishlist ADD COLUMN ${col.name} ${col.def}`);
     }
   }
 

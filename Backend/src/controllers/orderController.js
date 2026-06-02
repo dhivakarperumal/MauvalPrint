@@ -89,6 +89,29 @@ const getOrders = async (req, res) => {
   }
 };
 
+// GET /api/orders/user/:userId — get orders by user
+const getOrdersByUser = async (req, res) => {
+  const { userId } = req.params;
+  try {
+    const pool = req.app.locals.pool;
+    const [orders] = await pool.query(
+      "SELECT * FROM orders WHERE user_id = ? ORDER BY created_at DESC",
+      [userId]
+    );
+
+    const parsed = orders.map((o) => ({
+      ...o,
+      checkout: parseJSON(o.checkout, {}),
+      cart: parseJSON(o.cart, []),
+    }));
+
+    res.status(200).json({ success: true, orders: parsed });
+  } catch (error) {
+    console.error("Get orders by user error:", error);
+    res.status(500).json({ success: false, message: "Could not fetch user orders." });
+  }
+};
+
 // GET /api/orders/:id — get single order
 const getOrderById = async (req, res) => {
   const { id } = req.params;
@@ -225,6 +248,7 @@ module.exports = {
   createOrder,
   createWebOrder,
   getOrders,
+  getOrdersByUser,
   getOrderById,
   updateOrderStatus,
   deleteOrder,

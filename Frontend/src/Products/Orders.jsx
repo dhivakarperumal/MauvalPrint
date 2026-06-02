@@ -3,15 +3,7 @@ import { toast } from "react-toastify";
 import { AuthContext } from "../Context/AuthContext";
 import { ImSpinner8 } from "react-icons/im";
 import { FaTrashAlt, FaBoxOpen, FaPrint } from "react-icons/fa";
-import { db } from "../firebase";
-import {
-  onSnapshot,
-  collection,
-  deleteDoc,
-  doc,
-  addDoc,
-  updateDoc,
-} from "firebase/firestore";
+import api from "../api";
 
 const Orders = ({ titleorder }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -29,24 +21,26 @@ const Orders = ({ titleorder }) => {
 
   useEffect(() => {
     if (!user) return;
-    setLoading(true);
-
-    const unsubscribe = onSnapshot(
-      collection(db, "orders"),
-      (snapshot) => {
-        const fetched = snapshot.docs
-          .map((doc) => ({ id: doc.id, ...doc.data() }))
-          .filter((order) => order.userId === user.uid);
-        const sorted = fetched.sort(
-          (a, b) => b.createdAt?.seconds - a.createdAt?.seconds
-        );
-        setOrders(sorted);
+    
+    const fetchOrders = async () => {
+      setLoading(true);
+      try {
+        const { data } = await api.get(`/orders/user/${user.uid}`);
+        if (data.success) {
+          setOrders(data.orders);
+        } else {
+          toast.error("Error fetching orders");
+        }
+      } catch (error) {
+        console.error("Fetch orders error:", error);
+        toast.error("Error fetching orders");
+      } finally {
         setLoading(false);
-      },
-      () => toast.error("Error fetching orders")
-    );
-
-    return () => unsubscribe();
+      }
+    };
+    
+    fetchOrders();
+    // No snapshot unsubscription, just simple fetch
   }, [user]);
 
   const toggleDrawer = () => setIsOpen(!isOpen);
@@ -55,16 +49,17 @@ const Orders = ({ titleorder }) => {
     e.stopPropagation();
     if (!orderId) return;
     try {
-      await deleteDoc(doc(db, "orders", orderId));
+      await api.delete(`/orders/${orderId}`);
+      setOrders((prev) => prev.filter((o) => o.order_id !== orderId));
       toast.success("Order deleted!");
     } catch {
       toast.error("Failed to delete order");
     }
   };
 
-  const formatDate = (timestamp) => {
-    if (!timestamp?.seconds) return "N/A";
-    return new Date(timestamp.seconds * 1000).toLocaleString("en-IN", {
+  const formatDate = (dateString) => {
+    if (!dateString) return "N/A";
+    return new Date(dateString).toLocaleString("en-IN", {
       day: "2-digit",
       month: "2-digit",
       year: "numeric",
@@ -237,16 +232,19 @@ const Orders = ({ titleorder }) => {
     if (!reason.trim()) return toast.warn("Please enter a reason.");
     setIsCancelling(true);
     try {
-      await addDoc(collection(db, "cancelOrders"), {
-        ...selectedOrder,
-        reason,
-        cancelledAt: new Date(),
+      await api.put(`/orders/${selectedOrder.order_id}/status`, {
+        status: "Cancelled",
+        reason: reason,
       });
 
-      // Update status in orders collection
-      await updateDoc(doc(db, "orders", selectedOrder.id), {
-        status: "Cancelled",
-      });
+      // Optimistic UI update
+      setOrders((prev) =>
+        prev.map((o) =>
+          o.order_id === selectedOrder.order_id
+            ? { ...o, status: "Cancelled" }
+            : o
+        )
+      );
 
       toast.success("Order cancelled.");
       setShowCancelModal(false);
@@ -270,13 +268,11 @@ const Orders = ({ titleorder }) => {
     }
 
     try {
-      await addDoc(collection(db, "reviews"), {
+      await api.post("/reviews", {
         name: selectedOrder.checkout?.fullname,
         product: selectedOrder.cart?.[0]?.name || "Unknown Product",
         rating: reviewData.rating,
         comment: reviewData.comment,
-        date: new Date().toISOString().split("T")[0],
-        featured: false,
       });
 
       toast.success("Review submitted!");
@@ -342,7 +338,7 @@ const Orders = ({ titleorder }) => {
                       {/* Left */}
                       <div className="space-y-1">
                         <div className="text-xl font-bold">
-                          OrderId: {order.orderID}
+                          OrderId: {order.order_id || order.orderID}
                         </div>
                         <p className="text-sm">
                           <strong>Name:</strong> {order.checkout?.fullname}
@@ -377,7 +373,7 @@ const Orders = ({ titleorder }) => {
                           <strong>Phone:</strong> {order.checkout?.contact}
                         </p>
                         <p>
-                          <strong>Date:</strong> {formatDate(order.createdAt)}
+                          <strong>Date:</strong> {formatDate(order.created_at || order.createdAt)}
                         </p>
                       </div>
                     </div>
@@ -403,7 +399,7 @@ const Orders = ({ titleorder }) => {
             </button>
 
             <h2 className="text-xl font-bold mb-2">
-              Order #{selectedOrder.orderID}
+              Order #{selectedOrder.order_id || selectedOrder.orderID}
             </h2>
            
             <p className="text-sm mb-2">
@@ -417,11 +413,11 @@ const Orders = ({ titleorder }) => {
               <br />
               <strong>Email:</strong> {selectedOrder.checkout?.email}
               <br />
-              <strong>Payment ID:</strong> {selectedOrder.paymentID}
+              <strong>Payment ID:</strong> {selectedOrder.payment_id || selectedOrder.paymentID}
               <br />
               <strong>Status:</strong> {selectedOrder.status}
               <br />
-              <strong>Ordered On:</strong> {formatDate(selectedOrder.createdAt)}
+              <strong>Ordered On:</strong> {formatDate(selectedOrder.created_at || selectedOrder.createdAt)}
               <br />
              
               <p> <strong>Shipping Charge:</strong>{20}</p>

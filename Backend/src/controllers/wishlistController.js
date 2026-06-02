@@ -11,9 +11,39 @@ exports.addWishlist = async (req, res) => {
             });
         }
 
-        const { user_id, product_id, item_data } = req.body;
+        const {
+            user_id,
+            product_id,
+            item_data,
+            product_name,
+            mrp,
+            sale_price,
+            offer,
+            product_image,
+        } = req.body;
+
+        const wishlistItemData = item_data || {};
+
+        const productName =
+            product_name ||
+            wishlistItemData.name ||
+            wishlistItemData.title ||
+            wishlistItemData.product_name ||
+            null;
+        const productMrp = mrp ?? wishlistItemData.mrp ?? wishlistItemData.price ?? 0;
+        const productSalePrice =
+            sale_price ?? wishlistItemData.sale_price ?? wishlistItemData.salePrice ?? 0;
+        const productOffer =
+            offer ?? wishlistItemData.offer ?? wishlistItemData.discount ?? 0;
+        const productImage =
+            product_image ||
+            wishlistItemData.product_image ||
+            wishlistItemData.image ||
+            (Array.isArray(wishlistItemData.images) ? wishlistItemData.images[0] : null) ||
+            null;
+
         console.log("Wishlist Item Data:");
-        console.log(item_data);
+        console.log(wishlistItemData);
 
         const [existing] = await pool.execute(
             `SELECT id
@@ -34,15 +64,25 @@ exports.addWishlist = async (req, res) => {
   (
     user_id,
     product_id,
+    product_name,
+    mrp,
+    sale_price,
+    offer,
+    product_image,
     item_data,
     created_at
   )
-  VALUES (?, ?, ?, ?)`,
+  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [
                 user_id,
                 product_id,
-                JSON.stringify(item_data || {}),
-                new Date()
+                productName,
+                productMrp,
+                productSalePrice,
+                productOffer,
+                productImage,
+                JSON.stringify(wishlistItemData),
+                new Date(),
             ]
         );
 
@@ -81,11 +121,22 @@ exports.getWishlist = async (req, res) => {
         );
 
         const wishlist = rows.map((item) => {
+            let data;
             try {
-                return JSON.parse(item.item_data);
+                data = JSON.parse(item.item_data);
             } catch {
-                return item.item_data;
+                data = item.item_data;
             }
+
+            return {
+                ...(typeof data === "object" && data !== null ? data : { item_data: data }),
+                product_name: item.product_name ?? data?.product_name,
+                mrp: item.mrp ?? data?.mrp,
+                sale_price: item.sale_price ?? data?.sale_price,
+                offer: item.offer ?? data?.offer,
+                product_image: item.product_image ?? data?.product_image,
+                created_at: item.created_at,
+            };
         });
 
         res.json({
