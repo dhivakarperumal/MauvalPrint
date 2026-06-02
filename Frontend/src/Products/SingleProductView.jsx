@@ -514,7 +514,11 @@ const SingleProductView = () => {
               {product.customizable && (
                 <button
                   onClick={() => {
-                    user ? setShowPopup(true) : setShowLogin(true);
+                    if (!user) {
+                      setShowLogin(true);
+                    } else {
+                      navigate(`/customizer/${product.id || product.productId}`);
+                    }
                   }}
                   className="px-6 py-3 bg-orange-500 text-white rounded-md hover:bg-orange-600 transition-all cursor-pointer hover:shadow-md"
                 >

@@ -22,6 +22,7 @@ import FlimLogoPrint from "./Products/FlimLogoPrint.jsx";
 import PrivateRoute from "./PrivateRoute.jsx";
 import Login from "./Components/Login.jsx";
 import Register from "./Components/Register.jsx";
+import CustomizerLayout from "./Customizer/CustomizerLayout.jsx";
 
 // Import Hot Toast
 import { Toaster } from "react-hot-toast";
@@ -87,6 +88,14 @@ const router = createBrowserRouter([
     element: (
       <PrivateRoute>
         <Adminpanel />
+      </PrivateRoute>
+    ),
+  },
+  {
+    path: "/customizer/:productId",
+    element: (
+      <PrivateRoute>
+        <CustomizerLayout />
       </PrivateRoute>
     ),
   },
