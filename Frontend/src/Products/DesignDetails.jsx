@@ -186,7 +186,6 @@ const DesignDetails = () => {
         image: images[selectedImageIndex] || images[0],
       };
       addToWishlist(wishlistItem);
-      toast.success("Added to favorites");
     }
   };
 

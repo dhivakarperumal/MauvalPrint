@@ -212,7 +212,6 @@ function Product() {
                           onClick={(e) => {
                             e.stopPropagation();
                             addToWishlist(product);
-                            toast.success("Added to wishlist!");
                           }}
                           className="text-white bg-white/20 p-2 cursor-pointer rounded-full hover:bg-white hover:text-primary transition"
                           title="Add to Wishlist"
