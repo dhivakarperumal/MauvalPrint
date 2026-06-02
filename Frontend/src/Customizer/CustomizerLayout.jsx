@@ -176,6 +176,26 @@ const CustomizerLayout = () => {
     });
   };
 
+  const handleSave = () => {
+    if (!canvas) return;
+    try {
+      const dataUrl = canvas.toDataURL({
+        format: 'png',
+        quality: 1,
+        multiplier: 2
+      });
+      const link = document.createElement('a');
+      link.href = dataUrl;
+      link.download = `CustomDesign_${product?.name || productId}.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (err) {
+      console.error("Save export error:", err);
+      alert("Could not save image due to security restrictions on external images.");
+    }
+  };
+
   return (
     <div className="h-screen w-full bg-gray-900 text-white flex flex-col font-sans overflow-hidden">
       {/* Top Navigation Bar */}
@@ -196,8 +216,8 @@ const CustomizerLayout = () => {
         
         <div className="flex items-center gap-2 md:gap-3">
           <span className="text-xs md:text-sm font-medium mr-1 md:mr-4">₹{product.salePrice || product.price || 0}</span>
-          <button className="px-2 md:px-4 py-1.5 text-xs md:text-sm font-medium border border-gray-700 hover:bg-gray-800 rounded transition flex items-center gap-1 md:gap-2">
-            <IoDownloadOutline size={16} /> <span className="hidden md:inline">Preview</span>
+          <button onClick={handleSave} className="px-2 md:px-4 py-1.5 text-xs md:text-sm font-medium border border-gray-700 hover:bg-gray-800 rounded transition flex items-center gap-1 md:gap-2 cursor-pointer">
+            <IoDownloadOutline size={16} /> <span className="hidden md:inline">Save</span>
           </button>
           <button onClick={handlePlaceOrder} className="px-3 md:px-4 py-1.5 text-xs md:text-sm font-medium bg-indigo-600 hover:bg-indigo-700 text-white rounded transition flex items-center gap-1 md:gap-2 cursor-pointer">
             <IoCartOutline size={16} /> <span className="hidden sm:inline">Place Order</span><span className="sm:hidden">Order</span>
