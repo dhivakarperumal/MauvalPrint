@@ -269,17 +269,14 @@ export default function Navbar() {
               </span>
             )}
           </button>
-          <button
-            onClick={() => requireLogin(setShowOrders)}
-            className="relative cursor-pointer hidden mt-2 lg:block"
-          >
+          <div className="relative cursor-pointer hidden mt-2 lg:block">
             <Orders show={showOrders} onClose={() => setShowOrders(false)} />
             {user && ordersCount > 0 && (
               <span className="absolute -top-1 -right-2 h-4 w-4 flex items-center justify-center rounded-full bg-red-500 text-xs">
                 {ordersCount}
               </span>
             )}
-          </button>
+          </div>
 
           {/* User */}
           <div className="relative" ref={userRef}>

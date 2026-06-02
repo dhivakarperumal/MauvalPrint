@@ -17,7 +17,13 @@ const toRoman = (num) => {
 };
 
 const ProductKeywords = () => {
-  const [keywords, setKeywords] = useState([]);
+  const [keywords, setKeywords] = useState([
+    { keyword_id: "default-1", keyword_name: "Trending", status: "active", show_on_home: false, display_order: 0 },
+    { keyword_id: "default-2", keyword_name: "Best Seller", status: "active", show_on_home: false, display_order: 0 },
+    { keyword_id: "default-3", keyword_name: "New Arrival", status: "active", show_on_home: false, display_order: 0 },
+    { keyword_id: "default-4", keyword_name: "Custom Print", status: "active", show_on_home: false, display_order: 0 },
+    { keyword_id: "default-5", keyword_name: "Featured", status: "active", show_on_home: false, display_order: 0 }
+  ]);
   const [stats, setStats] = useState({
     totalKeywords: 0,
     activeKeywords: 0,

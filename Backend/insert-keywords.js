@@ -3,7 +3,7 @@ const { connectDB } = require('./src/config/db');
 async function insertKeywords() {
   try {
     const pool = await connectDB();
-    const keywords = ["Trending", "Oversize", "Best Seller", "New Arrival", "Summer Collection"];
+    const keywords = ["Trending", "Oversize", "Best Seller", "New Arrival", "Summer Collection", "Custom Print"];
     
     for (const keyword of keywords) {
       try {

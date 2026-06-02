@@ -43,7 +43,13 @@ const Orders = ({ titleorder }) => {
     // No snapshot unsubscription, just simple fetch
   }, [user]);
 
-  const toggleDrawer = () => setIsOpen(!isOpen);
+  const toggleDrawer = () => {
+    if (!user) {
+      toast.warn("Login Please");
+      return;
+    }
+    setIsOpen(!isOpen);
+  };
 
   const handleDelete = async (e, orderId) => {
     e.stopPropagation();
