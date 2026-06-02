@@ -1,6 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import toast from "react-hot-toast";
-import { FaSearch, FaList, FaThLarge, FaChevronDown, FaChevronUp } from "react-icons/fa";
+import {
+  FaSearch, FaList, FaThLarge, FaChevronDown, FaChevronUp,
+  FaShoppingCart, FaBoxOpen, FaTruck, FaCheckCircle, FaTimesCircle, FaClipboardList,
+} from "react-icons/fa";
 import api from "../../api";
 const getStatusBadge = (status) => {
   const base = "text-xs font-medium rounded px-2 py-1";
@@ -44,6 +47,14 @@ const AllOrders = () => {
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
   const [viewMode, setViewMode] = useState("table");
+  const [statusFilter, setStatusFilter] = useState("All");
+
+  // ── Status counts ─────────────────────────────────────────────────────────
+  const statusCounts = useMemo(() => {
+    const counts = { "Place Order": 0, Packed: 0, Shipped: 0, Delivered: 0, Cancelled: 0 };
+    orders.forEach((o) => { if (counts[o.status] !== undefined) counts[o.status]++; });
+    return { ...counts, Total: orders.length };
+  }, [orders]);
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
@@ -99,6 +110,9 @@ const AllOrders = () => {
         order.orderID?.toLowerCase().includes(lowerSearch) ||
         (order.checkout?.fullname || order.checkout?.customerName || order.customerName || "")?.toLowerCase().includes(lowerSearch);
 
+      // Status filter
+      const matchStatus = statusFilter === "All" || order.status === statusFilter;
+
       let matchDate = true;
       if (filterType === "Today") {
         matchDate = createdAt.toDateString() === today.toDateString();
@@ -113,7 +127,7 @@ const AllOrders = () => {
         matchDate = createdAt >= from && createdAt <= to;
       }
 
-      return matchSearch && matchDate;
+      return matchSearch && matchDate && matchStatus;
     });
 
     // Sort by newest first
@@ -125,7 +139,7 @@ const AllOrders = () => {
 
     setFilteredOrders(sorted);
     setCurrentPage(1); // Reset to first page when filters change
-  }, [orders, searchTerm, filterType, fromDate, toDate]);
+  }, [orders, searchTerm, filterType, fromDate, toDate, statusFilter]);
 
   // Expand row toggle
   const toggleExpand = (orderID) => {
@@ -355,7 +369,57 @@ const AllOrders = () => {
   return (
     <div className="p-4 md:p-6 min-h-screen">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-blue-900">All Orders</h2>
+        <div>
+          <h2 className="text-2xl font-bold text-blue-900">All Orders</h2>
+          <p className="text-sm text-gray-500 mt-0.5">Track and manage all customer orders</p>
+        </div>
+      </div>
+
+      {/* ── Status Count Cards ── */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
+        {[
+          { key: "Total", label: "Total Orders", icon: FaClipboardList, gradient: "from-gray-700 to-gray-900", lightBg: "bg-gray-50", border: "border-gray-200", textColor: "text-gray-800", iconBg: "bg-gray-100" },
+          { key: "Place Order", label: "Place Order", icon: FaShoppingCart, gradient: "from-blue-500 to-blue-700", lightBg: "bg-blue-50", border: "border-blue-200", textColor: "text-blue-800", iconBg: "bg-blue-100" },
+          { key: "Packed", label: "Packed", icon: FaBoxOpen, gradient: "from-purple-500 to-purple-700", lightBg: "bg-purple-50", border: "border-purple-200", textColor: "text-purple-800", iconBg: "bg-purple-100" },
+          { key: "Shipped", label: "Shipped", icon: FaTruck, gradient: "from-indigo-500 to-indigo-700", lightBg: "bg-indigo-50", border: "border-indigo-200", textColor: "text-indigo-800", iconBg: "bg-indigo-100" },
+          { key: "Delivered", label: "Delivered", icon: FaCheckCircle, gradient: "from-emerald-500 to-emerald-700", lightBg: "bg-emerald-50", border: "border-emerald-200", textColor: "text-emerald-800", iconBg: "bg-emerald-100" },
+          { key: "Cancelled", label: "Cancelled", icon: FaTimesCircle, gradient: "from-red-500 to-red-700", lightBg: "bg-red-50", border: "border-red-200", textColor: "text-red-800", iconBg: "bg-red-100" },
+        ].map(({ key, label, icon: Icon, gradient, lightBg, border, textColor, iconBg }) => {
+          const count = key === "Total" ? statusCounts.Total : statusCounts[key];
+          const isActive = (key === "Total" && statusFilter === "All") || statusFilter === key;
+          return (
+            <button
+              key={key}
+              onClick={() => setStatusFilter(key === "Total" ? "All" : key)}
+              className={`relative overflow-hidden rounded-2xl p-4 text-left transition-all duration-300 cursor-pointer group ${
+                isActive
+                  ? `bg-gradient-to-br ${gradient} text-white shadow-lg scale-[1.02]`
+                  : `${lightBg} ${border} border hover:shadow-md hover:-translate-y-0.5`
+              }`}
+            >
+              {/* Background decoration */}
+              {isActive && (
+                <div className="absolute -top-4 -right-4 w-20 h-20 rounded-full bg-white/10" />
+              )}
+
+              <div className="flex items-center justify-between mb-2 relative z-10">
+                <div className={`p-2 rounded-xl ${isActive ? "bg-white/20" : iconBg} transition-colors`}>
+                  <Icon size={16} className={isActive ? "text-white" : textColor} />
+                </div>
+                {isActive && key !== "Total" && (
+                  <span className="text-[10px] bg-white/20 px-2 py-0.5 rounded-full font-medium">Active</span>
+                )}
+              </div>
+
+              <p className={`text-2xl font-extrabold relative z-10 ${isActive ? "text-white" : textColor}`}>
+                {count}
+              </p>
+              <p className={`text-[11px] font-medium mt-0.5 relative z-10 ${isActive ? "text-white/80" : "text-gray-500"}`}>
+                {label}
+              </p>
+            </button>
+          );
+        })}
       </div>
 
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4 bg-white p-4 rounded-xl shadow-sm border border-gray-100">
@@ -586,124 +650,148 @@ const AllOrders = () => {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {paginatedOrders.map((order) => (
-                <div key={order.orderID} className="bg-white p-5 rounded-xl shadow-sm border border-gray-200 flex flex-col gap-4 hover:shadow-md transition-shadow">
-                  <div className="flex justify-between items-start gap-2">
-                    <div className="flex-1 min-w-0">
-                      <p className="font-bold text-blue-900 text-lg truncate" title={order.orderID}>{order.orderID}</p>
-                      <p className="text-sm font-medium text-gray-700 truncate" title={order.checkout?.fullname || order.checkout?.customerName || order.customerName}>{order.checkout?.fullname || order.checkout?.customerName || order.customerName || "Unknown"}</p>
+                <div key={order.orderID} className="bg-white rounded-2xl shadow-sm border border-gray-100 flex flex-col hover:shadow-xl transition-all duration-300 overflow-hidden group">
+                  {/* Card Header */}
+                  <div className="bg-gradient-to-r from-gray-50 to-white p-5 border-b border-gray-100 flex justify-between items-start">
+                    <div className="flex flex-col gap-1">
+                      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Order ID</span>
+                      <p className="font-extrabold text-blue-900 text-lg truncate" title={order.orderID}>{order.orderID}</p>
                     </div>
-                    <span className={`${getStatusBadge(order.status)} shrink-0`}>{order.status}</span>
+                    <span className={`${getStatusBadge(order.status)} shrink-0 shadow-sm border border-black/5`}>{order.status}</span>
                   </div>
                   
-                  <div className="flex justify-between items-center text-sm text-gray-600 bg-gray-50 p-3 rounded-lg border border-gray-100">
-                    <div>
-                      <p className="text-[11px] text-gray-500 uppercase tracking-wider mb-0.5">Amount</p>
-                      <p className="font-bold text-gray-900 text-base">₹{order.total}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-[11px] text-gray-500 uppercase tracking-wider mb-0.5">Payment</p>
-                      <p className="font-semibold text-gray-800">{order.paymentID ? "Online" : "COD"}</p>
-                    </div>
-                  </div>
-  
-                  <div className="text-sm text-gray-600 space-y-1">
-                    <p className="flex justify-between">
-                      <span className="text-gray-500">Date:</span>
-                      <span className="font-medium text-gray-800">
-                        {order.createdAt?.toDate().toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}
-                      </span>
-                    </p>
-                    <p className="flex justify-between">
-                      <span className="text-gray-500">Contact:</span>
-                      <span className="font-medium text-gray-800">{order.checkout?.contact}</span>
-                    </p>
-                  </div>
-  
-                  <div className="mt-1">
-                    <select
-                      value={order.status}
-                      onChange={(e) => handleStatusChange(order.orderID, e.target.value)}
-                      className="border border-gray-300 rounded-lg px-3 py-2 text-sm w-full focus:ring-2 focus:ring-blue-500 focus:outline-none cursor-pointer font-medium"
-                    >
-                      {getAvailableStatuses(order.status).map((status) => (
-                        <option key={status} value={status}>
-                          {status}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  
-                  {cancellationInput[order.orderID] && (
-                    <div className="flex flex-col gap-2 bg-red-50 p-3 rounded-lg border border-red-100">
-                      <input
-                        type="text"
-                        placeholder="Reason for cancellation..."
-                        className="border border-red-300 px-3 py-2 text-sm rounded-lg w-full focus:ring-2 focus:ring-red-400 focus:outline-none bg-white"
-                        onChange={(e) =>
-                          setCancellationInput((prev) => ({
-                            ...prev,
-                            [order.orderID]: { reason: e.target.value },
-                          }))
-                        }
-                      />
-                      <button
-                        onClick={() =>
-                          handleCancelSubmit(order.orderID, cancellationInput[order.orderID]?.reason || "")
-                        }
-                        className="bg-red-600 hover:bg-red-700 text-white font-medium px-4 py-2 rounded-lg text-sm transition-colors cursor-pointer w-full"
-                      >
-                        Confirm Cancel
-                      </button>
-                    </div>
-                  )}
-  
-                  <div className="flex gap-2 mt-auto pt-2">
-                    <button onClick={() => handlePrint(order)} className="flex-1 bg-blue-50 hover:bg-blue-100 text-blue-700 py-2 rounded-lg text-sm font-semibold transition-colors cursor-pointer border border-blue-200">
-                      Print
-                    </button>
-                    <button onClick={() => AddressPrint(order)} className="flex-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 py-2 rounded-lg text-sm font-semibold transition-colors cursor-pointer border border-indigo-200">
-                      Address
-                    </button>
-                    <button onClick={() => toggleExpand(order.orderID)} className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg transition-colors cursor-pointer border border-gray-200 flex items-center justify-center">
-                      {expandedRows.includes(order.orderID) ? <FaChevronUp /> : <FaChevronDown />}
-                    </button>
-                  </div>
-  
-                  {expandedRows.includes(order.orderID) && (
-                    <div className="mt-2 pt-4 border-t border-gray-100">
-                      <div className="text-sm text-gray-600 mb-4 space-y-1 bg-gray-50 p-3 rounded-lg">
-                        <p className="flex flex-col sm:flex-row sm:gap-2"><strong className="text-gray-800">Email:</strong> <span className="break-all">{order.checkout?.email}</span></p>
-                        <p className="flex flex-col sm:flex-row sm:gap-2"><strong className="text-gray-800">Address:</strong> <span>{order.checkout?.street}, {order.checkout?.city}, {order.checkout?.state} - {order.checkout?.zip}</span></p>
+                  {/* Card Body */}
+                  <div className="p-5 flex-1 flex flex-col gap-5">
+                    {/* Customer Info */}
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-sm shadow-sm shrink-0">
+                        {(order.checkout?.fullname || order.checkout?.customerName || order.customerName || "U").charAt(0).toUpperCase()}
                       </div>
-                      <div>
-                        <p className="font-semibold text-sm mb-3 text-gray-800 flex items-center gap-2">
-                          <span className="bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded-full">{order.cart?.length || 0}</span>
-                          Cart Items
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-bold text-gray-800 truncate" title={order.checkout?.fullname || order.checkout?.customerName || order.customerName}>
+                          {order.checkout?.fullname || order.checkout?.customerName || order.customerName || "Unknown"}
                         </p>
-                        <ul className="space-y-3 max-h-64 overflow-y-auto pr-1">
+                        <p className="text-xs text-gray-500 truncate">{order.checkout?.contact || "No Contact"}</p>
+                      </div>
+                    </div>
+
+                    {/* Amount & Date */}
+                    <div className="grid grid-cols-2 gap-3 bg-gray-50/80 p-3 rounded-xl border border-gray-100/50">
+                      <div>
+                        <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-0.5">Amount</p>
+                        <p className="font-bold text-gray-900 text-base">₹{order.total} <span className="text-[10px] text-gray-500 font-normal">({order.paymentID ? "Online" : "COD"})</span></p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-0.5">Date</p>
+                        <p className="font-semibold text-gray-700 text-sm">
+                          {order.createdAt?.toDate().toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}
+                        </p>
+                      </div>
+                    </div>
+    
+                    {/* Status Select */}
+                    <div className="mt-auto">
+                      <label className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1 block">Update Status</label>
+                      <div className="relative">
+                        <select
+                          value={order.status}
+                          onChange={(e) => handleStatusChange(order.orderID, e.target.value)}
+                          className="w-full appearance-none border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-medium text-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm cursor-pointer hover:border-gray-300 transition-colors"
+                        >
+                          {getAvailableStatuses(order.status).map((status) => (
+                            <option key={status} value={status}>
+                              {status}
+                            </option>
+                          ))}
+                        </select>
+                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500">
+                          <FaChevronDown size={10} />
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Cancellation Input */}
+                    {cancellationInput[order.orderID] && (
+                      <div className="flex flex-col gap-2 bg-red-50 p-4 rounded-xl border border-red-100 shadow-inner mt-2">
+                        <label className="text-[10px] font-bold text-red-600 uppercase tracking-wider">Cancellation Reason</label>
+                        <input
+                          type="text"
+                          placeholder="Why is this order cancelled?"
+                          className="border border-red-200 px-3 py-2 text-sm rounded-lg w-full focus:ring-2 focus:ring-red-500 focus:outline-none bg-white shadow-sm placeholder:text-gray-400"
+                          onChange={(e) =>
+                            setCancellationInput((prev) => ({
+                              ...prev,
+                              [order.orderID]: { reason: e.target.value },
+                            }))
+                          }
+                        />
+                        <button
+                          onClick={() =>
+                            handleCancelSubmit(order.orderID, cancellationInput[order.orderID]?.reason || "")
+                          }
+                          className="bg-red-600 hover:bg-red-700 text-white font-bold px-4 py-2 rounded-lg text-xs transition-colors cursor-pointer w-full shadow-md mt-1"
+                        >
+                          Confirm Cancellation
+                        </button>
+                      </div>
+                    )}
+                  </div>
+    
+                  {/* Actions Footer */}
+                  <div className="bg-gray-50 p-4 border-t border-gray-100 flex gap-2">
+                    <button onClick={() => handlePrint(order)} className="flex-1 bg-white hover:bg-blue-50 text-blue-700 py-2.5 rounded-xl text-xs font-bold transition-colors cursor-pointer border border-gray-200 shadow-sm flex items-center justify-center gap-1.5">
+                      <FaClipboardList size={12} /> Print
+                    </button>
+                    <button onClick={() => AddressPrint(order)} className="flex-1 bg-white hover:bg-indigo-50 text-indigo-700 py-2.5 rounded-xl text-xs font-bold transition-colors cursor-pointer border border-gray-200 shadow-sm flex items-center justify-center gap-1.5">
+                      <FaTruck size={12} /> Address
+                    </button>
+                    <button onClick={() => toggleExpand(order.orderID)} className={`w-10 flex items-center justify-center rounded-xl transition-colors cursor-pointer border shadow-sm ${expandedRows.includes(order.orderID) ? 'bg-gray-800 text-white border-gray-800' : 'bg-white hover:bg-gray-100 text-gray-600 border-gray-200'}`}>
+                      {expandedRows.includes(order.orderID) ? <FaChevronUp size={12} /> : <FaChevronDown size={12} />}
+                    </button>
+                  </div>
+    
+                  {/* Expanded Section */}
+                  {expandedRows.includes(order.orderID) && (
+                    <div className="bg-gray-50/50 p-5 border-t border-gray-100">
+                      <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm mb-4">
+                        <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2 border-b border-gray-50 pb-2">Delivery Details</h4>
+                        <div className="space-y-1.5 text-xs text-gray-600">
+                          <p className="flex gap-2"><strong className="text-gray-800 w-16 shrink-0">Email:</strong> <span className="break-all">{order.checkout?.email || "-"}</span></p>
+                          <p className="flex gap-2"><strong className="text-gray-800 w-16 shrink-0">Address:</strong> <span>{order.checkout?.street}, {order.checkout?.city}, {order.checkout?.state} - {order.checkout?.zip}</span></p>
+                        </div>
+                      </div>
+
+                      <div>
+                        <div className="flex items-center justify-between mb-3">
+                          <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Cart Items</h4>
+                          <span className="bg-blue-100 text-blue-800 text-[10px] font-extrabold px-2 py-0.5 rounded-md">{order.cart?.length || 0}</span>
+                        </div>
+                        <ul className="space-y-3 max-h-64 overflow-y-auto pr-2 custom-scrollbar">
                           {order.cart?.map((item, idx) => (
-                            <li key={idx} className="flex items-start gap-3 text-sm bg-white p-2.5 rounded-lg border border-gray-200 shadow-sm">
-                              <img
-                                src={item.image || item.customizedImage || item.images?.[0]}
-                                alt={item.name}
-                                className="w-14 h-14 object-cover rounded-md border border-gray-100 bg-gray-50 shrink-0"
-                              />
-                              <div className="flex flex-col flex-1 min-w-0">
-                                <span className="font-semibold text-xs text-gray-900 leading-tight truncate" title={item.name}>
+                            <li key={idx} className="flex items-start gap-3 text-sm bg-white p-3 rounded-xl border border-gray-100 shadow-sm group hover:border-blue-100 transition-colors">
+                              <div className="w-16 h-16 rounded-lg overflow-hidden bg-gray-50 border border-gray-100 shrink-0">
+                                <img
+                                  src={item.image || item.customizedImage || item.images?.[0]}
+                                  alt={item.name}
+                                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                />
+                              </div>
+                              <div className="flex flex-col flex-1 min-w-0 py-0.5">
+                                <span className="font-bold text-xs text-gray-800 leading-tight truncate mb-1" title={item.name}>
                                   {item.name}
                                 </span>
-                                <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-gray-600">
-                                  <span className="bg-gray-100 px-1.5 py-0.5 rounded text-gray-700">Qty: <b>{item.quantity}</b></span>
-                                  <span className="bg-green-50 text-green-700 px-1.5 py-0.5 rounded font-medium">₹{item.price}</span>
-                                  {item.size && <span className="bg-gray-100 px-1.5 py-0.5 rounded">Size: <b>{item.size}</b></span>}
+                                <div className="flex flex-wrap gap-1.5 mt-auto">
+                                  <span className="bg-gray-50 border border-gray-100 text-gray-600 px-1.5 py-0.5 rounded-md text-[10px] font-medium">Qty: <b className="text-gray-900">{item.quantity}</b></span>
+                                  {item.size && <span className="bg-gray-50 border border-gray-100 text-gray-600 px-1.5 py-0.5 rounded-md text-[10px] font-medium">Size: <b className="text-gray-900">{item.size}</b></span>}
                                 </div>
+                                <div className="mt-1.5 font-bold text-green-700 text-xs">₹{item.price}</div>
                                 {item.color === "" && item.customizedImage && (
                                   <a
                                     href={item.customizedImage}
                                     download={`customized-${item.name || "image"}.jpg`}
-                                    className="text-white bg-blue-600 hover:bg-blue-700 px-2 py-1 rounded text-[10px] mt-2 inline-block text-center w-fit transition-colors cursor-pointer"
+                                    className="text-white bg-blue-600 hover:bg-blue-700 px-2 py-1 rounded text-[10px] mt-2 inline-block text-center w-fit transition-colors shadow-sm font-medium"
                                   >
-                                    Download Custom Image
+                                    Download Image
                                   </a>
                                 )}
                               </div>
