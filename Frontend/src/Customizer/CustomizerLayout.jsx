@@ -204,12 +204,15 @@ const CustomizerLayout = () => {
       </header>
 
       {/* Main Content Area */}
-      <main className="flex-1 flex overflow-hidden">
-        {/* Sidebar Tools */}
-        <SidebarTools activeTab={activeTab} setActiveTab={setActiveTab} />
+      <main className="flex-1 flex flex-col md:flex-row overflow-hidden relative">
+        
+        {/* Mobile: Sidebar tools at bottom. Desktop: left */}
+        <div className="order-3 md:order-1 shrink-0 z-30 bg-gray-950">
+          <SidebarTools activeTab={activeTab} setActiveTab={setActiveTab} />
+        </div>
 
         {/* Expanded Tool Panel */}
-        <div className="w-80 bg-gray-900 border-r border-gray-800 p-6 overflow-y-auto z-10 flex flex-col shadow-2xl relative">
+        <div className={`order-2 md:order-2 w-full md:w-80 ${activeTab ? 'h-64' : 'h-0 hidden'} md:h-full md:flex bg-gray-900 border-t md:border-t-0 border-b md:border-b-0 md:border-r border-gray-800 p-6 overflow-y-auto z-20 flex-col shadow-2xl relative shrink-0 transition-all`}>
           <h2 className="text-xl font-bold mb-6 capitalize tracking-wide bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">{activeTab}</h2>
           
           {activeTab === 'templates' && (
@@ -272,10 +275,10 @@ const CustomizerLayout = () => {
         </div>
 
         {/* Canvas Workspace */}
-        <div className="flex-1 bg-gray-900 relative flex items-center justify-center overflow-auto p-8 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCI+PHBhdGggZD0iTTIwIDBoLTIwdjIwaDIweiIgZmlsbD0ibm9uZSIvPjxwYXRoIGQ9Ik0xOSAxOUgxVjFoMTh2MTh6IiBmaWxsPSJub25lIi8+PHBhdGggZD0iTTIwIDBoLTF2MTloLTE5djFoMjB6IiBmaWxsPSIjMjIyMjIyIiBvcGFjaXR5PSIuNSIvPjwvc3ZnPg==')]">
+        <div className="order-1 md:order-3 flex-1 bg-gray-900 relative flex flex-col items-center justify-center overflow-hidden md:overflow-auto p-4 md:p-8 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCI+PHBhdGggZD0iTTIwIDBoLTIwdjIwaDIweiIgZmlsbD0ibm9uZSIvPjxwYXRoIGQ9Ik0xOSAxOUgxVjFoMTh2MTh6IiBmaWxsPSJub25lIi8+PHBhdGggZD0iTTIwIDBoLTF2MTloLTE5djFoMjB6IiBmaWxsPSIjMjIyMjIyIiBvcGFjaXR5PSIuNSIvPjwvc3ZnPg==')]">
           
           {/* Product Color Picker Overlay */}
-          <div className="absolute top-6 right-6 bg-gray-900/80 backdrop-blur border border-gray-700 rounded-2xl p-4 flex flex-col gap-3 shadow-lg z-20">
+          <div className="absolute top-4 right-4 md:top-6 md:right-6 bg-gray-900/80 backdrop-blur border border-gray-700 rounded-2xl p-2 md:p-4 flex flex-col gap-2 md:gap-3 shadow-lg z-20 scale-90 md:scale-100 origin-top-right">
              <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Product Color</h3>
              <div className="flex flex-wrap max-w-[140px] gap-2">
                 {((product?.color && product.color.length > 0) ? product.color : ['#ffffff', '#000000', '#f87171', '#60a5fa', '#34d399', '#fbbf24']).map((color, idx) => {
@@ -301,11 +304,11 @@ const CustomizerLayout = () => {
           />
           
           {/* Bottom Zoom/View Controls */}
-          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-gray-900/80 backdrop-blur border border-gray-700 rounded-full px-4 py-2 flex items-center gap-4 shadow-lg">
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-gray-900/80 backdrop-blur border border-gray-700 rounded-full px-2 md:px-4 py-1 md:py-2 flex items-center gap-2 md:gap-4 shadow-lg scale-90 md:scale-100 whitespace-nowrap z-20 overflow-x-auto max-w-[90vw] custom-scrollbar">
              <button className="text-gray-300 hover:text-white">-</button>
              <span className="text-sm font-medium w-12 text-center">100%</span>
              <button className="text-gray-300 hover:text-white">+</button>
-             <div className="w-px h-4 bg-gray-700"></div>
+             <div className="w-px h-4 bg-gray-700 shrink-0"></div>
               {views.map((viewName, idx) => (
                 <button 
                   key={idx}

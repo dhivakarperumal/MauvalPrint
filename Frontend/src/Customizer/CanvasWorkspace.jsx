@@ -54,7 +54,7 @@ const CanvasWorkspace = ({ onCanvasReady, product, imageSrc, selectedProductColo
   const proxiedImageSrc = getProxyUrl(imageSrc || "https://via.placeholder.com/500x600.png?text=T-Shirt+Mockup");
 
   return (
-    <div className="w-[500px] h-[600px] bg-white rounded-2xl shadow-2xl relative flex items-center justify-center overflow-hidden">
+    <div className="w-full max-w-[500px] aspect-[5/6] bg-white rounded-2xl shadow-2xl relative flex items-center justify-center overflow-hidden shrink-0">
       {/* Colored Mask layer */}
       <div 
         className="absolute inset-0 w-full h-full pointer-events-none transition-colors duration-300 z-0"
@@ -79,8 +79,18 @@ const CanvasWorkspace = ({ onCanvasReady, product, imageSrc, selectedProductColo
       />
       
       {/* Canvas Area (Overlay on the T-shirt print area) */}
-      <div className="absolute top-24 z-10 w-[250px] h-[350px] border border-dashed border-gray-300">
-        <canvas ref={canvasRef} />
+      <div 
+        className="absolute z-10 border border-dashed border-gray-300"
+        style={{
+          top: "16%",
+          width: "50%",
+          height: "58.33%",
+          left: "25%"
+        }}
+      >
+        <div className="w-full h-full [&>div]:!w-full [&>div]:!h-full [&>div>canvas]:!w-full [&>div>canvas]:!h-full">
+          <canvas ref={canvasRef} />
+        </div>
       </div>
     </div>
   );
