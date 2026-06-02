@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Canvas, Rect } from 'fabric';
 
-const CanvasWorkspace = ({ onCanvasReady, product, imageSrc }) => {
+const CanvasWorkspace = ({ onCanvasReady, product, imageSrc, selectedProductColor }) => {
   const canvasRef = useRef(null);
   const [fabricCanvas, setFabricCanvas] = useState(null);
 
@@ -45,11 +45,27 @@ const CanvasWorkspace = ({ onCanvasReady, product, imageSrc }) => {
 
   return (
     <div className="w-[500px] h-[600px] bg-white rounded-2xl shadow-2xl relative flex items-center justify-center overflow-hidden">
-      {/* Background T-Shirt Image (Mocked) */}
+      {/* Colored Mask layer */}
+      <div 
+        className="absolute inset-0 w-full h-full pointer-events-none transition-colors duration-300 z-0"
+        style={{ 
+          backgroundColor: selectedProductColor || '#ffffff',
+          WebkitMaskImage: `url("${imageSrc || 'https://via.placeholder.com/500x600.png?text=T-Shirt+Mockup'}")`,
+          WebkitMaskSize: 'contain',
+          WebkitMaskRepeat: 'no-repeat',
+          WebkitMaskPosition: 'center',
+          maskImage: `url("${imageSrc || 'https://via.placeholder.com/500x600.png?text=T-Shirt+Mockup'}")`,
+          maskSize: 'contain',
+          maskRepeat: 'no-repeat',
+          maskPosition: 'center',
+        }}
+      />
+
+      {/* Texture/Shadows layer */}
       <img 
         src={imageSrc || "https://via.placeholder.com/500x600.png?text=T-Shirt+Mockup"} 
         alt={product?.name || "T-Shirt Mockup"} 
-        className="absolute inset-0 w-full h-full object-contain z-0 pointer-events-none transition-opacity duration-300"
+        className="absolute inset-0 w-full h-full object-contain mix-blend-multiply pointer-events-none z-0"
       />
       
       {/* Canvas Area (Overlay on the T-shirt print area) */}

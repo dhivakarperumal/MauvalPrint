@@ -18,6 +18,7 @@ const CustomizerLayout = () => {
   const [activeObject, setActiveObject] = useState(null);
   const [currentViewIndex, setCurrentViewIndex] = useState(0);
   const [viewStates, setViewStates] = useState({});
+  const [selectedProductColor, setSelectedProductColor] = useState('#ffffff');
 
   useEffect(() => {
     if (products && products.length > 0) {
@@ -87,18 +88,18 @@ const CustomizerLayout = () => {
     if (!file || !canvas) return;
     
     const reader = new FileReader();
-    reader.onload = (f) => {
+    reader.onload = async (f) => {
       const data = f.target.result;
-      const imgElement = new window.Image();
-      imgElement.src = data;
-      imgElement.onload = () => {
-        const img = new FabricImage(imgElement);
+      try {
+        const img = await FabricImage.fromURL(data);
         img.scaleToWidth(150);
         img.set({ left: 50, top: 50 });
         canvas.add(img);
         canvas.setActiveObject(img);
         canvas.requestRenderAll();
-      };
+      } catch (err) {
+        console.error("Upload error:", err);
+      }
     };
     reader.readAsDataURL(file);
     e.target.value = null; // Reset input
@@ -158,7 +159,7 @@ const CustomizerLayout = () => {
       customizedImage,
       isCustomized: true,
       selectedSize: 'M', // Defaulting for now
-      selectedColor: 'White', // Defaulting for now
+      selectedColor: selectedProductColor,
     };
 
     addToCart(customizedProduct, 1);
@@ -263,9 +264,30 @@ const CustomizerLayout = () => {
 
         {/* Canvas Workspace */}
         <div className="flex-1 bg-gray-900 relative flex items-center justify-center overflow-auto p-8 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCI+PHBhdGggZD0iTTIwIDBoLTIwdjIwaDIweiIgZmlsbD0ibm9uZSIvPjxwYXRoIGQ9Ik0xOSAxOUgxVjFoMTh2MTh6IiBmaWxsPSJub25lIi8+PHBhdGggZD0iTTIwIDBoLTF2MTloLTE5djFoMjB6IiBmaWxsPSIjMjIyMjIyIiBvcGFjaXR5PSIuNSIvPjwvc3ZnPg==')]">
+          
+          {/* Product Color Picker Overlay */}
+          <div className="absolute top-6 right-6 bg-gray-900/80 backdrop-blur border border-gray-700 rounded-2xl p-4 flex flex-col gap-3 shadow-lg z-20">
+             <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Product Color</h3>
+             <div className="flex flex-wrap max-w-[140px] gap-2">
+                {((product?.color && product.color.length > 0) ? product.color : ['#ffffff', '#000000', '#f87171', '#60a5fa', '#34d399', '#fbbf24']).map((color, idx) => {
+                  // If color is a string, handle it. Some APIs return an object, we assume string.
+                  const colorVal = typeof color === 'string' ? color : (color.hex || color.name || '#ffffff');
+                  return (
+                  <button
+                    key={idx}
+                    onClick={() => setSelectedProductColor(colorVal)}
+                    className={`w-8 h-8 rounded-full border-2 shadow-sm transition-transform hover:scale-110 ${selectedProductColor === colorVal ? 'border-indigo-500 scale-110' : 'border-gray-700'}`}
+                    style={{ backgroundColor: colorVal }}
+                    title={colorVal}
+                  />
+                )})}
+             </div>
+          </div>
+
           <CanvasWorkspace 
             product={product} 
             imageSrc={product.images?.[currentViewIndex] || product.images?.[0]} 
+            selectedProductColor={selectedProductColor}
             onCanvasReady={(c) => setCanvas(c)} 
           />
           
