@@ -1,14 +1,7 @@
 import React, { useState, useEffect } from "react";
-import {
-  collection,
-  getDocs,
-  updateDoc,
-  doc,
-  addDoc,
-} from "firebase/firestore";
-import { db } from "../../firebase";
 import toast from "react-hot-toast";
 import { FaSearch, FaList, FaThLarge, FaChevronDown, FaChevronUp } from "react-icons/fa";
+import api from "../../api";
 
 const getStatusBadge = (status) => {
   const base = "text-xs font-medium rounded px-2 py-1";
@@ -59,17 +52,21 @@ const ProccesingOrders = () => {
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const querySnapshot = await getDocs(collection(db, "orders"));
-        const orderList = querySnapshot.docs
-          .map((doc) => ({
-            ...doc.data(),
-            docId: doc.id,
-          }))
-          .filter(
+        const response = await api.get("/orders");
+        if (response.data.success) {
+          const orderList = response.data.orders.map(order => ({
+            ...order,
+            orderID: order.order_id,
+            paymentID: order.payment_id,
+            createdAt: { toDate: () => new Date(order.created_at || 0) }
+          })).filter(
             (order) =>
               order.status !== "Delivered" && order.status !== "Cancelled"
           );
-        setOrders(orderList);
+          setOrders(orderList);
+        } else {
+          toast.error(response.data.message || "Failed to load orders");
+        }
       } catch (error) {
         console.error("Error fetching orders:", error);
         toast.error("Failed to load orders");
@@ -144,9 +141,7 @@ const ProccesingOrders = () => {
     }
 
     try {
-      await updateDoc(doc(db, "orders", orderToUpdate.docId), {
-        status: newStatus,
-      });
+      await api.put(`/orders/${orderID}/status`, { status: newStatus });
 
       setOrders((prev) =>
         prev.map((order) =>
@@ -172,15 +167,7 @@ const ProccesingOrders = () => {
     if (!order) return;
 
     try {
-      await updateDoc(doc(db, "orders", order.docId), {
-        status: "Cancelled",
-      });
-
-      await addDoc(collection(db, "cancelOrders"), {
-        ...order,
-        cancelledAt: new Date().toISOString(),
-        reason,
-      });
+      await api.put(`/orders/${orderID}/status`, { status: "Cancelled", reason });
 
       setOrders((prev) =>
         prev.map((o) =>
@@ -194,7 +181,7 @@ const ProccesingOrders = () => {
         return updated;
       });
 
-      toast.success("Order cancelled and stored successfully");
+      toast.success("Order cancelled successfully");
     } catch (err) {
       console.error("Error cancelling order:", err);
       toast.error("Failed to cancel order");

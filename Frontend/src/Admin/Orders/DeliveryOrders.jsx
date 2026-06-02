@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { collection, getDocs, query, where } from "firebase/firestore";
-import { db } from "../../firebase";
 import toast from "react-hot-toast";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import { FaSearch, FaList, FaThLarge, FaChevronDown, FaChevronUp } from "react-icons/fa";
+import api from "../../api";
 
 const getStatusBadge = (status) => {
   const base = "px-2 py-0.5 text-xs rounded font-semibold";
@@ -27,18 +26,21 @@ const DeliveryOrders = () => {
   useEffect(() => {
     const fetchDeliveredOrders = async () => {
       try {
-        const q = query(
-          collection(db, "orders"),
-          where("status", "==", "Delivered")
-        );
-        const querySnapshot = await getDocs(q);
-        const deliveredOrders = querySnapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-        setOrders(deliveredOrders);
+        const response = await api.get("/orders");
+        if (response.data.success) {
+          const deliveredOrders = response.data.orders.map(order => ({
+            ...order,
+            orderID: order.order_id,
+            paymentID: order.payment_id,
+            createdAt: { toDate: () => new Date(order.created_at || 0) }
+          })).filter((order) => order.status === "Delivered");
+          setOrders(deliveredOrders);
+        } else {
+          toast.error(response.data.message || "Failed to load orders");
+        }
       } catch (error) {
         console.error("Error fetching delivered orders:", error);
+        toast.error("Failed to load orders");
       }
     };
 

@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { collection, getDocs } from "firebase/firestore";
-import { db } from "../../firebase";
 import toast from "react-hot-toast";
 import { FaSearch, FaList, FaThLarge, FaChevronDown, FaChevronUp } from "react-icons/fa";
+import api from "../../api";
 
 const getStatusBadge = (status) => {
   const base = "px-2 py-0.5 text-xs rounded font-semibold";
@@ -25,12 +24,20 @@ const CancelOrders = () => {
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const querySnapshot = await getDocs(collection(db, "cancelOrders"));
-        const orderList = querySnapshot.docs.map((doc) => ({
-          ...doc.data(),
-          id: doc.id,
-        }));
-        setCancelledOrders(orderList);
+        const response = await api.get("/orders");
+        if (response.data.success) {
+          const orderList = response.data.orders.map(order => ({
+            ...order,
+            id: order.order_id,
+            orderID: order.order_id,
+            paymentID: order.payment_id,
+            cancelledAt: order.updated_at,
+            createdAt: { toDate: () => new Date(order.created_at || 0) }
+          })).filter(order => order.status === "Cancelled");
+          setCancelledOrders(orderList);
+        } else {
+          toast.error(response.data.message || "Failed to load cancelled orders");
+        }
       } catch (error) {
         console.error("Error fetching cancelled orders:", error);
         toast.error("Failed to load cancelled orders");
