@@ -9,16 +9,7 @@ import logoimg from '/Image/lo.png'
 
 import Head from "../Components/Head";
 import { AuthContext } from "../Context/AuthContext";
-import { db } from "../firebase";
-import {
-  collection,
-  getDocs,
-  addDoc,
-  serverTimestamp,
-  doc,
-  getDoc,
-  updateDoc,
-} from "firebase/firestore";
+import api from "../api";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -48,23 +39,26 @@ const Checkout = () => {
   useEffect(() => {
     const loadAddresses = async () => {
       if (!user) return;
-      const snapshot = await getDocs(
-        collection(db, "users", user.uid, "address")
-      );
-      const uniqueAddresses = [];
-      const seen = new Set();
-      snapshot.docs.forEach((docSnap) => {
-        const data = docSnap.data();
-        const key = `${data.fullname}-${data.contact}-${data.zip}`;
-        if (!seen.has(key)) {
-          seen.add(key);
-          uniqueAddresses.push({ id: docSnap.id, ...data });
+      try {
+        const { data } = await api.get(`/users/${user.uid}/addresses`);
+        if (data.success && data.addresses) {
+          const uniqueAddresses = [];
+          const seen = new Set();
+          data.addresses.forEach((addr) => {
+            const key = `${addr.fullname}-${addr.contact}-${addr.zip}`;
+            if (!seen.has(key)) {
+              seen.add(key);
+              uniqueAddresses.push(addr);
+            }
+          });
+          setSavedAddresses(uniqueAddresses);
+          if (uniqueAddresses.length) {
+            setSelectedAddressIdx(0);
+            handleAddressSelect(0, uniqueAddresses);
+          }
         }
-      });
-      setSavedAddresses(uniqueAddresses);
-      if (uniqueAddresses.length) {
-        setSelectedAddressIdx(0);
-        handleAddressSelect(0, uniqueAddresses);
+      } catch (err) {
+        console.error("Failed to load addresses:", err);
       }
     };
     loadAddresses();
@@ -105,46 +99,25 @@ const Checkout = () => {
     form.current.zipcode.value = addr.zip;
     form.current.country.value = addr.country;
   };
-  const generateOrderIDFromOrders = async (prefix = "ORD") => {
-    const ordersSnapshot = await getDocs(collection(db, "orders"));
-    let maxNumber = 0;
+  const handlePayment = async (e) => {
+    e.preventDefault();
 
-    ordersSnapshot.forEach((docSnap) => {
-      const order = docSnap.data();
-      const match = order.orderID?.match(/\d+$/); 
-      if (match) {
-        const num = parseInt(match[0]);
-        if (!isNaN(num) && num > maxNumber) {
-          maxNumber = num;
-        }
-      }
-    });
+    if (!razorpayLoaded || !window.Razorpay) {
+      toast.error("Payment gateway is not loaded. Please try again.");
+      return;
+    }
 
-    const nextNumber = maxNumber + 1;
-    return `${prefix}${nextNumber.toString().padStart(4, "0")}`;
-  };
+    if (!user) {
+      toast.error("You must be logged in to place an order.");
+      return;
+    }
 
+    if (itemsToShow.length === 0) {
+      toast.error("Your cart is empty.");
+      return;
+    }
 
-const handlePayment = async (e) => {
-  e.preventDefault();
-
-  if (!razorpayLoaded || !window.Razorpay) {
-    toast.error("Payment gateway is not loaded. Please try again.");
-    return;
-  }
-
-  if (!user) {
-    toast.error("You must be logged in to place an order.");
-    return;
-  }
-
-  if (itemsToShow.length === 0) {
-    toast.error("Your cart is empty.");
-    return;
-  }
-
-  setIsSavingOrder(true);
-  const orderID = await generateOrderIDFromOrders();
+    setIsSavingOrder(true);
   const FD = new FormData(form.current);
 
   // -------------------- SHIPPING ADDRESS --------------------
@@ -203,61 +176,36 @@ const handlePayment = async (e) => {
           item.name.toLowerCase().includes("custom logo print")
         );
 
-        const finalOrderID = await generateOrderIDFromOrders(
-          isCustomLogoPrint ? "OFP" : "ORD"
-        );
-
         // -------------------- ORDER DATA --------------------
         const orderData = {
           checkout: { ...billing, paymentID, date: dateStr },
           cart: trimmedCart,
           total: payable,
           paymentID,
-          orderID: finalOrderID,
-          createdAt: serverTimestamp(),
-          status: "Placed",
+          isCustomLogoPrint,
+          userId: user.uid,
+          userEmail: user.email,
         };
 
-        // -------------------- SAVE ORDER TO FIRESTORE --------------------
-        await Promise.all([
-          addDoc(collection(db, "users", user.uid, "orders"), orderData),
-          addDoc(collection(db, "orders"), {
-            ...orderData,
-            userId: user.uid,
-            userEmail: user.email,
-          }),
-        ]);
+        // -------------------- SAVE ORDER TO MYSQL --------------------
+        const { data: orderRes } = await api.post("/orders/web-checkout", orderData);
+        if (!orderRes.success) {
+          throw new Error(orderRes.message || "Failed to place order.");
+        }
+        const finalOrderID = orderRes.order_id;
 
         // -------------------- UPDATE STOCK --------------------
         await Promise.all(
           trimmedCart.map(async (item) => {
             if (!item.productId || !item.color || !item.size) return;
-            const variantKey = `${item.color}-${item.size}`;
-            const productRef = doc(db, "products", item.productId);
-            const productSnap = await getDoc(productRef);
-
-            if (productSnap.exists()) {
-              const productData = productSnap.data();
-              const stockByVariant = productData.stockByVariant || {};
-
-              if (stockByVariant[variantKey] >= item.quantity) {
-                stockByVariant[variantKey] -= item.quantity;
-              } else {
-                toast.error(
-                  `Not enough stock for ${item.name} - ${variantKey}`
-                );
-                return;
-              }
-
-              const totalStock = Object.values(stockByVariant).reduce(
-                (sum, val) => sum + val,
-                0
-              );
-
-              await updateDoc(productRef, {
-                stockByVariant,
-                stock: totalStock,
+            try {
+              await api.put(`/products/${item.productId}/reduce-stock`, {
+                color: item.color,
+                size: item.size,
+                quantity: item.quantity,
               });
+            } catch (err) {
+              console.error(`Failed to reduce stock for ${item.name}`, err);
             }
           })
         );
@@ -278,7 +226,11 @@ const handlePayment = async (e) => {
         );
 
         if (!addressExists) {
-          await addDoc(collection(db, "users", user.uid, "address"), billing);
+          try {
+            await api.post(`/users/${user.uid}/addresses`, billing);
+          } catch (err) {
+            console.error("Failed to save address:", err);
+          }
         }
 
         // -------------------- SEND CONFIRMATION EMAIL --------------------

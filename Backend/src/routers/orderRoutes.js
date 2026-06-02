@@ -1,6 +1,7 @@
 const express = require("express");
 const {
   createOrder,
+  createWebOrder,
   getOrders,
   getOrderById,
   updateOrderStatus,
@@ -10,6 +11,7 @@ const {
 const router = express.Router();
 
 router.post("/", createOrder);
+router.post("/web-checkout", createWebOrder);
 router.get("/", getOrders);
 router.get("/:id", getOrderById);
 router.put("/:id/status", updateOrderStatus);

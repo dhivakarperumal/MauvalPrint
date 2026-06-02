@@ -516,12 +516,64 @@ const fixProductDesignFlag = async (req, res) => {
   }
 };
 
+const reduceStock = async (req, res) => {
+  const { id } = req.params; 
+  const { color, size, quantity } = req.body;
+
+  const reduced = Number(quantity);
+  if (!color || !size || isNaN(reduced) || reduced <= 0) {
+    return res.status(400).json({ success: false, message: "Color, size, and a valid quantity are required." });
+  }
+
+  try {
+    const pool = req.app.locals.pool;
+
+    const [rows] = await pool.query(
+      "SELECT stock, stock_by_variant FROM products WHERE product_id = ?",
+      [id]
+    );
+    if (rows.length === 0) {
+      return res.status(404).json({ success: false, message: "Product not found." });
+    }
+
+    const product = rows[0];
+    let stockByVariant = {};
+    try {
+      stockByVariant = typeof product.stock_by_variant === "string" ? JSON.parse(product.stock_by_variant) : product.stock_by_variant || {};
+    } catch {
+      stockByVariant = {};
+    }
+
+    const key = `${color}-${size}`;
+    const currentQty = Number(stockByVariant[key] || 0);
+    
+    if (currentQty < reduced) {
+      return res.status(400).json({ success: false, message: `Not enough stock for ${key}. Available: ${currentQty}` });
+    }
+
+    stockByVariant[key] = currentQty - reduced;
+    const updatedTotalStock = Math.max(0, Number(product.stock || 0) - reduced);
+    const timestamp = new Date().toISOString().slice(0, 19).replace("T", " ");
+
+    await pool.query(
+      "UPDATE products SET stock = ?, stock_by_variant = ?, updated_at = ? WHERE product_id = ?",
+      [updatedTotalStock, JSON.stringify(stockByVariant), timestamp, id]
+    );
+
+    res.status(200).json({ success: true, message: `Stock reduced: ${key} = ${stockByVariant[key]}` });
+  } catch (error) {
+    console.error("Reduce stock error:", error);
+    res.status(500).json({ success: false, message: "Could not reduce stock." });
+  }
+};
+
 module.exports = {
   getProducts,
   addProduct,
   updateProduct,
   deleteProduct,
   updateStock,
+  reduceStock,
   getCategories,
   addCategory,
   updateCategory,

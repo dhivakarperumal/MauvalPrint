@@ -5,6 +5,7 @@ const {
   updateProduct,
   deleteProduct,
   updateStock,
+  reduceStock,
   getCategories,
   addCategory,
   updateCategory,
@@ -17,6 +18,7 @@ router.get("/products", getProducts);
 router.post("/products", addProduct);
 router.put("/products/:id", updateProduct);
 router.put("/products/:id/stock", updateStock);
+router.put("/products/:id/reduce-stock", reduceStock);
 router.delete("/products/:id", deleteProduct);
 router.get("/categories", getCategories);
 router.post("/categories", addCategory);

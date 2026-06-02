@@ -177,8 +177,53 @@ const parseJSON = (value, fallback) => {
   }
 };
 
+const createWebOrder = async (req, res) => {
+  const { checkout, cart, total, paymentID, isCustomLogoPrint, userId, userEmail } = req.body;
+  try {
+    const pool = req.app.locals.pool;
+    const prefix = isCustomLogoPrint ? "OFP" : "ORD";
+    
+    // Generate order ID
+    const [rows] = await pool.query(
+      "SELECT MAX(CAST(SUBSTRING(order_id, 4) AS UNSIGNED)) AS max_id FROM orders WHERE order_id LIKE ?",
+      [`${prefix}%`]
+    );
+    const nextNumber = (rows?.[0]?.max_id || 0) + 1;
+    const orderId = `${prefix}${String(nextNumber).padStart(4, "0")}`;
+    
+    const timestamp = new Date().toISOString().slice(0, 19).replace("T", " ");
+
+    await pool.query(
+      `INSERT INTO orders (order_id, user_id, user_email, checkout, cart, total, payment_id, status, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        orderId,
+        userId || null,
+        userEmail || null,
+        JSON.stringify(checkout || {}),
+        JSON.stringify(cart || []),
+        total || 0,
+        paymentID || null,
+        "Placed",
+        timestamp,
+        timestamp,
+      ]
+    );
+
+    res.status(201).json({
+      success: true,
+      message: "Order placed successfully.",
+      order_id: orderId,
+    });
+  } catch (error) {
+    console.error("Create web order error:", error);
+    res.status(500).json({ success: false, message: "Could not create web order." });
+  }
+};
+
 module.exports = {
   createOrder,
+  createWebOrder,
   getOrders,
   getOrderById,
   updateOrderStatus,

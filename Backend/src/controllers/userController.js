@@ -360,4 +360,45 @@ const deleteUser = async (req, res) => {
   }
 };
 
-module.exports = { register, login, getUsers, updateUser, updateUserStatus, deleteUser };
+const getUserAddresses = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const pool = req.app.locals.pool;
+    const [rows] = await pool.query(
+      "SELECT * FROM user_addresses WHERE user_id = ? ORDER BY created_at DESC",
+      [id]
+    );
+    const addresses = rows.map((r) => {
+      let parsed;
+      try {
+        parsed = typeof r.address === "string" ? JSON.parse(r.address) : r.address;
+      } catch (e) {
+        parsed = {};
+      }
+      return { id: r.id, ...parsed };
+    });
+    res.status(200).json({ success: true, addresses });
+  } catch (error) {
+    console.error("Get user addresses error:", error);
+    res.status(500).json({ success: false, message: "Could not fetch user addresses." });
+  }
+};
+
+const addUserAddress = async (req, res) => {
+  const { id } = req.params;
+  const addressData = req.body;
+  try {
+    const pool = req.app.locals.pool;
+    const timestamp = new Date().toISOString().slice(0, 19).replace("T", " ");
+    const [result] = await pool.query(
+      "INSERT INTO user_addresses (user_id, address, created_at, updated_at) VALUES (?, ?, ?, ?)",
+      [id, JSON.stringify(addressData), timestamp, timestamp]
+    );
+    res.status(201).json({ success: true, message: "Address added successfully.", address_id: result.insertId });
+  } catch (error) {
+    console.error("Add user address error:", error);
+    res.status(500).json({ success: false, message: "Could not add user address." });
+  }
+};
+
+module.exports = { register, login, getUsers, updateUser, updateUserStatus, deleteUser, getUserAddresses, addUserAddress };
