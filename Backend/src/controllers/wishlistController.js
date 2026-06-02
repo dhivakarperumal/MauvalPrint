@@ -34,24 +34,14 @@ exports.addWishlist = async (req, res) => {
   (
     user_id,
     product_id,
-    product_name,
-    mrp,
-    sale_price,
-    offer,
-    product_image,
     item_data,
     created_at
   )
-  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+  VALUES (?, ?, ?, ?)`,
             [
                 user_id,
                 product_id,
-                item_data.name || "",
-                item_data.mrp || 0,
-                item_data.salePrice || item_data.sale_price || 0,
-                item_data.offer || 0,
-                item_data.images?.[0] || "",
-                JSON.stringify(item_data),
+                JSON.stringify(item_data || {}),
                 new Date()
             ]
         );

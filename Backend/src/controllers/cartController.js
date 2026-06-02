@@ -15,36 +15,41 @@ exports.addCart = async (req, res) => {
     const selected_color = (item_data && (item_data.selectedColor || item_data.selected_color)) || '';
 
     const [existing] = await pool.execute(
-      `SELECT id, quantity
+      `SELECT id, quantity, item_data
        FROM user_cart
-       WHERE user_id=? AND product_id=? AND COALESCE(selected_size,'')=? AND COALESCE(selected_color,'')=?`,
-      [user_id, product_id, selected_size, selected_color]
+       WHERE user_id=? AND product_id=?`,
+      [user_id, product_id]
     );
 
-    if (existing.length > 0) {
+    let matchId = null;
+    let matchQuantity = 0;
+
+    for (const row of existing) {
+      let parsed = {};
+      try {
+        parsed = JSON.parse(row.item_data || "{}");
+      } catch (e) {}
+
+      const rowSize = parsed.selectedSize || parsed.selected_size || "";
+      const rowColor = parsed.selectedColor || parsed.selected_color || "";
+
+      if (rowSize === selected_size && rowColor === selected_color) {
+        matchId = row.id;
+        matchQuantity = row.quantity;
+        break;
+      }
+    }
+
+    if (matchId) {
       await pool.execute(
         `UPDATE user_cart
          SET quantity = quantity + ?, updated_at = ?
-         WHERE user_id=? AND product_id=? AND COALESCE(selected_size,'')=? AND COALESCE(selected_color,'')=?`,
-        [quantity, new Date(), user_id, product_id, selected_size, selected_color]
+         WHERE id=?`,
+        [quantity, new Date(), matchId]
       );
 
       return res.json({ success: true, message: "Cart updated" });
     }
-
-    // Determine some friendly columns from item_data for easier querying
-    const product_name = (item_data && (item_data.name || item_data.title || '')) || '';
-    const mrp =
-      item_data?.mrp ||
-      item_data?.price ||
-      0;
-
-    const sale_price =
-      item_data?.salePrice ||
-      item_data?.sale_price ||
-      item_data?.price ||
-      0;
-    const product_image = (item_data && item_data.images && item_data.images[0]) || (item_data && item_data.product_image) || '';
 
     await pool.execute(
       `INSERT INTO user_cart
@@ -52,26 +57,14 @@ exports.addCart = async (req, res) => {
         user_id,
         product_id,
         quantity,
-        product_name,
-        mrp,
-        sale_price,
-        product_image,
-        selected_size,
-        selected_color,
         item_data,
         created_at
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      VALUES (?, ?, ?, ?, ?)`,
       [
         user_id,
         product_id,
         quantity,
-        product_name,
-        mrp,
-        sale_price,
-        product_image,
-        selected_size,
-        selected_color,
         JSON.stringify(item_data || {}),
         new Date()
       ]
@@ -111,15 +104,15 @@ exports.getCart = async (req, res) => {
       }
 
       return {
-        id: item.product_id || item.id,
-        name: item.product_name || parsed.name || parsed.title || "",
-        price: item.sale_price || parsed.salePrice || parsed.sale_price || parsed.price || parsed.mrp || 0,
-        mrp: item.mrp || parsed.mrp || 0,
-        image: item.product_image || (parsed.images && parsed.images[0]) || parsed.product_image || parsed.image || "",
+        id: item.product_id,
+        name: parsed.name || parsed.title || "",
+        price: parsed.salePrice || parsed.sale_price || parsed.price || parsed.mrp || 0,
+        mrp: parsed.mrp || 0,
+        image: (parsed.images && parsed.images[0]) || parsed.product_image || parsed.image || "",
         images: parsed.images || [],
         quantity: item.quantity,
-        selectedSize: item.selected_size || parsed.selectedSize || parsed.selected_size || "",
-        selectedColor: item.selected_color || parsed.selectedColor || parsed.selected_color || "",
+        selectedSize: parsed.selectedSize || parsed.selected_size || "",
+        selectedColor: parsed.selectedColor || parsed.selected_color || "",
         item_data: parsed,
       };
     });
@@ -147,11 +140,36 @@ exports.removeCart = async (req, res) => {
     const selected_size = req.query.size || req.query.selectedSize || req.query.selected_size || '';
     const selected_color = req.query.color || req.query.selectedColor || req.query.selected_color || '';
 
-    await pool.execute(
-      `DELETE FROM user_cart
-       WHERE user_id=? AND product_id=? AND COALESCE(selected_size,'')=? AND COALESCE(selected_color,'')=?`,
-      [user_id, product_id, selected_size, selected_color]
+    const [existing] = await pool.execute(
+      `SELECT id, item_data
+       FROM user_cart
+       WHERE user_id=? AND product_id=?`,
+      [user_id, product_id]
     );
+
+    let matchId = null;
+    for (const row of existing) {
+      let parsed = {};
+      try {
+        parsed = JSON.parse(row.item_data || "{}");
+      } catch (e) {}
+
+      const rowSize = parsed.selectedSize || parsed.selected_size || "";
+      const rowColor = parsed.selectedColor || parsed.selected_color || "";
+
+      if (rowSize === selected_size && rowColor === selected_color) {
+        matchId = row.id;
+        break;
+      }
+    }
+
+    if (matchId) {
+      await pool.execute(
+        `DELETE FROM user_cart
+         WHERE id=?`,
+        [matchId]
+      );
+    }
 
     res.json({
       success: true
@@ -173,10 +191,35 @@ exports.updateCart = async (req, res) => {
     const { user_id, product_id, selectedSize, selected_color, selectedColor, quantity } = req.body;
     const selected_size = selectedSize || selected_color || selectedColor || '';
 
-    await pool.execute(
-      `UPDATE user_cart SET quantity = ?, updated_at = ? WHERE user_id=? AND product_id=? AND COALESCE(selected_size,'')=?`,
-      [quantity, new Date(), user_id, product_id, selected_size]
+    const [existing] = await pool.execute(
+      `SELECT id, item_data
+       FROM user_cart
+       WHERE user_id=? AND product_id=?`,
+      [user_id, product_id]
     );
+
+    let matchId = null;
+    for (const row of existing) {
+      let parsed = {};
+      try {
+        parsed = JSON.parse(row.item_data || "{}");
+      } catch (e) {}
+
+      const rowSize = parsed.selectedSize || parsed.selected_size || "";
+      const rowColor = parsed.selectedColor || parsed.selected_color || "";
+
+      if (rowSize === selected_size) { // Wait, the original code had COALESCE(selected_size, '')=? which only checked selected_size. I will match that logic.
+        matchId = row.id;
+        break;
+      }
+    }
+
+    if (matchId) {
+      await pool.execute(
+        `UPDATE user_cart SET quantity = ?, updated_at = ? WHERE id=?`,
+        [quantity, new Date(), matchId]
+      );
+    }
 
     res.json({ success: true });
   } catch (error) {
