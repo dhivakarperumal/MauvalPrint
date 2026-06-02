@@ -187,7 +187,6 @@ export function AuthProvider({ children }) {
   const addToCart = async (product, quantity = 1) => {
     if (!user) return toast.error("Login required");
     let customizedImageUrl = product.customizedImage;
-    toast.success("Added to cart");
     if (
       product.customizedImage &&
       product.customizedImage.startsWith("data:image/")
