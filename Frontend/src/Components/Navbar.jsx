@@ -29,8 +29,7 @@ import Search from "./Search";
 import CartSidebar from "../Products/CartSidebar";
 import Wishlist from "../Products/Wishlist";
 import Orders from "../Products/Orders";
-import { collection, getDocs, onSnapshot } from "firebase/firestore";
-import { db } from "../firebase";
+import api from "../api";
 import { toast } from "react-toastify";
 
 export default function Navbar() {
@@ -112,13 +111,21 @@ export default function Navbar() {
       return;
     }
 
-    const userOrdersRef = collection(db, "users", user.uid, "orders");
+    const fetchOrderCount = async () => {
+      try {
+        const { data } = await api.get(`/orders/user/${user.uid}`);
+        if (data.success && Array.isArray(data.orders)) {
+          setOrdersCount(data.orders.length);
+        } else {
+          setOrdersCount(0);
+        }
+      } catch (error) {
+        console.error("Error fetching order count:", error);
+        setOrdersCount(0);
+      }
+    };
 
-    const unsubscribe = onSnapshot(userOrdersRef, (snapshot) => {
-      setOrdersCount(snapshot.size);
-    });
-
-    return () => unsubscribe();
+    fetchOrderCount();
   }, [user?.uid]);
 
   useEffect(() => {
