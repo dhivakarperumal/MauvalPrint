@@ -179,26 +179,28 @@ const CustomizerLayout = () => {
   return (
     <div className="h-screen w-full bg-gray-900 text-white flex flex-col font-sans overflow-hidden">
       {/* Top Navigation Bar */}
-      <header className="h-14 border-b border-gray-800 bg-gray-950 flex items-center justify-between px-4 shrink-0">
-        <div className="flex items-center gap-4">
+      <header className="h-auto min-h-[3.5rem] border-b border-gray-800 bg-gray-950 flex flex-wrap items-center justify-between px-2 md:px-4 py-2 shrink-0 gap-y-2">
+        <div className="flex items-center gap-2 md:gap-4">
           <button 
             onClick={() => navigate(-1)}
-            className="p-2 hover:bg-gray-800 rounded-full transition"
+            className="p-1.5 md:p-2 hover:bg-gray-800 rounded-full transition"
           >
             <IoArrowBack size={20} />
           </button>
-          <h1 className="text-sm font-semibold tracking-wide">
-            Product Customizer <span className="text-gray-500 font-normal">| {productId}</span>
+          <h1 className="text-xs md:text-sm font-semibold tracking-wide">
+            <span className="hidden sm:inline">Product Customizer</span>
+            <span className="sm:hidden">Customizer</span>
+            <span className="text-gray-500 font-normal ml-1">| {productId}</span>
           </h1>
         </div>
         
-        <div className="flex items-center gap-3">
-          <span className="text-sm font-medium mr-4">Total: ₹{product.salePrice || product.price || 0}</span>
-          <button className="px-4 py-1.5 text-sm font-medium border border-gray-700 hover:bg-gray-800 rounded transition flex items-center gap-2">
-            <IoDownloadOutline size={16} /> Preview
+        <div className="flex items-center gap-2 md:gap-3">
+          <span className="text-xs md:text-sm font-medium mr-1 md:mr-4">₹{product.salePrice || product.price || 0}</span>
+          <button className="px-2 md:px-4 py-1.5 text-xs md:text-sm font-medium border border-gray-700 hover:bg-gray-800 rounded transition flex items-center gap-1 md:gap-2">
+            <IoDownloadOutline size={16} /> <span className="hidden md:inline">Preview</span>
           </button>
-          <button onClick={handlePlaceOrder} className="px-4 py-1.5 text-sm font-medium bg-indigo-600 hover:bg-indigo-700 text-white rounded transition flex items-center gap-2 cursor-pointer">
-            <IoCartOutline size={16} /> Place Order
+          <button onClick={handlePlaceOrder} className="px-3 md:px-4 py-1.5 text-xs md:text-sm font-medium bg-indigo-600 hover:bg-indigo-700 text-white rounded transition flex items-center gap-1 md:gap-2 cursor-pointer">
+            <IoCartOutline size={16} /> <span className="hidden sm:inline">Place Order</span><span className="sm:hidden">Order</span>
           </button>
         </div>
       </header>
