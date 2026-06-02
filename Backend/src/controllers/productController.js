@@ -139,6 +139,29 @@ const updateProduct = async (req, res) => {
     images,
     our_design,
     customizable,
+    keyword,
+    keywords,
+    washing_details,
+    notes,
+    stock_by_variant,
+    size_chart_image,
+  } = req.body;
+
+  if (!id) {
+    return res.status(400).json({
+      success: false,
+      message: "Product ID is required.",
+    });
+  }
+
+  try {
+    const pool = req.app.locals.pool;
+    const timestamp = new Date().toISOString().slice(0, 19).replace("T", " ");
+    const queryBase = "UPDATE products SET ";
+    const fields = [];
+    const values = [];
+
+    if (title !== undefined) {
       fields.push("title = ?");
       values.push(title);
     }
@@ -231,12 +254,18 @@ const updateProduct = async (req, res) => {
       values.push(size_chart_image);
     }
 
+    if (fields.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "No fields provided to update.",
+      });
+    }
+
     fields.push("updated_at = ?");
     values.push(timestamp);
     values.push(id);
 
-    query += fields.join(", ") + " WHERE product_id = ?";
-
+    const query = queryBase + fields.join(", ") + " WHERE product_id = ?";
     const [result] = await pool.query(query, values);
 
     if (result.affectedRows === 0) {
