@@ -185,73 +185,123 @@ const ProductList = ({ setSelectedProduct, setActiveTab }) => {
   return (
     <div className="p-4 bg-gray-50 min-h-screen relative">
 
-       {/* Product Count Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <div
-          onClick={() => setProductTypeFilter("All")}
-          className={`cursor-pointer rounded-xl p-4 flex items-center gap-4 border transition-all duration-300 ${
-            productTypeFilter === "All"
-              ? "bg-blue-900 text-white border-blue-900 shadow-lg shadow-blue-900/20"
-              : "bg-white text-gray-800 border-gray-200 hover:shadow-md hover:border-blue-200"
-          }`}
-        >
-          <div className={`p-3 rounded-lg ${productTypeFilter === "All" ? "bg-white/20" : "bg-blue-50"}`}>
-            <FaCubes className={`text-xl ${productTypeFilter === "All" ? "text-white" : "text-blue-600"}`} />
-          </div>
-          <div>
-            <p className={`text-2xl font-extrabold ${productTypeFilter === "All" ? "text-white" : "text-blue-900"}`}>{products.length}</p>
-            <p className={`text-xs font-semibold uppercase tracking-wider ${productTypeFilter === "All" ? "text-blue-100" : "text-gray-500"}`}>All Products</p>
-          </div>
-        </div>
+      {/* Product Count Cards */}
+      {(() => {
+        const totalCount = products.length;
+        const normalCount = products.filter(p => p.our_design === true).length;
+        const customiseCount = products.filter(p => p.our_design === false).length;
+        const normalPercent = totalCount > 0 ? Math.round((normalCount / totalCount) * 100) : 0;
+        const customisePercent = totalCount > 0 ? Math.round((customiseCount / totalCount) * 100) : 0;
 
-        <div
-          onClick={() => setProductTypeFilter("Normal")}
-          className={`cursor-pointer rounded-xl p-4 flex items-center gap-4 border transition-all duration-300 ${
-            productTypeFilter === "Normal"
-              ? "bg-emerald-600 text-white border-emerald-600 shadow-lg shadow-emerald-600/20"
-              : "bg-white text-gray-800 border-gray-200 hover:shadow-md hover:border-emerald-200"
-          }`}
-        >
-          <div className={`p-3 rounded-lg ${productTypeFilter === "Normal" ? "bg-white/20" : "bg-emerald-50"}`}>
-            <FaBox className={`text-xl ${productTypeFilter === "Normal" ? "text-white" : "text-emerald-600"}`} />
-          </div>
-          <div>
-            <p className={`text-2xl font-extrabold ${productTypeFilter === "Normal" ? "text-white" : "text-emerald-700"}`}>{products.filter(p => p.our_design === true).length}</p>
-            <p className={`text-xs font-semibold uppercase tracking-wider ${productTypeFilter === "Normal" ? "text-emerald-100" : "text-gray-500"}`}>Normal</p>
-          </div>
-        </div>
+        return (
+          <div className="grid grid-cols-1 sm:grid-cols-2 mt-6 lg:grid-cols-4 gap-5 mb-8">
+            {/* All Products */}
+            <div
+              onClick={() => setProductTypeFilter("All")}
+              className={`cursor-pointer group relative overflow-hidden rounded-2xl p-5 transition-all duration-500 hover:-translate-y-1 ${
+                productTypeFilter === "All"
+                  ? "shadow-xl shadow-blue-500/25 ring-2 ring-blue-400/50"
+                  : "shadow-md hover:shadow-xl"
+              }`}
+              style={{ background: "linear-gradient(135deg, #1e3a8a 0%, #3b82f6 50%, #60a5fa 100%)" }}
+            >
+              <div className="absolute -top-4 -right-4 w-24 h-24 rounded-full bg-white/10 group-hover:scale-150 transition-transform duration-700"></div>
+              <div className="absolute -bottom-6 -left-6 w-20 h-20 rounded-full bg-white/5"></div>
+              <div className="relative z-10 flex items-center justify-between">
+                <div>
+                  <p className="text-white/70 text-xs font-semibold uppercase tracking-widest mb-1">All Products</p>
+                  <p className="text-white text-4xl font-black tracking-tight">{totalCount}</p>
+                  <p className="text-blue-200 text-[11px] mt-2 font-medium">Total inventory items</p>
+                </div>
+                <div className="bg-white/15 backdrop-blur-sm p-4 rounded-2xl border border-white/20 group-hover:rotate-12 transition-transform duration-500">
+                  <FaCubes className="text-white text-2xl" />
+                </div>
+              </div>
+              <div className="mt-4 w-full h-1 bg-white/20 rounded-full overflow-hidden">
+                <div className="h-full bg-white/60 rounded-full" style={{ width: "100%" }}></div>
+              </div>
+            </div>
 
-        <div
-          onClick={() => setProductTypeFilter("Customise")}
-          className={`cursor-pointer rounded-xl p-4 flex items-center gap-4 border transition-all duration-300 ${
-            productTypeFilter === "Customise"
-              ? "bg-purple-600 text-white border-purple-600 shadow-lg shadow-purple-600/20"
-              : "bg-white text-gray-800 border-gray-200 hover:shadow-md hover:border-purple-200"
-          }`}
-        >
-          <div className={`p-3 rounded-lg ${productTypeFilter === "Customise" ? "bg-white/20" : "bg-purple-50"}`}>
-            <FaPaintBrush className={`text-xl ${productTypeFilter === "Customise" ? "text-white" : "text-purple-600"}`} />
-          </div>
-          <div>
-            <p className={`text-2xl font-extrabold ${productTypeFilter === "Customise" ? "text-white" : "text-purple-700"}`}>{products.filter(p => p.our_design === false).length}</p>
-            <p className={`text-xs font-semibold uppercase tracking-wider ${productTypeFilter === "Customise" ? "text-purple-100" : "text-gray-500"}`}>Customise</p>
-          </div>
-        </div>
+            {/* Normal Products */}
+            <div
+              onClick={() => setProductTypeFilter("Normal")}
+              className={`cursor-pointer group relative overflow-hidden rounded-2xl p-5 transition-all duration-500 hover:-translate-y-1 ${
+                productTypeFilter === "Normal"
+                  ? "shadow-xl shadow-emerald-500/25 ring-2 ring-emerald-400/50"
+                  : "shadow-md hover:shadow-xl"
+              }`}
+              style={{ background: "linear-gradient(135deg, #065f46 0%, #10b981 50%, #34d399 100%)" }}
+            >
+              <div className="absolute -top-4 -right-4 w-24 h-24 rounded-full bg-white/10 group-hover:scale-150 transition-transform duration-700"></div>
+              <div className="absolute -bottom-6 -left-6 w-20 h-20 rounded-full bg-white/5"></div>
+              <div className="relative z-10 flex items-center justify-between">
+                <div>
+                  <p className="text-white/70 text-xs font-semibold uppercase tracking-widest mb-1">Normal</p>
+                  <p className="text-white text-4xl font-black tracking-tight">{normalCount}</p>
+                  <p className="text-emerald-200 text-[11px] mt-2 font-medium">{normalPercent}% of total</p>
+                </div>
+                <div className="bg-white/15 backdrop-blur-sm p-4 rounded-2xl border border-white/20 group-hover:rotate-12 transition-transform duration-500">
+                  <FaBox className="text-white text-2xl" />
+                </div>
+              </div>
+              <div className="mt-4 w-full h-1 bg-white/20 rounded-full overflow-hidden">
+                <div className="h-full bg-white/60 rounded-full transition-all duration-1000" style={{ width: `${normalPercent}%` }}></div>
+              </div>
+            </div>
 
-        <div
-          className="bg-white text-gray-800 border border-gray-200 rounded-xl p-4 flex items-center gap-4 hover:shadow-md hover:border-amber-200 transition-all duration-300"
-        >
-          <div className="p-3 rounded-lg bg-amber-50">
-            <FaStar className="text-xl text-amber-500" />
+            {/* Customise Products */}
+            <div
+              onClick={() => setProductTypeFilter("Customise")}
+              className={`cursor-pointer group relative overflow-hidden rounded-2xl p-5 transition-all duration-500 hover:-translate-y-1 ${
+                productTypeFilter === "Customise"
+                  ? "shadow-xl shadow-purple-500/25 ring-2 ring-purple-400/50"
+                  : "shadow-md hover:shadow-xl"
+              }`}
+              style={{ background: "linear-gradient(135deg, #581c87 0%, #a855f7 50%, #c084fc 100%)" }}
+            >
+              <div className="absolute -top-4 -right-4 w-24 h-24 rounded-full bg-white/10 group-hover:scale-150 transition-transform duration-700"></div>
+              <div className="absolute -bottom-6 -left-6 w-20 h-20 rounded-full bg-white/5"></div>
+              <div className="relative z-10 flex items-center justify-between">
+                <div>
+                  <p className="text-white/70 text-xs font-semibold uppercase tracking-widest mb-1">Customise</p>
+                  <p className="text-white text-4xl font-black tracking-tight">{customiseCount}</p>
+                  <p className="text-purple-200 text-[11px] mt-2 font-medium">{customisePercent}% of total</p>
+                </div>
+                <div className="bg-white/15 backdrop-blur-sm p-4 rounded-2xl border border-white/20 group-hover:rotate-12 transition-transform duration-500">
+                  <FaPaintBrush className="text-white text-2xl" />
+                </div>
+              </div>
+              <div className="mt-4 w-full h-1 bg-white/20 rounded-full overflow-hidden">
+                <div className="h-full bg-white/60 rounded-full transition-all duration-1000" style={{ width: `${customisePercent}%` }}></div>
+              </div>
+            </div>
+
+            {/* Filtered Results */}
+            <div
+              className="group relative overflow-hidden rounded-2xl p-5 transition-all duration-500 hover:-translate-y-1 shadow-md hover:shadow-xl"
+              style={{ background: "linear-gradient(135deg, #92400e 0%, #f59e0b 50%, #fbbf24 100%)" }}
+            >
+              <div className="absolute -top-4 -right-4 w-24 h-24 rounded-full bg-white/10 group-hover:scale-150 transition-transform duration-700"></div>
+              <div className="absolute -bottom-6 -left-6 w-20 h-20 rounded-full bg-white/5"></div>
+              <div className="relative z-10 flex items-center justify-between">
+                <div>
+                  <p className="text-white/70 text-xs font-semibold uppercase tracking-widest mb-1">Filtered</p>
+                  <p className="text-white text-4xl font-black tracking-tight">{filteredProducts.length}</p>
+                  <p className="text-amber-200 text-[11px] mt-2 font-medium">Current results</p>
+                </div>
+                <div className="bg-white/15 backdrop-blur-sm p-4 rounded-2xl border border-white/20 group-hover:rotate-12 transition-transform duration-500">
+                  <FaFilter className="text-white text-2xl" />
+                </div>
+              </div>
+              <div className="mt-4 w-full h-1 bg-white/20 rounded-full overflow-hidden">
+                <div className="h-full bg-white/60 rounded-full transition-all duration-1000" style={{ width: `${totalCount > 0 ? Math.round((filteredProducts.length / totalCount) * 100) : 0}%` }}></div>
+              </div>
+            </div>
           </div>
-          <div>
-            <p className="text-2xl font-extrabold text-amber-600">{filteredProducts.length}</p>
-            <p className="text-xs font-semibold uppercase tracking-wider text-gray-500">Filtered Results</p>
-          </div>
-        </div>
-      </div>
+        );
+      })()}
       {/* Top bar */}
-      <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-4 gap-4">
+      <div className="flex flex-col mt-6 md:flex-row md:justify-between md:items-center mb-10 gap-4">
         
 
         {/* Search */}
