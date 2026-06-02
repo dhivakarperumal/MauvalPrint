@@ -144,7 +144,7 @@ const getOrderById = async (req, res) => {
 // PUT /api/orders/:id/status — update order status
 const updateOrderStatus = async (req, res) => {
   const { id } = req.params;
-  const { status } = req.body;
+  const { status, reason } = req.body;
 
   if (!status) {
     return res.status(400).json({ success: false, message: "Status is required." });
@@ -154,10 +154,15 @@ const updateOrderStatus = async (req, res) => {
     const pool = req.app.locals.pool;
     const timestamp = new Date().toISOString().slice(0, 19).replace("T", " ");
 
-    const [result] = await pool.query(
-      "UPDATE orders SET status = ?, updated_at = ? WHERE order_id = ?",
-      [status, timestamp, id]
-    );
+    let query = "UPDATE orders SET status = ?, updated_at = ? WHERE order_id = ?";
+    let params = [status, timestamp, id];
+
+    if (reason !== undefined) {
+      query = "UPDATE orders SET status = ?, reason = ?, updated_at = ? WHERE order_id = ?";
+      params = [status, reason, timestamp, id];
+    }
+
+    const [result] = await pool.query(query, params);
 
     if (result.affectedRows === 0) {
       return res.status(404).json({ success: false, message: "Order not found." });
