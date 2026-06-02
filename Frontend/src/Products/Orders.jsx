@@ -20,7 +20,7 @@ const Orders = ({ titleorder }) => {
   const printRef = useRef();
 
   useEffect(() => {
-    if (!user) return;
+    if (!user || !isOpen) return;
     
     const fetchOrders = async () => {
       setLoading(true);
@@ -40,8 +40,7 @@ const Orders = ({ titleorder }) => {
     };
     
     fetchOrders();
-    // No snapshot unsubscription, just simple fetch
-  }, [user]);
+  }, [user, isOpen]);
 
   const toggleDrawer = () => {
     if (!user) {
