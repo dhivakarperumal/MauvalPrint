@@ -224,7 +224,7 @@ const Category = () => {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search by name, ID, subcategory…"
-              className="w-full pl-10 pr-9 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50 transition-shadow"
+              className="w-1/2 pl-10 pr-9 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50 transition-shadow"
             />
             {search && (
               <button
@@ -237,28 +237,7 @@ const Category = () => {
           </div>
 
           {/* Has Images filter */}
-          <select
-            value={filterHasImage}
-            onChange={(e) => setFilterHasImage(e.target.value)}
-            className="py-2.5 px-3 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50 cursor-pointer min-w-[150px]"
-          >
-            <option value="all">🖼 All Images</option>
-            <option value="yes">✅ With Images</option>
-            <option value="no">❌ No Images</option>
-          </select>
-
-          {/* Subcategory Count filter */}
-          <select
-            value={filterSubcatCount}
-            onChange={(e) => setFilterSubcatCount(e.target.value)}
-            className="py-2.5 px-3 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50 cursor-pointer min-w-[160px]"
-          >
-            <option value="all">🔖 All Subcats</option>
-            <option value="0">None (0)</option>
-            <option value="1-3">Few (1–3)</option>
-            <option value="4+">Many (4+)</option>
-          </select>
-
+          
           {/* Sort */}
           <select
             value={sortBy}
@@ -338,76 +317,115 @@ const Category = () => {
       {viewMode === "card" && (
         <>
           {filtered.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {filtered.map((cat) => (
                 <div
                   key={cat.category_id}
-                  className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-200 overflow-hidden group"
+                  className="group bg-white rounded-3xl overflow-hidden shadow-md hover:shadow-2xl border border-gray-100 transition-all duration-300 hover:-translate-y-1"
                 >
-                  {/* Image */}
-                  <div className="h-40 bg-gradient-to-br from-gray-100 to-gray-200 relative overflow-hidden">
+                  {/* ── Image area with gradient overlay ── */}
+                  <div className="relative h-48 overflow-hidden bg-gradient-to-br from-blue-100 via-indigo-50 to-purple-100">
                     {cat.images?.length > 0 ? (
                       <img
                         src={cat.images[0]}
                         alt={cat.name}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 ease-out"
                       />
                     ) : (
-                      <div className="flex items-center justify-center h-full">
-                        <FaTag className="text-gray-300" size={36} />
+                      <div className="flex flex-col items-center justify-center h-full gap-2">
+                        <div className="w-16 h-16 rounded-2xl bg-white/60 backdrop-blur-sm flex items-center justify-center shadow-sm">
+                          <FaTag className="text-blue-300" size={28} />
+                        </div>
+                        <span className="text-xs text-blue-300 font-medium">No Image</span>
                       </div>
                     )}
+
+                    {/* Dark gradient bottom overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
+
+                    {/* Category ID badge — top left */}
+                    <div className="absolute top-3 left-3">
+                      <span className="bg-white/90 backdrop-blur-sm text-blue-900 text-[10px] font-extrabold px-2.5 py-1 rounded-lg shadow-sm tracking-wide">
+                        {cat.category_id}
+                      </span>
+                    </div>
+
+                    {/* Extra images count — top right */}
                     {cat.images?.length > 1 && (
-                      <span className="absolute top-2 right-2 bg-black/60 text-white text-[10px] px-2 py-0.5 rounded-full font-medium">
-                        +{cat.images.length - 1}
+                      <span className="absolute top-3 right-3 bg-black/50 backdrop-blur-sm text-white text-[10px] px-2 py-1 rounded-lg font-semibold">
+                        +{cat.images.length - 1} 📷
                       </span>
                     )}
-                    {/* Hover actions */}
-                    <div className="absolute top-2 left-2 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button onClick={() => handleEdit(cat)} className="bg-white text-emerald-600 p-2 rounded-lg shadow-md hover:bg-emerald-600 hover:text-white transition-colors cursor-pointer">
-                        <FaEdit size={12} />
+
+                    {/* Name on bottom of image */}
+                    <div className="absolute bottom-3 left-3 right-3">
+                      <h4 className="text-white font-bold text-base leading-tight drop-shadow-md line-clamp-1">
+                        {cat.name}
+                      </h4>
+                    </div>
+
+                    {/* Edit / Delete — hover overlay buttons */}
+                    <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center gap-3">
+                      <button
+                        onClick={() => handleEdit(cat)}
+                        className="flex items-center gap-1.5 bg-white text-emerald-700 text-xs font-semibold px-4 py-2 rounded-xl shadow-lg hover:bg-emerald-600 hover:text-white transition-colors cursor-pointer"
+                      >
+                        <FaEdit size={12} /> Edit
                       </button>
-                      <button onClick={() => handleDelete(cat.category_id)} className="bg-white text-red-500 p-2 rounded-lg shadow-md hover:bg-red-600 hover:text-white transition-colors cursor-pointer">
-                        <FaTrash size={12} />
+                      <button
+                        onClick={() => handleDelete(cat.category_id)}
+                        className="flex items-center gap-1.5 bg-white text-red-600 text-xs font-semibold px-4 py-2 rounded-xl shadow-lg hover:bg-red-600 hover:text-white transition-colors cursor-pointer"
+                      >
+                        <FaTrash size={12} /> Delete
                       </button>
                     </div>
                   </div>
 
-                  {/* Body */}
+                  {/* ── Card body ── */}
                   <div className="p-4">
-                    <div className="flex items-start justify-between gap-2 mb-1">
-                      <h4 className="font-bold text-gray-800 text-sm leading-tight">{cat.name}</h4>
-                      <span className="bg-blue-100 text-blue-800 text-[10px] font-bold px-2 py-0.5 rounded-md shrink-0">
-                        {cat.category_id}
-                      </span>
-                    </div>
-                    {cat.description && (
-                      <p className="text-xs text-gray-500 line-clamp-2 mb-3">{cat.description}</p>
+                    {/* Description */}
+                    {cat.description ? (
+                      <p className="text-xs text-gray-500 line-clamp-2 leading-relaxed mb-3">
+                        {cat.description}
+                      </p>
+                    ) : (
+                      <p className="text-xs text-gray-300 italic mb-3">No description</p>
                     )}
-                    {cat.subcategories?.length > 0 && (
-                      <div className="flex flex-wrap gap-1 mb-3">
-                        {cat.subcategories.slice(0, 3).map((sub, i) => (
-                          <span key={i} className="bg-purple-50 text-purple-700 text-[10px] font-semibold px-2 py-0.5 rounded-full border border-purple-100">
+
+                    {/* Subcategory tags */}
+                    {cat.subcategories?.length > 0 ? (
+                      <div className="flex flex-wrap gap-1.5 mb-4">
+                        {cat.subcategories.slice(0, 4).map((sub, i) => (
+                          <span
+                            key={i}
+                            className="bg-gradient-to-r from-purple-50 to-indigo-50 text-purple-700 text-[10px] font-semibold px-2.5 py-1 rounded-full border border-purple-100"
+                          >
                             {sub}
                           </span>
                         ))}
-                        {cat.subcategories.length > 3 && (
-                          <span className="text-[10px] text-gray-400 self-center">
-                            +{cat.subcategories.length - 3} more
+                        {cat.subcategories.length > 4 && (
+                          <span className="text-[10px] text-gray-400 self-center font-medium">
+                            +{cat.subcategories.length - 4} more
                           </span>
                         )}
                       </div>
+                    ) : (
+                      <div className="mb-4">
+                        <span className="text-[10px] text-gray-300 italic">No subcategories</span>
+                      </div>
                     )}
+
+                    {/* Bottom action bar */}
                     <div className="flex gap-2 pt-3 border-t border-gray-100">
                       <button
                         onClick={() => handleEdit(cat)}
-                        className="flex-1 text-xs font-medium py-1.5 rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-600 hover:text-white transition-colors cursor-pointer flex items-center justify-center gap-1"
+                        className="flex-1 flex items-center justify-center gap-1.5 text-xs font-semibold py-2 rounded-xl bg-emerald-50 text-emerald-700 hover:bg-emerald-600 hover:text-white transition-all cursor-pointer"
                       >
                         <FaEdit size={11} /> Edit
                       </button>
                       <button
                         onClick={() => handleDelete(cat.category_id)}
-                        className="flex-1 text-xs font-medium py-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-600 hover:text-white transition-colors cursor-pointer flex items-center justify-center gap-1"
+                        className="flex-1 flex items-center justify-center gap-1.5 text-xs font-semibold py-2 rounded-xl bg-red-50 text-red-600 hover:bg-red-600 hover:text-white transition-all cursor-pointer"
                       >
                         <FaTrash size={11} /> Delete
                       </button>
