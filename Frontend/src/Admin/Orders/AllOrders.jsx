@@ -64,9 +64,7 @@ const AllOrders = () => {
             orderID: order.order_id,
             paymentID: order.payment_id,
             createdAt: { toDate: () => new Date(order.created_at || 0) }
-          })).filter(
-            (order) => order.status !== "Delivered"
-          );
+          }));
           setOrders(orderList);
         } else {
           toast.error(response.data.message || "Failed to load orders");
