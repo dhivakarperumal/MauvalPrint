@@ -58,7 +58,7 @@ const CancelOrders = () => {
 
       const matchSearch =
         order.orderID?.toLowerCase().includes(term) ||
-        order.checkout?.fullname?.toLowerCase().includes(term);
+        (order.checkout?.fullname || order.checkout?.customerName || order.customerName || "")?.toLowerCase().includes(term);
 
       let matchDate = true;
       if (filterType === "Today") {
@@ -200,7 +200,7 @@ const CancelOrders = () => {
                         onClick={() => toggleExpand(order.id)}
                       >
                         <td className="px-4 py-4 text-blue-600 underline">{order.orderID}</td>
-                        <td className="px-4 py-4">{order.checkout?.fullname}</td>
+                        <td className="px-4 py-4">{order.checkout?.fullname || order.checkout?.customerName || order.customerName || "Unknown"}</td>
                         <td className="px-4 py-4">₹{order.total}</td>
                         <td className="px-4 py-4">{order.reason}</td>
                         <td className="px-4 py-4">
@@ -212,7 +212,7 @@ const CancelOrders = () => {
                         <tr>
                           <td colSpan="5" className="bg-gray-50 px-4 py-3">
                             <div className="mb-2 space-y-1 text-sm text-gray-700">
-                              <p><strong>Name:</strong> {order.checkout?.fullname}</p>
+                              <p><strong>Name:</strong> {order.checkout?.fullname || order.checkout?.customerName || order.customerName || "Unknown"}</p>
                               <p><strong>Email:</strong> {order.checkout?.email}</p>
                               <p><strong>Address:</strong> {order.checkout?.street}, {order.checkout?.city}, {order.checkout?.state} - {order.checkout?.zip}, {order.checkout?.country}</p>
                               <p><strong>Contact:</strong> {order.checkout?.contact}</p>
@@ -251,7 +251,7 @@ const CancelOrders = () => {
                   <div className="flex justify-between items-start gap-2">
                     <div className="flex-1 min-w-0">
                       <p className="font-bold text-blue-900 text-lg truncate" title={order.orderID}>{order.orderID}</p>
-                      <p className="text-sm font-medium text-gray-700 truncate">{order.checkout?.fullname}</p>
+                      <p className="text-sm font-medium text-gray-700 truncate">{order.checkout?.fullname || order.checkout?.customerName || order.customerName || "Unknown"}</p>
                     </div>
                     <span className={`${getStatusBadge("Cancelled")} shrink-0`}>Cancelled</span>
                   </div>

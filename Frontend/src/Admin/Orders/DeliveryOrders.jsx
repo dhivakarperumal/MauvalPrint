@@ -62,7 +62,7 @@ const DeliveryOrders = () => {
 
       const matchSearch =
         order.orderID?.toLowerCase().includes(lowerSearch) ||
-        order.checkout?.fullname?.toLowerCase().includes(lowerSearch);
+        (order.checkout?.fullname || order.checkout?.customerName || order.customerName || "")?.toLowerCase().includes(lowerSearch);
 
       let matchDate = true;
       if (filterType === "Today") {
@@ -120,7 +120,7 @@ const DeliveryOrders = () => {
       <hr style="margin: 20px 0;" />
 
       <p><strong>Order ID:</strong> ${order.orderID}</p>
-      <p><strong>Customer:</strong> ${order.checkout?.fullname || order.customerName}</p>
+      <p><strong>Customer:</strong> ${order.checkout?.fullname || order.checkout?.customerName || order.customerName || order.customerName}</p>
       <p><strong>Amount:</strong> ₹${order.total}</p>
       <p><strong>Status:</strong> ${order.status}</p>
 
@@ -217,7 +217,7 @@ const DeliveryOrders = () => {
     const excelData = filteredOrders.map((order, idx) => ({
       "ID": idx + 1,
       "Order ID": order.orderID,
-      "Customer Name": order.checkout?.fullname || order.customerName,
+      "Customer Name": order.checkout?.fullname || order.checkout?.customerName || order.customerName || order.customerName,
       Email: order.checkout?.email || "",
       Contact: order.checkout?.contact || order.customerPhone,
       Address: `${order.checkout?.street || order.address}, ${order.checkout?.city || ""}, ${order.checkout?.state || ""} - ${order.checkout?.zip || ""}, ${order.checkout?.country || ""}`,
@@ -349,7 +349,7 @@ const DeliveryOrders = () => {
                         onClick={() => toggleExpand(order.orderID)}
                       >
                         <td className="px-4 py-4 text-blue-600 underline">{order.orderID}</td>
-                        <td className="px-4 py-4">{order.checkout?.fullname || order.customerName}</td>
+                        <td className="px-4 py-4">{order.checkout?.fullname || order.checkout?.customerName || order.customerName || order.customerName}</td>
                         <td className="px-4 py-4">₹{order.total}</td>
                         <td className="px-4 py-4">{order.shopCustomerType || "Online"}</td>
                         <td className="px-4 py-4">
@@ -368,7 +368,7 @@ const DeliveryOrders = () => {
                         <tr>
                           <td colSpan="6" className="bg-gray-50 px-4 py-3">
                             <div className="text-sm text-gray-700 mb-2 space-y-1">
-                              <p><strong>Name:</strong> {order.checkout?.fullname || order.customerName}</p>
+                              <p><strong>Name:</strong> {order.checkout?.fullname || order.checkout?.customerName || order.customerName || order.customerName}</p>
                               <p><strong>Email:</strong> {order.checkout?.email || " "}</p>
                               <p><strong>Address:</strong> {order.checkout?.street || order.address}, {order.checkout?.city || ""}, {order.checkout?.state || ""} - {order.checkout?.zip || ""}, {order.checkout?.country || ""}</p>
                               <p><strong>Contact:</strong> {order.checkout?.contact || order.customerPhone}</p>
@@ -414,7 +414,7 @@ const DeliveryOrders = () => {
                   <div className="flex justify-between items-start gap-2">
                     <div className="flex-1 min-w-0">
                       <p className="font-bold text-blue-900 text-lg truncate" title={order.orderID}>{order.orderID}</p>
-                      <p className="text-sm font-medium text-gray-700 truncate">{order.checkout?.fullname || order.customerName}</p>
+                      <p className="text-sm font-medium text-gray-700 truncate">{order.checkout?.fullname || order.checkout?.customerName || order.customerName || order.customerName}</p>
                     </div>
                     <span className={`${getStatusBadge(order.status)} shrink-0`}>{order.status}</span>
                   </div>

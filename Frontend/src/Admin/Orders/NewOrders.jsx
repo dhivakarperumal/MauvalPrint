@@ -82,7 +82,7 @@ const NewOrders = () => {
       const oId = order.order_id || order.orderID || "";
       const matchSearch =
         oId.toLowerCase().includes(lowerSearch) ||
-        order.checkout?.fullname?.toLowerCase().includes(lowerSearch);
+        (order.checkout?.fullname || order.checkout?.customerName || order.customerName || "")?.toLowerCase().includes(lowerSearch);
 
       let matchDate = true;
       if (filterType === "Today") {
@@ -181,7 +181,7 @@ const NewOrders = () => {
         <hr style="margin: 20px 0;" />
 
         <p><strong>Order ID:</strong> ${order.order_id || order.orderID}</p>
-        <p><strong>Customer:</strong> ${order.checkout?.fullname}</p>
+        <p><strong>Customer:</strong> ${order.checkout?.fullname || order.checkout?.customerName || order.customerName || "Unknown"}</p>
         <p><strong>Amount:</strong> ₹${order.total}</p>
         <p><strong>Status:</strong> ${order.status}</p>
         
@@ -272,7 +272,7 @@ const NewOrders = () => {
       <hr style="margin: 20px 0;" />
 
       <p><strong>Order ID:</strong> ${order.order_id || order.orderID}</p>
-      <p><strong>Customer:</strong> ${order.checkout?.fullname}</p>
+      <p><strong>Customer:</strong> ${order.checkout?.fullname || order.checkout?.customerName || order.customerName || "Unknown"}</p>
       <p><strong>Amount:</strong> ₹${order.total}</p>
       <p><strong>Status:</strong> ${order.status}</p>
 
@@ -290,7 +290,7 @@ const NewOrders = () => {
         <div style="flex: 1; border: 1px solid #eee; border-radius: 8px; padding: 15px;">
           <h4 style="margin-bottom: 10px;">To</h4>
           <p>
-            ${order.checkout?.fullname}<br/>
+            ${order.checkout?.fullname || order.checkout?.customerName || order.customerName || "Unknown"}<br/>
             ${order.checkout?.street}<br/>
             ${order.checkout?.city}, ${order.checkout?.state} - ${order.checkout?.zip}<br/>
            
@@ -423,7 +423,7 @@ const NewOrders = () => {
                     >
                       {order.order_id || order.orderID}
                     </td>
-                    <td className="px-4 py-4">{order.checkout?.fullname}</td>
+                    <td className="px-4 py-4">{order.checkout?.fullname || order.checkout?.customerName || order.customerName || "Unknown"}</td>
                     <td className="px-4 py-4">₹{order.total}</td>
                     <td className="px-4 py-4">
                       {order.payment_id || order.paymentID ? "Online" : "Cash on Delivery"}
@@ -590,7 +590,7 @@ const NewOrders = () => {
                 <div className="flex justify-between items-start gap-2">
                   <div className="flex-1 min-w-0">
                     <p className="font-bold text-blue-900 text-lg truncate" title={order.order_id || order.orderID}>{order.order_id || order.orderID}</p>
-                    <p className="text-sm font-medium text-gray-700 truncate" title={order.checkout?.fullname}>{order.checkout?.fullname}</p>
+                    <p className="text-sm font-medium text-gray-700 truncate" title={order.checkout?.fullname || order.checkout?.customerName || order.customerName || "Unknown"}>{order.checkout?.fullname || order.checkout?.customerName || order.customerName || "Unknown"}</p>
                   </div>
                   <span className={`${getStatusBadge(order.status)} shrink-0`}>{order.status}</span>
                 </div>
