@@ -1,17 +1,9 @@
 /* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useState, useEffect } from "react";
 import { toast } from "react-toastify";
-import { db } from "../firebase";
-import api from "../api";
-import { collection, onSnapshot } from "firebase/firestore";
-import {
-  getStorage,
-  ref as storageRef,
-  uploadString,
-  getDownloadURL,
-} from "firebase/storage";
 
-const storage = getStorage();
+import api from "../api";
+
 const API_USER_KEY = "apiUser";
 
 export const AuthContext = createContext();
@@ -136,21 +128,21 @@ export function AuthProvider({ children }) {
   }, []);
 
   useEffect(() => {
-    const unsubscribe = onSnapshot(
-      collection(db, "reviews"),
-      (snapshot) => {
-        const reviewList = snapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-        setReviews(reviewList);
-      },
-      (error) => {
-        console.error("Error listening to reviews:", error);
+    const fetchReviews = async () => {
+      try {
+        const { data } = await api.get("/reviews");
+        if (data.success && Array.isArray(data.reviews)) {
+          setReviews(data.reviews);
+        } else {
+          setReviews([]);
+        }
+      } catch (error) {
+        console.error("Error fetching reviews:", error);
+        setReviews([]);
       }
-    );
+    };
 
-    return () => unsubscribe();
+    fetchReviews();
   }, []);
 
   const setLoggedIn = (u) => {
@@ -189,24 +181,6 @@ export function AuthProvider({ children }) {
       toast.error("Login required");
       return false;
     }
-    let customizedImageUrl = product.customizedImage;
-    if (
-      product.customizedImage &&
-      product.customizedImage.startsWith("data:image/")
-    ) {
-      try {
-        const imageRef = storageRef(
-          storage,
-          `customized/${user.uid}/${product.id}_${Date.now()}.png`
-        );
-        await uploadString(imageRef, product.customizedImage, "data_url");
-        customizedImageUrl = await getDownloadURL(imageRef);
-      } catch (err) {
-        console.error("Image upload failed:", err);
-        toast.error("Failed to upload custom image");
-        return false;
-      }
-    }
 
     const newItem = {
       id: product.id,
@@ -216,7 +190,7 @@ export function AuthProvider({ children }) {
       quantity,
       selectedSize: product.selectedSize || "",
       selectedColor: product.selectedColor || "",
-      customizedImage: customizedImageUrl || "",
+      customizedImage: product.customizedImage || "",
     };
 
     try {

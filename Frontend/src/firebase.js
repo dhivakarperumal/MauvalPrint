@@ -1,7 +1,6 @@
 // src/firebase.js
 import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
 import { initializeFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
@@ -14,20 +13,13 @@ const firebaseConfig = {
   measurementId: "G-TVK1BQ98ZV",
 };
 
-// Initialize Firebase
 const app = initializeApp(firebaseConfig);
-
-// Firebase services
 const auth = getAuth(app);
-
 const db = initializeFirestore(app, {
   experimentalForceLongPolling: true,
-  useFetchStreams: false, 
+  useFetchStreams: false,
 });
-
-// ✅ Google Auth Provider
 const googleProvider = new GoogleAuthProvider();
 
-// Export
 export { auth, db, googleProvider };
 export default app;

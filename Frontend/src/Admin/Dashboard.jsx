@@ -28,7 +28,7 @@ import { FaUserFriends } from "react-icons/fa";
 import { Doughnut } from "react-chartjs-2";
 import { ArcElement } from "chart.js";
 import { collection, getDocs } from "firebase/firestore";
-import { db } from ".././firebase";
+import { db } from "../firebase";
 import { AuthContext } from "../Context/AuthContext";
 
 ChartJS.register(
