@@ -14,6 +14,8 @@ const StockDetails = () => {
   const [expandedRows, setExpandedRows] = useState(new Set());
   
   const [showAddStockModal, setShowAddStockModal] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const productsPerPage = 8;
 
   const getProductImage = (product) => {
     if (product.image) return product.image;
@@ -88,6 +90,18 @@ const StockDetails = () => {
       p.productId?.toLowerCase().includes(search.toLowerCase())
     );
   }, [products, search]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredProducts.length / productsPerPage));
+  const paginatedProducts = useMemo(() => {
+    const start = (currentPage - 1) * productsPerPage;
+    return filteredProducts.slice(start, start + productsPerPage);
+  }, [filteredProducts, currentPage]);
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
 
   const toggleExpand = (productId) => {
     setExpandedRows((prev) => {
@@ -218,7 +232,7 @@ const StockDetails = () => {
             </thead>
             <tbody>
               {filteredProducts.length > 0 ? (
-                filteredProducts.map((product, index) => (
+                paginatedProducts.map((product, index) => (
                   <React.Fragment key={product.productId}>
                     {/* Main Row */}
                     <tr className="border-t border-gray-200 bg-white hover:bg-blue-50/30 transition-colors">
@@ -315,7 +329,7 @@ const StockDetails = () => {
         /* Card View */
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
           {filteredProducts.length > 0 ? (
-            filteredProducts.map((product) => (
+            paginatedProducts.map((product) => (
               <div key={product.productId} className="bg-white rounded-xl shadow-sm hover:shadow-md border border-gray-200 p-5 transition-shadow">
                 {product.image && (
                   <img 
@@ -386,6 +400,41 @@ const StockDetails = () => {
               <p className="text-gray-500 font-medium">No products found matching your search.</p>
             </div>
           )}
+        </div>
+      )}
+
+      {filteredProducts.length > 0 && (
+        <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="text-sm text-gray-600">
+            Showing {Math.min((currentPage - 1) * productsPerPage + 1, filteredProducts.length)} - {Math.min(currentPage * productsPerPage, filteredProducts.length)} of {filteredProducts.length} products
+          </div>
+          <div className="flex items-center gap-2 flex-wrap">
+            <button
+              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+              className={`px-3 py-2 rounded-lg text-sm font-medium transition ${currentPage === 1 ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50'}`}
+            >
+              Previous
+            </button>
+            <div className="flex items-center gap-1 overflow-x-auto max-w-[320px]">
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                <button
+                  key={page}
+                  onClick={() => setCurrentPage(page)}
+                  className={`min-w-[36px] px-3 py-2 rounded-lg text-sm font-medium transition ${page === currentPage ? 'bg-blue-900 text-white' : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50'}`}
+                >
+                  {page}
+                </button>
+              ))}
+            </div>
+            <button
+              onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+              disabled={currentPage === totalPages}
+              className={`px-3 py-2 rounded-lg text-sm font-medium transition ${currentPage === totalPages ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50'}`}
+            >
+              Next
+            </button>
+          </div>
         </div>
       )}
 
