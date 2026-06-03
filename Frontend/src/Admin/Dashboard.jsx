@@ -668,26 +668,32 @@ const Dashboard = () => {
       </div>
 
       {/* Top Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 px-0">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 px-0 mb-6">
         {/* Best Seller Card */}
         <div
           data-aos="fade-right"
-          className="bg-gray-900 text-white rounded-xl p-6 flex flex-col justify-between"
+          className="relative overflow-hidden bg-gradient-to-br from-indigo-900 via-slate-900 to-slate-800 text-white rounded-3xl p-8 flex flex-col justify-between shadow-xl border border-slate-700/50 hover:shadow-2xl transition-all duration-300 hover:-translate-y-1"
         >
-          <div>
-            <h3 className="text-lg font-semibold">
-              Congratulations {user.name} 🎉
+          <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
+          
+          <div className="relative z-10">
+            <h3 className="text-2xl font-bold text-white mb-2 tracking-tight">
+              Congratulations, {user.username || user.name}! 🎉
             </h3>
-            <p className="text-sm mt-1">
-              You are the best seller of the month.
+            <p className="text-slate-300 font-medium">
+              You are the top seller of the month. Keep up the great work!
             </p>
           </div>
-          <div className="mt-6 text-3xl font-bold">
-            ₹ {monthlyRevenue.toLocaleString()} 
+          
+          <div className="mt-12 mb-2 relative z-10">
+            <p className="text-xs font-bold text-indigo-400 uppercase tracking-widest mb-2 shadow-sm">Monthly Revenue</p>
+            <div className="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white to-indigo-200 drop-shadow-md">
+              ₹ {monthlyRevenue.toLocaleString()} 
+            </div>
           </div>
 
-          <div>
-            <img src="/happy.svg" alt="" />
+          <div className="absolute bottom-4 right-4 opacity-90 w-32 hidden sm:block pointer-events-none">
+            <img src="/happy.svg" alt="Happy" className="w-full h-auto drop-shadow-2xl" />
           </div>
         </div>
 
@@ -722,50 +728,30 @@ const Dashboard = () => {
       </div>
 
       {/* Firebase-Driven Stat Boxes */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
         <StatBox
           title="Products"
           count={productCount}
           color="blue"
-          icon={
-            <FaBox
-              size={50}
-              className="text-white text-2xl border-2 p-2 rounded-lg"
-            />
-          }
+          icon={<FaBox size={22} className="text-white drop-shadow-sm" />}
         />
         <StatBox
           title="Orders"
           count={orderCount}
           color="red"
-          icon={
-            <FaClipboardList
-              size={50}
-              className="text-white text-2xl border-2 p-2 rounded-lg"
-            />
-          }
+          icon={<FaClipboardList size={22} className="text-white drop-shadow-sm" />}
         />
         <StatBox
           title="Reviews"
           count={reviewCount}
           color="purple"
-          icon={
-            <FaStar
-              size={50}
-              className="text-white text-2xl border-2 p-2 rounded-lg"
-            />
-          }
+          icon={<FaStar size={22} className="text-white drop-shadow-sm" />}
         />
         <StatBox
           title="Users"
           count={userCount}
           color="green"
-          icon={
-            <FaUserFriends
-              size={50}
-              className="text-white text-2xl border-2 p-2 rounded-lg"
-            />
-          }
+          icon={<FaUserFriends size={22} className="text-white drop-shadow-sm" />}
         />
       </div>
 
@@ -872,21 +858,33 @@ const Dashboard = () => {
 
 const StatBox = ({ title, count, color, icon }) => {
   const gradientMap = {
-    blue: "bg-blue-600",
-    red: "bg-red-600",
-    purple: "bg-purple-600",
-    green: "bg-green-600",
+    blue: "bg-gradient-to-br from-blue-500 to-blue-600",
+    red: "bg-gradient-to-br from-orange-400 to-orange-500",
+    purple: "bg-gradient-to-br from-purple-500 to-purple-600",
+    green: "bg-gradient-to-br from-emerald-400 to-emerald-500",
   };
+
   return (
-    <div className="bg-white p-4 rounded-lg shadow  gap-4 relative">
-      <div
-        className={`w-10 h-10 flex items-center justify-center rounded-lg absolute top-[-10px] text-lg ${gradientMap[color]}`}
-      >
-        {icon}
+    <div className={`relative overflow-hidden rounded-xl p-5 ${gradientMap[color]} shadow-md flex flex-col justify-between group cursor-pointer hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5`}>
+      {/* Decorative shapes */}
+      <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/4 translate-x-1/4 blur-xl"></div>
+      <div className="absolute bottom-0 right-10 w-24 h-24 bg-white/10 rounded-full translate-y-1/2 blur-lg"></div>
+      
+      <div className="flex justify-between items-start relative z-10">
+        <div>
+          <p className="text-[11px] font-bold text-white/90 uppercase tracking-widest mb-1 shadow-sm">{title}</p>
+          <p className="text-4xl font-black text-white drop-shadow-md tracking-tighter">{count}</p>
+        </div>
+        <div className="p-3 bg-white/20 backdrop-blur-md rounded-2xl border border-white/20 shadow-sm group-hover:scale-110 transition-transform duration-300">
+          {icon}
+        </div>
       </div>
-      <div className="flex items-center justify-center mt-5 flex-col">
-        <p className="text-xl font-bold">{count}</p>
-        <p className="text-sm text-gray-500">{title}</p>
+      
+      <div className="mt-6 relative z-10">
+        <p className="text-xs text-white/90 mb-2 font-medium">Total registered {title.toLowerCase()}</p>
+        <div className="h-1.5 w-full bg-white/20 rounded-full overflow-hidden">
+          <div className="h-full bg-white rounded-full shadow-[0_0_10px_rgba(255,255,255,0.8)]" style={{ width: '100%' }}></div>
+        </div>
       </div>
     </div>
   );
