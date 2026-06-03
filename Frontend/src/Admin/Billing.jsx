@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
+import { FaSearch, FaList, FaThLarge, FaClipboardList, FaRupeeSign } from "react-icons/fa";
 import api from "../api";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast"; 
@@ -25,6 +26,50 @@ const Billing = ({ setActiveTab }) => {
   const [orderSaved, setOrderSaved] = useState(false);
   const [showPopup, setShowPopup] = useState(false);
   const [shopOrders, setShopOrders] = useState([]);
+  
+  const [searchTerm, setSearchTerm] = useState("");
+  const [viewMode, setViewMode] = useState("table");
+  const [filterType, setFilterType] = useState("All");
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
+
+  const filteredOrders = useMemo(() => {
+    const today = new Date();
+    const startOfWeek = new Date(today);
+    startOfWeek.setDate(today.getDate() - today.getDay());
+    const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+
+    const filtered = shopOrders.filter((order) => {
+      const createdAt = new Date(order.created_at || 0);
+      const lowerSearch = searchTerm.toLowerCase();
+
+      const matchSearch =
+        order.order_id?.toLowerCase().includes(lowerSearch) ||
+        (order.checkout?.fullname || order.checkout?.customerName || order.customerName || "")?.toLowerCase().includes(lowerSearch);
+
+      let matchDate = true;
+      if (filterType === "Today") {
+        matchDate = createdAt.toDateString() === today.toDateString();
+      } else if (filterType === "This Week") {
+        matchDate = createdAt >= startOfWeek;
+      } else if (filterType === "This Month") {
+        matchDate = createdAt >= startOfMonth;
+      } else if (filterType === "FromTo" && fromDate && toDate) {
+        const from = new Date(fromDate);
+        const to = new Date(toDate);
+        to.setHours(23, 59, 59, 999);
+        matchDate = createdAt >= from && createdAt <= to;
+      }
+
+      return matchSearch && matchDate;
+    });
+
+    return filtered;
+  }, [shopOrders, searchTerm, filterType, fromDate, toDate]);
+
+  const totalRevenue = useMemo(() => {
+    return filteredOrders.reduce((sum, order) => sum + (parseFloat(order.total) || 0), 0);
+  }, [filteredOrders]);
 
   const invoiceRef = useRef();
   const navigate = useNavigate();
@@ -264,27 +309,93 @@ const Billing = ({ setActiveTab }) => {
       </div>
       <p className="text-sm text-gray-500 mb-6">Generate invoices with multiple items and customer info.</p>
 
-      {/* Shop Orders Table */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-8">
-        <div className="p-4 bg-gray-50 border-b border-gray-100 flex justify-between items-center">
-          <h3 className="font-bold text-gray-800">Recent Shop Customer Bills</h3>
-          <span className="bg-blue-100 text-blue-800 text-xs font-bold px-2 py-1 rounded">{shopOrders.length} Orders</span>
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+        <div className="relative overflow-hidden rounded-2xl p-4 text-left border border-blue-200 bg-blue-50 shadow-sm flex items-center gap-4">
+          <div className="p-3 rounded-xl bg-blue-100">
+            <FaClipboardList size={24} className="text-blue-700" />
+          </div>
+          <div>
+            <p className="text-2xl font-extrabold text-blue-900">{filteredOrders.length}</p>
+            <p className="text-sm font-medium text-blue-700">All Orders</p>
+          </div>
         </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm text-left">
-            <thead className="bg-gray-800 text-white">
-              <tr>
-                <th className="px-4 py-3">Order ID</th>
-                <th className="px-4 py-3">Customer Name</th>
-                <th className="px-4 py-3">Phone</th>
-                <th className="px-4 py-3">Date</th>
-                <th className="px-4 py-3">Amount</th>
-                <th className="px-4 py-3">Status</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {shopOrders.length > 0 ? (
-                shopOrders.map((order) => (
+        <div className="relative overflow-hidden rounded-2xl p-4 text-left border border-green-200 bg-green-50 shadow-sm flex items-center gap-4">
+          <div className="p-3 rounded-xl bg-green-100">
+            <FaRupeeSign size={24} className="text-green-700" />
+          </div>
+          <div>
+            <p className="text-2xl font-extrabold text-green-900">₹{totalRevenue.toLocaleString("en-IN")}</p>
+            <p className="text-sm font-medium text-green-700">Total Revenue</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Filter and View Bar */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4 bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+        <div className="w-full md:w-1/3 relative">
+          <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Search by Order ID or Name..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="border border-gray-300 rounded-lg pl-10 pr-4 py-2 w-full focus:ring-2 focus:ring-blue-500 focus:outline-none transition-shadow"
+          />
+        </div>
+
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
+          {filterType === "FromTo" && (
+            <div className="flex gap-2">
+              <input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} className="border border-gray-300 rounded-lg px-3 py-2 text-sm w-full sm:w-auto focus:ring-2 focus:ring-blue-500 focus:outline-none" />
+              <input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} className="border border-gray-300 rounded-lg px-3 py-2 text-sm w-full sm:w-auto focus:ring-2 focus:ring-blue-500 focus:outline-none" />
+            </div>
+          )}
+
+          <select value={filterType} onChange={(e) => setFilterType(e.target.value)} className="border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none cursor-pointer">
+            <option value="All">All</option>
+            <option value="Today">Today</option>
+            <option value="This Week">This Week</option>
+            <option value="This Month">This Month</option>
+            <option value="FromTo">From - To</option>
+          </select>
+
+          <div className="flex bg-gray-100 p-1 rounded-lg border border-gray-200 shrink-0">
+            <button onClick={() => setViewMode("table")} className={`px-3 py-1.5 rounded-md text-sm font-medium flex items-center justify-center gap-2 transition-all ${viewMode === "table" ? "bg-white text-blue-900 shadow-sm" : "text-gray-500 hover:text-gray-700"}`} title="Table View">
+              <FaList />
+            </button>
+            <button onClick={() => setViewMode("card")} className={`px-3 py-1.5 rounded-md text-sm font-medium flex items-center justify-center gap-2 transition-all ${viewMode === "card" ? "bg-white text-blue-900 shadow-sm" : "text-gray-500 hover:text-gray-700"}`} title="Card View">
+              <FaThLarge />
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Orders Display */}
+      {filteredOrders.length === 0 ? (
+        <div className="flex flex-col items-center justify-center min-h-64 bg-white rounded-xl shadow-sm border border-gray-200 mb-8">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-gray-300 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+          <p className="text-gray-500">No shop customer bills found.</p>
+          <button onClick={() => setShowPopup(true)} className="mt-2 text-blue-600 hover:underline text-sm font-medium cursor-pointer">Create one now</button>
+        </div>
+      ) : viewMode === "table" ? (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-8">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm text-left">
+              <thead className="bg-gray-800 text-white">
+                <tr>
+                  <th className="px-4 py-3">Order ID</th>
+                  <th className="px-4 py-3">Customer Name</th>
+                  <th className="px-4 py-3">Phone</th>
+                  <th className="px-4 py-3">Date</th>
+                  <th className="px-4 py-3">Amount</th>
+                  <th className="px-4 py-3">Status</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {filteredOrders.map((order) => (
                   <tr key={order.order_id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-4 py-4 font-bold text-blue-700">{order.order_id}</td>
                     <td className="px-4 py-4">{order.checkout?.customerName || order.checkout?.fullname || "Unknown"}</td>
@@ -295,24 +406,49 @@ const Billing = ({ setActiveTab }) => {
                       <span className="px-2 py-1 bg-green-100 text-green-800 rounded text-xs font-bold">{order.status || "Delivered"}</span>
                     </td>
                   </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan="6" className="px-4 py-12 text-center text-gray-500">
-                    <div className="flex flex-col items-center justify-center">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-gray-300 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                      </svg>
-                      <p>No shop customer bills found.</p>
-                      <button onClick={() => setShowPopup(true)} className="mt-2 text-blue-600 hover:underline text-sm font-medium cursor-pointer">Create one now</button>
-                    </div>
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
-      </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+          {filteredOrders.map((order) => (
+            <div key={order.order_id} className="bg-white rounded-2xl shadow-sm border border-gray-100 flex flex-col hover:shadow-xl transition-all duration-300 overflow-hidden">
+              <div className="bg-gradient-to-r from-gray-50 to-white p-5 border-b border-gray-100 flex justify-between items-start">
+                <div className="flex flex-col gap-1">
+                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Order ID</span>
+                  <p className="font-extrabold text-blue-900 text-lg">{order.order_id}</p>
+                </div>
+                <span className="bg-green-100 text-green-800 text-xs font-bold rounded px-2 py-1 shrink-0">{order.status || "Delivered"}</span>
+              </div>
+              <div className="p-5 flex-1 flex flex-col gap-5">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-sm shadow-sm shrink-0">
+                    {(order.checkout?.customerName || order.checkout?.fullname || "U").charAt(0).toUpperCase()}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-bold text-gray-800 truncate">{order.checkout?.customerName || order.checkout?.fullname || "Unknown"}</p>
+                    <p className="text-xs text-gray-500 truncate">{order.checkout?.customerPhone || order.checkout?.contact || "No Contact"}</p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3 bg-gray-50/80 p-3 rounded-xl border border-gray-100/50">
+                  <div>
+                    <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-0.5">Amount</p>
+                    <p className="font-bold text-gray-900 text-base">₹{order.total}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-0.5">Date</p>
+                    <p className="font-semibold text-gray-700 text-sm">
+                      {order.created_at ? new Date(order.created_at).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "-"}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Side Popup Modal */}
       {showPopup && (
