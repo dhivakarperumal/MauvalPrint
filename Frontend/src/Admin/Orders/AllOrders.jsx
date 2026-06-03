@@ -375,12 +375,7 @@ const AllOrders = () => {
           <h2 className="text-2xl font-bold text-blue-900">All Orders</h2>
           <p className="text-sm text-gray-500 mt-0.5">Track and manage all customer orders</p>
         </div>
-        <button
-          onClick={() => setShowAddBillModal(true)}
-          className="px-4 py-2 bg-blue-900 text-white rounded-lg text-sm font-medium flex items-center gap-2 hover:bg-blue-800 transition-colors shadow-sm cursor-pointer"
-        >
-          <FaPlus size={12} /> Add New Bill
-        </button>
+       
       </div>
 
       {/* ── Status Count Cards ── */}

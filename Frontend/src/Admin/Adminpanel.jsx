@@ -119,7 +119,7 @@ const tabLabels = {
   },
 };
 
-const SidebarItem = ({ icon, label, active, onClick, count, isChild }) => (
+const SidebarItem = ({ icon, label, active, onClick, count, isChild, isParentActive }) => (
   <button
     onClick={onClick}
     className={`group flex items-center justify-between px-4 py-3 w-full transition-all duration-300 ease-in-out cursor-pointer overflow-hidden relative ${
@@ -127,6 +127,8 @@ const SidebarItem = ({ icon, label, active, onClick, count, isChild }) => (
     } ${
       active 
         ? "bg-gradient-to-r from-cyan-500/90 to-blue-600/90 text-white shadow-lg shadow-cyan-900/30 font-semibold" 
+        : isParentActive
+        ? "bg-white/5 text-cyan-50 font-medium"
         : "text-gray-300 hover:bg-white/5 hover:text-white"
     }`}
   >
@@ -134,7 +136,7 @@ const SidebarItem = ({ icon, label, active, onClick, count, isChild }) => (
       <span className="absolute left-0 top-0 bottom-0 w-1.5 bg-cyan-400 rounded-r-md shadow-[0_0_12px_rgba(34,211,238,0.8)]"></span>
     )}
     <div className="flex items-center gap-3 relative z-10">
-      <span className={`text-xl transition-all duration-300 ${active ? "scale-110 text-yellow-300 drop-shadow-[0_0_8px_rgba(253,224,71,0.8)]" : "group-hover:scale-110 group-hover:text-cyan-400"}`}>
+      <span className={`text-xl transition-all duration-300 ${active ? "scale-110 text-yellow-300 drop-shadow-[0_0_8px_rgba(253,224,71,0.8)]" : isParentActive ? "text-cyan-400 scale-105" : "group-hover:scale-110 group-hover:text-cyan-400"}`}>
         {icon}
       </span>
       <span className="tracking-wide">{label}</span>
@@ -437,7 +439,7 @@ if (
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 overflow-y-auto px-4 py-6 space-y-1">
+          <nav className="flex-1 overflow-y-auto scrollbar-hide px-4 py-6 space-y-1">
             {Object.entries(tabLabels).map(([key, value]) => {
               if (value.isDropdown) {
                 return (
@@ -445,13 +447,14 @@ if (
                     <SidebarItem
                       icon={value.icon}
                       label={value.label}
-                      active={Object.keys(value.children).includes(activeTab)}
+                      active={false}
+                      isParentActive={Object.keys(value.children).includes(activeTab)}
                       onClick={() =>
                         setOpenDropdown((prev) => ({ ...prev, [key]: !prev[key] }))
                       }
                     />
                     {openDropdown[key] && (
-                      <div className="ml-5 space-y-1 mt-1 border-l border-white/10 pl-2">
+                      <div className="ml-5 space-y-1 mt-1  pl-2">
                         {Object.entries(value.children).map(([childKey, child]) => (
                           <SidebarItem
                             key={childKey}
