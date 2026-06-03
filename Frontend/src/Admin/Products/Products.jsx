@@ -24,7 +24,7 @@ const ProductList = ({ setSelectedProduct, setActiveTab }) => {
   const [selectedOfferRange, setSelectedOfferRange] = useState("");
   const [productTypeFilter, setProductTypeFilter] = useState("All"); // All, Normal, Customise
   const [currentPage, setCurrentPage] = useState(1);
-  const [viewMode, setViewMode] = useState("card");
+  const [viewMode, setViewMode] = useState("table");
   const productsPerPage = 40;
 
   useEffect(() => {
@@ -183,7 +183,7 @@ const ProductList = ({ setSelectedProduct, setActiveTab }) => {
 
   // ─── UI ───────────────────────────────────────────────────────────────────
   return (
-    <div className="p-4 bg-gray-50 min-h-screen relative">
+    <div className="p-8 bg-gray-50 min-h-screen relative">
 
       {/* Product Count Cards */}
       {(() => {

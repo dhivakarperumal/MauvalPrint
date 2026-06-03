@@ -119,43 +119,55 @@ const Dashboard = () => {
     labels: Object.keys(categoryOrderStats),
     datasets: [
       {
-        label: "Units Sold per Category",
+        label: "Units Sold",
         data: Object.values(categoryOrderStats),
-        fill: true,
-        borderColor: "#3B82F6",
-        backgroundColor: "rgba(59, 130, 246, 0.1)",
-        tension: 0.4,
+        backgroundColor: "rgba(16, 185, 129, 0.85)", // Solid emerald
+        hoverBackgroundColor: "rgba(5, 150, 105, 1)",
+        borderRadius: 6,
+        barPercentage: 0.6,
       },
     ],
   };
 
   const categoryOrderLineOptions = {
     responsive: true,
+    maintainAspectRatio: false,
     plugins: {
       legend: {
-        position: "top",
-        labels: {
-          color: "#4B5563",
-          font: { size: 14 },
-        },
+        display: false,
       },
       tooltip: {
-        callbacks: {
-          label: (context) => `${context.dataset.label}: ${context.parsed.y}`,
-        },
+        backgroundColor: "rgba(15, 23, 42, 0.9)",
+        titleFont: { size: 13, family: "'Inter', sans-serif" },
+        bodyFont: { size: 14, weight: "bold", family: "'Inter', sans-serif" },
+        padding: 12,
+        cornerRadius: 8,
+        displayColors: false,
       },
     },
     scales: {
       y: {
         beginAtZero: true,
+        grid: {
+          color: "#f1f5f9",
+          drawBorder: false,
+          borderDash: [5, 5],
+        },
         ticks: {
           precision: 0,
-          color: "#6B7280",
+          color: "#94a3b8",
+          font: { family: "'Inter', sans-serif", size: 12 },
+          padding: 10,
         },
       },
       x: {
+        grid: {
+          display: false,
+          drawBorder: false,
+        },
         ticks: {
-          color: "#6B7280",
+          color: "#64748b",
+          font: { family: "'Inter', sans-serif", size: 12 },
         },
       },
     },
@@ -846,19 +858,27 @@ const Dashboard = () => {
           </div>
         </div>
         
-        <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
-          <h3 className="text-lg font-bold text-slate-800 tracking-tight mb-4">
-            Category Orders Line Chart
-          </h3>
+        <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-slate-100 relative overflow-hidden group">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-50 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none group-hover:bg-emerald-100 transition-colors duration-500"></div>
+          <div className="relative z-10 mb-6">
+            <h3 className="text-xl font-black text-slate-800 tracking-tight">
+              Order Trends by Category
+            </h3>
+            <p className="text-sm font-medium text-slate-500 mt-1">
+              Quantity of items sold across different categories
+            </p>
+          </div>
           {Object.keys(categoryOrderStats).length > 0 ? (
-            <div className="h-60">
-              <Line
+            <div className="relative z-10 h-80 w-full">
+              <Bar
                 data={categoryOrderLineData}
                 options={categoryOrderLineOptions}
               />
             </div>
           ) : (
-            <p className="text-slate-400 font-medium">No order data available.</p>
+            <div className="relative z-10 h-80 w-full flex justify-center items-center">
+              <p className="text-slate-400 font-medium">No order data available.</p>
+            </div>
           )}
         </div>
       </div>
