@@ -42,6 +42,7 @@ const StockDetails = () => {
         productList.push({
           productId: product.product_id || product.id || "",
           name: product.name || "",
+          image: product.image || product.image_url || "",
           variants,
           totalStock,
         });
@@ -190,6 +191,7 @@ const StockDetails = () => {
             <thead className="bg-gray-800 text-white">
               <tr>
                 <th className="px-4 py-4 w-16 text-center">S No</th>
+                <th className="px-4 py-4 w-24 text-center">Image</th>
                 <th className="px-4 py-4">Product ID</th>
                 <th className="px-4 py-4">Name</th>
                 <th className="px-4 py-4">Total Stock</th>
@@ -203,6 +205,20 @@ const StockDetails = () => {
                     <tr className="border-t border-gray-200 bg-white hover:bg-blue-50/30 transition-colors">
                       <td className="px-4 py-4 text-center font-medium text-gray-500">
                         {index + 1}
+                      </td>
+                      <td className="px-4 py-4 text-center">
+                        {product.image ? (
+                          <img 
+                            src={product.image} 
+                            alt={product.name}
+                            className="w-16 h-16 object-cover rounded-lg border border-gray-200"
+                            onError={(e) => { e.target.src = "https://via.placeholder.com/80?text=No+Image"; }}
+                          />
+                        ) : (
+                          <div className="w-16 h-16 bg-gray-200 rounded-lg border border-gray-300 flex items-center justify-center text-gray-400 text-xs">
+                            No Image
+                          </div>
+                        )}
                       </td>
                       <td
                         className="px-4 py-4 cursor-pointer font-bold text-blue-700 hover:underline"
@@ -222,7 +238,7 @@ const StockDetails = () => {
                     {/* Expanded Row */}
                     {expandedRows.has(product.productId) && (
                       <tr className="bg-gray-50 border-b border-gray-200">
-                        <td colSpan="4" className="px-4 py-4 shadow-inner">
+                        <td colSpan="5" className="px-4 py-4 shadow-inner">
                           {product.variants.length > 0 ? (
                             <table className="w-full text-sm text-left border border-gray-200 rounded overflow-hidden">
                               <thead className="bg-gray-200 text-gray-700">
@@ -267,7 +283,7 @@ const StockDetails = () => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan="4" className="text-center py-8 text-gray-500">
+                  <td colSpan="5" className="text-center py-8 text-gray-500">
                     <FaBoxOpen className="mx-auto text-3xl mb-2 text-gray-300" />
                     No stock data found.
                   </td>
@@ -282,6 +298,14 @@ const StockDetails = () => {
           {filteredProducts.length > 0 ? (
             filteredProducts.map((product) => (
               <div key={product.productId} className="bg-white rounded-xl shadow-sm hover:shadow-md border border-gray-200 p-5 transition-shadow">
+                {product.image && (
+                  <img 
+                    src={product.image}
+                    alt={product.name}
+                    className="w-full h-48 object-cover rounded-lg mb-4 border border-gray-200"
+                    onError={(e) => { e.target.style.display = "none"; }}
+                  />
+                )}
                 <div className="flex justify-between items-start mb-3">
                   <div>
                     <span className="bg-blue-100 text-blue-800 text-[10px] font-bold px-2 py-1 rounded mb-2 inline-block">
