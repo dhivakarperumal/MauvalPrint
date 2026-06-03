@@ -1,7 +1,5 @@
 import React, { useContext, useRef, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { serverTimestamp } from "firebase/firestore";
-import { db } from "../firebase";
 import Head from "../Components/Head";
 import imageCompression from "browser-image-compression";
 import Testimonial from "../Home/Testimonial";
