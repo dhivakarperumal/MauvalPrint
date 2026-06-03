@@ -24,6 +24,7 @@ const Billing = ({ setActiveTab }) => {
 
   const [orderSaved, setOrderSaved] = useState(false);
   const [showPopup, setShowPopup] = useState(false);
+  const [shopOrders, setShopOrders] = useState([]);
 
   const invoiceRef = useRef();
   const navigate = useNavigate();
@@ -40,6 +41,27 @@ const Billing = ({ setActiveTab }) => {
     };
     fetchProducts();
   }, []);
+
+  useEffect(() => {
+    const fetchShopOrders = async () => {
+      try {
+        const response = await api.get("/orders");
+        if (response.data.success) {
+          const shopCustOrders = response.data.orders.filter((o) => {
+            const checkout = typeof o.checkout === "string" ? JSON.parse(o.checkout) : (o.checkout || {});
+            return checkout.shopCustomerType === "ShopCustomer" || checkout.shopCustomerType === "ShopCustome" || checkout.customerName;
+          });
+          shopCustOrders.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+          setShopOrders(shopCustOrders);
+        }
+      } catch (err) {
+        console.error("Failed to fetch shop orders");
+      }
+    };
+    if (!showPopup) {
+      fetchShopOrders();
+    }
+  }, [showPopup]);
 
   const parseVariants = (raw) => {
     if (!raw) return {};
@@ -241,6 +263,56 @@ const Billing = ({ setActiveTab }) => {
         </button>
       </div>
       <p className="text-sm text-gray-500 mb-6">Generate invoices with multiple items and customer info.</p>
+
+      {/* Shop Orders Table */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-8">
+        <div className="p-4 bg-gray-50 border-b border-gray-100 flex justify-between items-center">
+          <h3 className="font-bold text-gray-800">Recent Shop Customer Bills</h3>
+          <span className="bg-blue-100 text-blue-800 text-xs font-bold px-2 py-1 rounded">{shopOrders.length} Orders</span>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm text-left">
+            <thead className="bg-gray-800 text-white">
+              <tr>
+                <th className="px-4 py-3">Order ID</th>
+                <th className="px-4 py-3">Customer Name</th>
+                <th className="px-4 py-3">Phone</th>
+                <th className="px-4 py-3">Date</th>
+                <th className="px-4 py-3">Amount</th>
+                <th className="px-4 py-3">Status</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {shopOrders.length > 0 ? (
+                shopOrders.map((order) => (
+                  <tr key={order.order_id} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-4 py-4 font-bold text-blue-700">{order.order_id}</td>
+                    <td className="px-4 py-4">{order.checkout?.customerName || order.checkout?.fullname || "Unknown"}</td>
+                    <td className="px-4 py-4">{order.checkout?.customerPhone || order.checkout?.contact || "-"}</td>
+                    <td className="px-4 py-4">{order.created_at ? new Date(order.created_at).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "-"}</td>
+                    <td className="px-4 py-4 font-semibold text-gray-900">₹{order.total}</td>
+                    <td className="px-4 py-4">
+                      <span className="px-2 py-1 bg-green-100 text-green-800 rounded text-xs font-bold">{order.status || "Delivered"}</span>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="6" className="px-4 py-12 text-center text-gray-500">
+                    <div className="flex flex-col items-center justify-center">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-gray-300 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                      <p>No shop customer bills found.</p>
+                      <button onClick={() => setShowPopup(true)} className="mt-2 text-blue-600 hover:underline text-sm font-medium cursor-pointer">Create one now</button>
+                    </div>
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
 
       {/* Side Popup Modal */}
       {showPopup && (
