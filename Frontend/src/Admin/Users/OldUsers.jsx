@@ -269,67 +269,88 @@ const OldUsers = () => {
         </div>
       </div>
 
-      {/* Filters */}
-      <div className="flex justify-between flex-col md:flex-row gap-2 md:gap-4 items-center mb-4">
-        <input
-          type="text"
-          placeholder="Search by name, email, phone..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="border px-3 py-2 rounded w-full md:w-1/3"
-        />
-        <div className="flex items-center gap-2 flex-wrap">
-          <select
-            value={filter}
-            onChange={(e) => setFilter(e.target.value)}
-            className="border px-3 py-2 rounded"
-          >
-            <option value="all">All</option>
-            <option value="today">Today</option>
-            <option value="week">This Week</option>
-            <option value="month">This Month</option>
-            <option value="custom">Custom Range</option>
-          </select>
-          {filter === "custom" && (
-            <div className="flex gap-2">
-              <input
-                type="date"
-                value={customFrom}
-                onChange={(e) => setCustomFrom(e.target.value)}
-                className="border px-3 py-2 rounded"
-              />
-              <input
-                type="date"
-                value={customTo}
-                onChange={(e) => setCustomTo(e.target.value)}
-                className="border px-3 py-2 rounded"
-              />
+      {/* Search & Filters */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-6">
+        <div className="flex flex-col md:flex-row gap-3 items-center">
+          {/* Search Input with Icon */}
+          <div className="relative w-full md:w-1/3">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z" />
+              </svg>
+            </span>
+            <input
+              type="text"
+              placeholder="Search by name, email, phone..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full pl-9 pr-3 py-2.5 border border-gray-200 rounded-lg bg-gray-50 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-white transition-all"
+            />
+          </div>
+
+          {/* Right side controls */}
+          <div className="flex items-center gap-3 flex-wrap ml-auto">
+            {/* Filter Dropdown */}
+            <select
+              value={filter}
+              onChange={(e) => setFilter(e.target.value)}
+              className="border border-gray-200 bg-gray-50 px-4 py-2.5 rounded-lg text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-white transition-all cursor-pointer appearance-none"
+              style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 12px center', paddingRight: '36px' }}
+            >
+              <option value="all">All Time</option>
+              <option value="today">Today</option>
+              <option value="week">This Week</option>
+              <option value="month">This Month</option>
+              <option value="custom">Custom Range</option>
+            </select>
+
+            {/* Custom Date Range */}
+            {filter === "custom" && (
+              <div className="flex items-center gap-2">
+                <input
+                  type="date"
+                  value={customFrom}
+                  onChange={(e) => setCustomFrom(e.target.value)}
+                  className="border border-gray-200 bg-gray-50 px-3 py-2.5 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-white transition-all"
+                />
+                <span className="text-gray-400 text-sm">to</span>
+                <input
+                  type="date"
+                  value={customTo}
+                  onChange={(e) => setCustomTo(e.target.value)}
+                  className="border border-gray-200 bg-gray-50 px-3 py-2.5 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-white transition-all"
+                />
+              </div>
+            )}
+
+            {/* Divider */}
+            <div className="hidden md:block w-px h-8 bg-gray-200"></div>
+
+            {/* View Mode Toggle */}
+            <div className="hidden md:flex items-center bg-gray-100 rounded-lg p-1 gap-1">
+              <button
+                onClick={() => setViewMode("table")}
+                title="Table View"
+                className={`p-2 rounded-md transition-all cursor-pointer ${
+                  viewMode === "table"
+                    ? "bg-blue-900 text-white shadow-sm"
+                    : "text-gray-500 hover:text-gray-700 hover:bg-gray-200"
+                }`}
+              >
+                <FaTable size={14} />
+              </button>
+              <button
+                onClick={() => setViewMode("card")}
+                title="Card View"
+                className={`p-2 rounded-md transition-all cursor-pointer ${
+                  viewMode === "card"
+                    ? "bg-blue-900 text-white shadow-sm"
+                    : "text-gray-500 hover:text-gray-700 hover:bg-gray-200"
+                }`}
+              >
+                <FaThLarge size={14} />
+              </button>
             </div>
-          )}
-          {/* View Mode Toggle */}
-          <div className="hidden md:flex items-center border rounded overflow-hidden">
-            <button
-              onClick={() => setViewMode("table")}
-              title="Table View"
-              className={`px-3 py-2 transition-colors cursor-pointer ${
-                viewMode === "table"
-                  ? "bg-blue-900 text-white"
-                  : "bg-white text-gray-600 hover:bg-gray-100"
-              }`}
-            >
-              <FaTable />
-            </button>
-            <button
-              onClick={() => setViewMode("card")}
-              title="Card View"
-              className={`px-3 py-2 transition-colors cursor-pointer ${
-                viewMode === "card"
-                  ? "bg-blue-900 text-white"
-                  : "bg-white text-gray-600 hover:bg-gray-100"
-              }`}
-            >
-              <FaThLarge />
-            </button>
           </div>
         </div>
       </div>
