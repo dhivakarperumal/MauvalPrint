@@ -132,7 +132,7 @@ const SidebarItem = ({ icon, label, active, onClick, count, isChild }) => (
       <span className="absolute left-0 top-0 bottom-0 w-1.5 bg-cyan-400 rounded-r-md shadow-[0_0_12px_rgba(34,211,238,0.8)]"></span>
     )}
     <div className="flex items-center gap-3 relative z-10">
-      <span className={`text-xl transition-all duration-300 ${active ? "scale-110 text-white drop-shadow-md" : "group-hover:scale-110 group-hover:text-cyan-400"}`}>
+      <span className={`text-xl transition-all duration-300 ${active ? "scale-110 text-yellow-300 drop-shadow-[0_0_8px_rgba(253,224,71,0.8)]" : "group-hover:scale-110 group-hover:text-cyan-400"}`}>
         {icon}
       </span>
       <span className="tracking-wide">{label}</span>
