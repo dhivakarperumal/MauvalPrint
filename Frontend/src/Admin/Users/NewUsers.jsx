@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import api from "../../api";
-import { FaEye, FaEdit, FaTrash, FaSearch } from "react-icons/fa";
+import { FaEye, FaEdit, FaTrash, FaThLarge, FaTable, FaUsers, FaUserCheck, FaUserTimes } from "react-icons/fa";
 import toast from "react-hot-toast";
 
 const NewUsers = () => {
@@ -9,6 +9,7 @@ const NewUsers = () => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [editMode, setEditMode] = useState(false);
+  const [viewMode, setViewMode] = useState("table"); // "table" | "card"
 
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("today"); 
@@ -161,84 +162,169 @@ const NewUsers = () => {
 
   return (
     <div className="p-4 min-h-screen">
-      <h2 className="text-2xl font-bold text-blue-900 mt-8 mb-1">Users</h2>
-       <p className="text-sm text-gray-500 mb-4">Manage New Users registered users.</p>
+      <h2 className="text-2xl font-bold text-blue-900 mt-8 mb-1">New Users</h2>
+      <p className="text-sm text-gray-500 mb-4">Manage New Users registered users.</p>
 
-      {/* Filters */}
-      <div className="flex justify-between flex-col md:flex-row gap-2 md:gap-4 items-center mb-4">
-        <input
-          type="text"
-          placeholder="Search by name, email, phone..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="border px-3 py-2 rounded w-full md:w-1/3"
-        />
-        <select
-          value={filter}
-          onChange={(e) => setFilter(e.target.value)}
-          className="border px-3 py-2 rounded"
-        >
-          <option value="today">Today</option>
-          <option value="week">This Week</option>
-          <option value="month">This Month</option>
-          <option value="custom">Custom Range</option>
-        </select>
-        {filter === "custom" && (
-          <div className="flex gap-2">
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+        {/* All Users */}
+        <div className="bg-gradient-to-br from-blue-900 to-blue-700 rounded-xl shadow-lg p-5 flex items-center gap-4 text-white">
+          <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center">
+            <FaUsers size={22} />
+          </div>
+          <div>
+            <p className="text-sm font-medium opacity-80">All Users</p>
+            <p className="text-2xl font-bold">{filteredUsers.length}</p>
+          </div>
+        </div>
+        {/* Active Users */}
+        <div className="bg-gradient-to-br from-emerald-600 to-emerald-400 rounded-xl shadow-lg p-5 flex items-center gap-4 text-white">
+          <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center">
+            <FaUserCheck size={22} />
+          </div>
+          <div>
+            <p className="text-sm font-medium opacity-80">Active Users</p>
+            <p className="text-2xl font-bold">{filteredUsers.filter((u) => u.status === "active").length}</p>
+          </div>
+        </div>
+        {/* Inactive Users */}
+        <div className="bg-gradient-to-br from-red-600 to-red-400 rounded-xl shadow-lg p-5 flex items-center gap-4 text-white">
+          <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center">
+            <FaUserTimes size={22} />
+          </div>
+          <div>
+            <p className="text-sm font-medium opacity-80">Inactive Users</p>
+            <p className="text-2xl font-bold">{filteredUsers.filter((u) => u.status === "inactive").length}</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Search & Filters */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-6">
+        <div className="flex flex-col md:flex-row gap-3 items-center">
+          {/* Search Input with Icon */}
+          <div className="relative w-full md:w-1/3">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z" />
+              </svg>
+            </span>
             <input
-              type="date"
-              value={customFrom}
-              onChange={(e) => setCustomFrom(e.target.value)}
-              className="border px-3 py-2 rounded"
-            />
-            <input
-              type="date"
-              value={customTo}
-              onChange={(e) => setCustomTo(e.target.value)}
-              className="border px-3 py-2 rounded"
+              type="text"
+              placeholder="Search by name, email, phone..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full pl-9 pr-3 py-2.5 border border-gray-200 rounded-lg bg-gray-50 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-white transition-all"
             />
           </div>
+
+          {/* Right side controls */}
+          <div className="flex items-center gap-3 flex-wrap ml-auto">
+            {/* Filter Dropdown */}
+            <select
+              value={filter}
+              onChange={(e) => setFilter(e.target.value)}
+              className="border border-gray-200 bg-gray-50 px-4 py-2.5 rounded-lg text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-white transition-all cursor-pointer appearance-none"
+              style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 12px center', paddingRight: '36px' }}
+            >
+              <option value="today">Today</option>
+              <option value="week">This Week</option>
+              <option value="month">This Month</option>
+              <option value="custom">Custom Range</option>
+            </select>
+
+            {/* Custom Date Range */}
+            {filter === "custom" && (
+              <div className="flex items-center gap-2">
+                <input
+                  type="date"
+                  value={customFrom}
+                  onChange={(e) => setCustomFrom(e.target.value)}
+                  className="border border-gray-200 bg-gray-50 px-3 py-2.5 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-white transition-all"
+                />
+                <span className="text-gray-400 text-sm">to</span>
+                <input
+                  type="date"
+                  value={customTo}
+                  onChange={(e) => setCustomTo(e.target.value)}
+                  className="border border-gray-200 bg-gray-50 px-3 py-2.5 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-white transition-all"
+                />
+              </div>
+            )}
+
+            {/* Divider */}
+            <div className="hidden md:block w-px h-8 bg-gray-200"></div>
+
+            {/* View Mode Toggle */}
+            <div className="hidden md:flex items-center bg-gray-100 rounded-lg p-1 gap-1">
+              <button
+                onClick={() => setViewMode("table")}
+                title="Table View"
+                className={`p-2 rounded-md transition-all cursor-pointer ${
+                  viewMode === "table"
+                    ? "bg-blue-900 text-white shadow-sm"
+                    : "text-gray-500 hover:text-gray-700 hover:bg-gray-200"
+                }`}
+              >
+                <FaTable size={14} />
+              </button>
+              <button
+                onClick={() => setViewMode("card")}
+                title="Card View"
+                className={`p-2 rounded-md transition-all cursor-pointer ${
+                  viewMode === "card"
+                    ? "bg-blue-900 text-white shadow-sm"
+                    : "text-gray-500 hover:text-gray-700 hover:bg-gray-200"
+                }`}
+              >
+                <FaThLarge size={14} />
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Mobile Cards */}
+      <div className="md:hidden flex flex-col gap-4">
+        {currentUsers.length > 0 ? (
+          currentUsers.map((user, index) => (
+            <div key={user.id} className="bg-white rounded-lg shadow p-4 space-y-2">
+              <div>
+                <p className="font-semibold">{user.name}</p>
+                <p className="text-sm text-gray-600">{user.email}</p>
+                <p className="text-sm text-gray-600">{user.role}</p>
+                <p className="text-sm text-gray-600">{user.phone}</p>
+                <p className="text-xs text-gray-400">{user.createdAt?.toDateString?.()}</p>
+              </div>
+              <div className="flex justify-end gap-3 pt-2">
+                <button onClick={() => handleView(user)} className="text-gray-600 border p-2 cursor-pointer rounded hover:text-blue-600 hover:bg-blue-50"><FaEye /></button>
+                <button onClick={() => handleEditClick(user)} className="text-gray-600 border p-2 cursor-pointer rounded hover:text-yellow-600 hover:bg-yellow-50"><FaEdit /></button>
+                <button onClick={() => handleDelete(user.id)} className="text-gray-600 border p-2 cursor-pointer rounded hover:text-red-600 hover:bg-red-50"><FaTrash /></button>
+              </div>
+            </div>
+          ))
+        ) : (
+          <div className="bg-white rounded-lg shadow p-8 text-center text-gray-400 text-sm">No users found.</div>
         )}
       </div>
 
-      {/* Users */}
-      {currentUsers.length > 0 ? (
-        <>
-          {/* Mobile Cards */}
-          <div className="md:hidden flex flex-col gap-4 mt-4">
-            {currentUsers.map((user, index) => (
-              <div key={user.id} className="bg-white rounded-lg shadow p-4 space-y-2">
-                <div>
-                  <p className="font-semibold">{user.name}</p>
-                  <p className="text-sm text-gray-600">{user.email}</p>
-                  <p className="text-sm text-gray-600">{user.role}</p>
-                  <p className="text-sm text-gray-600">{user.phone}</p>
-                  <p className="text-xs text-gray-400">{user.createdAt?.toDateString?.()}</p>
-                </div>
-                <div className="flex justify-end gap-3 pt-2">
-                  <button onClick={() => handleView(user)} className="text-gray-600 border p-2 cursor-pointer rounded hover:text-blue-600 hover:bg-blue-50"><FaEye /></button>
-                  <button onClick={() => handleEditClick(user)} className="text-gray-600 border p-2 cursor-pointer rounded hover:text-yellow-600 hover:bg-yellow-50"><FaEdit /></button>
-                  <button onClick={() => handleDelete(user.id)} className="text-gray-600 border p-2 cursor-pointer rounded hover:text-red-600 hover:bg-red-50"><FaTrash /></button>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Desktop Table */}
-          <div className="hidden md:block bg-white shadow rounded-lg overflow-x-auto mt-4">
-            <table className="min-w-full text-sm text-left">
-              <thead className="bg-gray-800 text-white">
-                <tr>
-                  <th className="p-3">ID</th>
-                  <th className="p-3">Name</th>
-                  <th className="p-3">Email</th>
-                  <th className="p-3">Role</th>
-                  <th className="p-3">Phone</th>
-                  <th className="p-3 text-center">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {currentUsers.map((user, index) => (
+      {/* Desktop Table View */}
+      {viewMode === "table" && (
+        <div className="hidden md:block bg-white shadow rounded-lg overflow-x-auto">
+          <table className="min-w-full text-sm text-left">
+            <thead className="bg-gray-800 text-white">
+              <tr>
+                <th className="p-3">S No</th>
+                <th className="p-3">Name</th>
+                <th className="p-3">Email</th>
+                <th className="p-3">Role</th>
+                <th className="p-3">Phone</th>
+                <th className="p-3 text-center">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {currentUsers.length > 0 ? (
+                currentUsers.map((user, index) => (
                   <tr key={user.id} className="border-t border-gray-200 hover:bg-gray-50">
                     <td className="p-3">{indexOfFirstUser + index + 1}</td>
                     <td className="p-3">{user.name}</td>
@@ -253,36 +339,86 @@ const NewUsers = () => {
                       </div>
                     </td>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="6" className="p-8 text-center text-gray-400">No users found.</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
 
-           
-          </div>
-
-           {/* Pagination */}
-            <div className="flex justify-end gap-2 p-3">
-              <button
-                disabled={currentPage === 1}
-                onClick={() => setCurrentPage((prev) => prev - 1)}
-                className="px-3 py-1 cursor-pointer border rounded bg-gray-900 text-white"
-              >
-                Prev
-              </button>
-              <span className="border border-gray-300 px-3 py-1">
-                {currentPage} 
-              </span>
-              <button
-                disabled={currentPage === totalPages}
-                onClick={() => setCurrentPage((prev) => prev + 1)}
-                className="px-3 py-1 cursor-pointer bg-gray-900 text-white border rounded "
-              >
-                Next
-              </button>
+      {/* Desktop Card View */}
+      {viewMode === "card" && (
+        <div className="hidden md:block">
+          {currentUsers.length > 0 ? (
+            <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {currentUsers.map((user, ind) => (
+                <div
+                  key={user.id}
+                  className="bg-white rounded-xl shadow hover:shadow-md transition-shadow p-4 flex flex-col gap-3 cursor-pointer border border-gray-100"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-blue-900 text-white flex items-center justify-center font-bold text-lg flex-shrink-0">
+                      {user.name?.charAt(0)?.toUpperCase() || "?"}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="font-semibold text-blue-900 truncate">{user.name}</p>
+                      <p className="text-xs text-gray-400">#{indexOfFirstUser + ind + 1}</p>
+                    </div>
+                  </div>
+                  <div className="text-sm text-gray-600 space-y-1">
+                    <p className="truncate" title={user.email}>
+                      <span className="font-medium text-gray-700">Email:</span> {user.email}
+                    </p>
+                    <p>
+                      <span className="font-medium text-gray-700">Phone:</span> {user.phone || "\u2014"}
+                    </p>
+                    <p>
+                      <span className="font-medium text-gray-700">Role:</span>{" "}
+                      <span className="capitalize">{user.role || "\u2014"}</span>
+                    </p>
+                    <p className="text-xs text-gray-400">{user.createdAt?.toDateString?.()}</p>
+                  </div>
+                  <div className="flex items-center justify-end mt-auto pt-2 border-t border-gray-100">
+                    <div className="flex gap-1">
+                      <button onClick={() => handleView(user)} className="text-gray-500 cursor-pointer hover:text-blue-600 border p-1.5 rounded" title="View"><FaEye size={13} /></button>
+                      <button onClick={() => handleEditClick(user)} className="text-gray-500 cursor-pointer hover:text-yellow-600 border p-1.5 rounded" title="Edit"><FaEdit size={13} /></button>
+                      <button onClick={() => handleDelete(user.id)} className="text-gray-500 cursor-pointer hover:text-red-600 border p-1.5 rounded" title="Delete"><FaTrash size={13} /></button>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
-        </>
-      ) : (
-        <p>No users found.</p>
+          ) : (
+            <div className="bg-white rounded-lg shadow p-8 text-center text-gray-400 text-sm">No users found.</div>
+          )}
+        </div>
+      )}
+
+      {/* Pagination */}
+      {currentUsers.length > 0 && (
+        <div className="flex justify-end gap-2 p-3">
+          <button
+            disabled={currentPage === 1}
+            onClick={() => setCurrentPage((prev) => prev - 1)}
+            className="px-3 py-1 cursor-pointer border rounded bg-gray-900 text-white"
+          >
+            Prev
+          </button>
+          <span className="border border-gray-300 px-3 py-1">
+            {currentPage}
+          </span>
+          <button
+            disabled={currentPage === totalPages}
+            onClick={() => setCurrentPage((prev) => prev + 1)}
+            className="px-3 py-1 cursor-pointer bg-gray-900 text-white border rounded"
+          >
+            Next
+          </button>
+        </div>
       )}
 
       {/* Modal */}
