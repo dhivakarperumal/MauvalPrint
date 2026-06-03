@@ -97,7 +97,6 @@ const Profile = () => {
     }
 
     setLoading(true);
-
     try {
       await api.put(`/users/${userData.id}`, {
         username: userData.name,
@@ -105,10 +104,7 @@ const Profile = () => {
       });
       toast.success("Profile updated successfully");
       if (updateUserProfile) {
-        updateUserProfile({
-          username: userData.name,
-          phone: userData.phone,
-        });
+        updateUserProfile({ username: userData.name, phone: userData.phone });
       }
     } catch (error) {
       console.error("Update failed:", error);
@@ -119,21 +115,41 @@ const Profile = () => {
   };
 
   return (
-    <div className="min-h-screen p-7 bg-gray-50">
-      <h2 className="text-2xl font-bold text-gray-800 mb-1">Admin Profile</h2>
-      <p className="text-sm text-gray-500 mb-6">Update your profile details and image.</p>
+    <div className="min-h-screen bg-slate-50 py-10">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="mb-8 rounded-3xl bg-white border border-slate-200/70 p-8 shadow-xl">
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <p className="text-sm font-semibold uppercase tracking-[0.26em] text-sky-600">My Profile</p>
+              <h2 className="mt-3 text-3xl sm:text-4xl font-semibold text-slate-900">Admin Profile</h2>
+              <p className="mt-3 max-w-2xl text-sm text-slate-500">
+                Update your profile details and image. Your email and role are displayed as read-only.
+              </p>
+            </div>
+            <div className="rounded-3xl bg-slate-100 px-5 py-4 text-sm text-slate-600">
+              <span className="font-semibold text-slate-900">Tip:</span> Keep your profile image square to preserve the rounded preview style.
+            </div>
+          </div>
+        </div>
 
-      <div className="max-w-5xl mx-auto p-6 bg-white rounded-xl shadow-md">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {/* Profile Image Upload */}
-          <div className="flex flex-col items-center gap-3">
-            <label htmlFor="imageUpload" className="cursor-pointer">
-              <img
-                src={userData.photoURL || "/placeholder.jpg"}
-                alt="Profile"
-                className="w-32 h-32 rounded-full object-cover border shadow"
-              />
-            </label>
+        <div className="grid gap-8 lg:grid-cols-[320px_1fr]">
+          <div className="rounded-3xl border border-slate-200/80 bg-white p-6 shadow-sm">
+            <div className="relative overflow-hidden rounded-[30px] bg-gradient-to-br from-sky-600 via-slate-900 to-slate-700 p-6 text-center text-white shadow-lg">
+              <div className="mx-auto mb-4 h-40 w-40 overflow-hidden rounded-full border-4 border-white bg-slate-100 shadow-inner">
+                <label htmlFor="imageUpload" className="cursor-pointer block h-full">
+                  <img
+                    src={userData.photoURL || "/placeholder.jpg"}
+                    alt="Profile"
+                    className="h-full w-full object-cover"
+                  />
+                </label>
+              </div>
+              <p className="text-lg font-semibold">Profile Image</p>
+              <p className="text-sm text-slate-200 mt-1">Click the avatar to upload a new picture.</p>
+              <div className="mt-6 rounded-2xl bg-white/15 px-4 py-3 text-xs text-slate-100">
+                {userData.name || "Admin User"}
+              </div>
+            </div>
             <input
               type="file"
               id="imageUpload"
@@ -141,61 +157,63 @@ const Profile = () => {
               onChange={handleImageChange}
               className="hidden"
             />
-            <p className="text-sm text-gray-500">Click image to upload</p>
           </div>
 
-          {/* Profile Form */}
-          <div>
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700">Name</label>
-              <input
-                type="text"
-                className="mt-1 block w-full border px-3 py-2 rounded-md shadow-sm"
-                value={userData.name}
-                onChange={(e) =>
-                  setUserData((prev) => ({ ...prev, name: e.target.value }))
-                }
-              />
-            </div>
+          <div className="rounded-3xl border border-slate-200/80 bg-white p-8 shadow-sm">
+            <div className="space-y-5">
+              <div>
+                <label className="block text-sm font-semibold text-slate-700">Name</label>
+                <input
+                  type="text"
+                  className="mt-3 block w-full rounded-3xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 shadow-sm transition focus:border-sky-500 focus:ring-2 focus:ring-sky-100"
+                  value={userData.name}
+                  onChange={(e) =>
+                    setUserData((prev) => ({ ...prev, name: e.target.value }))
+                  }
+                />
+              </div>
 
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700">Email</label>
-              <input
-                type="email"
-                disabled
-                className="mt-1 block w-full bg-gray-100 border px-3 py-2 rounded-md shadow-sm cursor-not-allowed"
-                value={userData.email}
-              />
-              <p className="text-xs text-gray-400 mt-1">Email cannot be changed</p>
-            </div>
+              <div>
+                <label className="block text-sm font-semibold text-slate-700">Email</label>
+                <input
+                  type="email"
+                  disabled
+                  className="mt-3 block w-full rounded-3xl border border-slate-200 bg-slate-100 px-4 py-3 text-slate-500 shadow-sm"
+                  value={userData.email}
+                />
+                <p className="mt-2 text-xs text-slate-400">Email cannot be changed</p>
+              </div>
 
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700">Role</label>
-              <input
-                type="text"
-                disabled
-                className="mt-1 block w-full bg-gray-100 border px-3 py-2 rounded-md shadow-sm cursor-not-allowed"
-                value={userData.role}
-              />
-            </div>
+              <div>
+                <label className="block text-sm font-semibold text-slate-700">Role</label>
+                <input
+                  type="text"
+                  disabled
+                  className="mt-3 block w-full rounded-3xl border border-slate-200 bg-slate-100 px-4 py-3 text-slate-500 shadow-sm"
+                  value={userData.role}
+                />
+              </div>
 
-            <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700">Phone</label>
-              <input
-                type="tel"
-                className="mt-1 block w-full border px-3 py-2 rounded-md shadow-sm"
-                value={userData.phone}
-                onChange={(e) =>
-                  setUserData((prev) => ({ ...prev, phone: e.target.value }))
-                }
-              />
+              <div>
+                <label className="block text-sm font-semibold text-slate-700">Phone</label>
+                <input
+                  type="tel"
+                  className="mt-3 block w-full rounded-3xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 shadow-sm transition focus:border-sky-500 focus:ring-2 focus:ring-sky-100"
+                  value={userData.phone}
+                  onChange={(e) =>
+                    setUserData((prev) => ({ ...prev, phone: e.target.value }))
+                  }
+                />
+              </div>
             </div>
 
             <button
               onClick={handleUpdate}
               disabled={loading}
-              className={`w-full py-2 rounded-md text-white transition ${
-                loading ? "bg-blue-400 cursor-not-allowed" : "bg-blue-900 hover:bg-blue-700"
+              className={`mt-8 inline-flex w-full items-center justify-center rounded-3xl px-6 py-4 text-sm font-semibold text-white shadow-lg transition ${
+                loading
+                  ? "bg-slate-400 cursor-not-allowed"
+                  : "bg-slate-900 hover:bg-slate-700"
               }`}
             >
               {loading ? "Updating..." : "Update Profile"}
