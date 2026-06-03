@@ -36,6 +36,14 @@ const NewOrders = () => {
   const [toDate, setToDate] = useState("");
   const [viewMode, setViewMode] = useState("table");
 
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+  const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedOrders = filteredOrders.slice(startIndex, endIndex);
+
   // Fetch today's orders initially
   useEffect(() => {
     const fetchOrders = async () => {
@@ -101,6 +109,7 @@ const NewOrders = () => {
     });
 
     setFilteredOrders(filtered);
+    setCurrentPage(1);
   }, [orders, searchTerm, filterType, fromDate, toDate]);
 
   // Toggle order detail visibility
@@ -414,7 +423,7 @@ const NewOrders = () => {
                 </td>
               </tr>
             ) : (
-              filteredOrders.map((order) => (
+              paginatedOrders.map((order) => (
                 <React.Fragment key={order.order_id || order.orderID}>
                   <tr className="border border-gray-300 rounded px-4 py-2 w-full md:w-1/3">
                     <td
@@ -585,7 +594,7 @@ const NewOrders = () => {
               <p className="text-gray-500">No new orders today.</p>
             </div>
           ) : (
-            filteredOrders.map((order) => (
+            paginatedOrders.map((order) => (
               <div key={order.order_id || order.orderID} className="bg-white p-5 rounded-xl shadow-sm border border-gray-200 flex flex-col gap-4 hover:shadow-md transition-shadow">
                 <div className="flex justify-between items-start gap-2">
                   <div className="flex-1 min-w-0">
@@ -717,6 +726,46 @@ const NewOrders = () => {
               </div>
             ))
           )}
+        </div>
+      )}
+
+      {/* Pagination Component */}
+      {totalPages > 1 && (
+        <div className="flex flex-col sm:flex-row justify-between items-center px-5 py-4 mt-6 bg-white border border-gray-200 rounded-xl shadow-sm gap-4">
+          <p className="text-sm text-gray-600 font-medium">
+            Showing {startIndex + 1} to {Math.min(endIndex, filteredOrders.length)} of {filteredOrders.length} orders
+          </p>
+          <div className="flex justify-center items-center gap-2 flex-wrap">
+            <button
+              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+              className="px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 text-sm font-medium transition-colors"
+            >
+              Prev
+            </button>
+            <div className="flex items-center gap-1">
+              {[...Array(totalPages)].map((_, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setCurrentPage(idx + 1)}
+                  className={`w-8 h-8 flex items-center justify-center rounded-md text-sm font-medium transition-colors ${
+                    currentPage === idx + 1
+                      ? "bg-blue-600 text-white shadow-sm"
+                      : "bg-gray-50 border border-gray-200 hover:bg-gray-100 text-gray-700"
+                  }`}
+                >
+                  {idx + 1}
+                </button>
+              ))}
+            </div>
+            <button
+              onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+              disabled={currentPage === totalPages}
+              className="px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 text-sm font-medium transition-colors"
+            >
+              Next
+            </button>
+          </div>
         </div>
       )}
     </div>

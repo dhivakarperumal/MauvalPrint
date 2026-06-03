@@ -96,15 +96,16 @@ const tabLabels = {
       users: { label: "All Users", icon: <FiUsers /> },
     },
   },
-  stock: {
-    label: "Stock",
-    icon: <FiBox />,
-    isDropdown: true,
-    children: {
-      addStock: { label: "Add Stock", icon: <FiPlusCircle /> },
-      stockDetails: { label: "Stock Details", icon: <FiSearch /> },
-    },
-  },
+  // stock: {
+  //   label: "Stock",
+  //   icon: <FiBox />,
+  //   isDropdown: true,
+  //   children: {
+  //     addStock: { label: "Add Stock", icon: <FiPlusCircle /> },
+  //     stockDetails: { label: "Stock Details", icon: <FiSearch /> },
+  //   },
+  // },
+  stockDetails: { label: "Stock Details", icon: <FiSearch /> },
   billing: { label: "Billing", icon: <FiFileText /> },
   getOrders: { label: "Get Order Details", icon: <FiSearch /> },
   reviews: { label: "Reviews", icon: <FiStar /> },
