@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import api from "../../api";
-import { FaEye, FaEdit, FaTrash, FaPlus } from "react-icons/fa";
+import { FaEye, FaEdit, FaTrash, FaPlus, FaThLarge, FaTable } from "react-icons/fa";
 import toast from "react-hot-toast";
 
 const OldUsers = () => {
@@ -9,6 +9,7 @@ const OldUsers = () => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [editMode, setEditMode] = useState(false);
   const [addMode, setAddMode] = useState(false);
+  const [viewMode, setViewMode] = useState("table"); // "table" | "card"
 
   // Filters & Pagination
   const [search, setSearch] = useState("");
@@ -243,102 +244,204 @@ const OldUsers = () => {
           onChange={(e) => setSearch(e.target.value)}
           className="border px-3 py-2 rounded w-full md:w-1/3"
         />
-        <select
-          value={filter}
-          onChange={(e) => setFilter(e.target.value)}
-          className="border px-3 py-2 rounded"
-        >
-          <option value="all">All</option>
-          <option value="today">Today</option>
-          <option value="week">This Week</option>
-          <option value="month">This Month</option>
-          <option value="custom">Custom Range</option>
-        </select>
-        {filter === "custom" && (
-          <div className="flex gap-2">
-            <input
-              type="date"
-              value={customFrom}
-              onChange={(e) => setCustomFrom(e.target.value)}
-              className="border px-3 py-2 rounded"
-            />
-            <input
-              type="date"
-              value={customTo}
-              onChange={(e) => setCustomTo(e.target.value)}
-              className="border px-3 py-2 rounded"
-            />
+        <div className="flex items-center gap-2 flex-wrap">
+          <select
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
+            className="border px-3 py-2 rounded"
+          >
+            <option value="all">All</option>
+            <option value="today">Today</option>
+            <option value="week">This Week</option>
+            <option value="month">This Month</option>
+            <option value="custom">Custom Range</option>
+          </select>
+          {filter === "custom" && (
+            <div className="flex gap-2">
+              <input
+                type="date"
+                value={customFrom}
+                onChange={(e) => setCustomFrom(e.target.value)}
+                className="border px-3 py-2 rounded"
+              />
+              <input
+                type="date"
+                value={customTo}
+                onChange={(e) => setCustomTo(e.target.value)}
+                className="border px-3 py-2 rounded"
+              />
+            </div>
+          )}
+          {/* View Mode Toggle */}
+          <div className="hidden md:flex items-center border rounded overflow-hidden">
+            <button
+              onClick={() => setViewMode("table")}
+              title="Table View"
+              className={`px-3 py-2 transition-colors cursor-pointer ${
+                viewMode === "table"
+                  ? "bg-blue-900 text-white"
+                  : "bg-white text-gray-600 hover:bg-gray-100"
+              }`}
+            >
+              <FaTable />
+            </button>
+            <button
+              onClick={() => setViewMode("card")}
+              title="Card View"
+              className={`px-3 py-2 transition-colors cursor-pointer ${
+                viewMode === "card"
+                  ? "bg-blue-900 text-white"
+                  : "bg-white text-gray-600 hover:bg-gray-100"
+              }`}
+            >
+              <FaThLarge />
+            </button>
           </div>
-        )}
+        </div>
       </div>
 
-      {/* Desktop Table */}
-      <div className="hidden md:block overflow-x-auto bg-white rounded-lg shadow">
-        <table className="min-w-full text-sm text-left">
-          <thead className="bg-gray-800 text-white">
-            <tr>
-              <th className="p-3">S No</th>
-              <th className="p-3">Name</th>
-              <th className="p-3">Email</th>
-              <th className="p-3">Role</th>
-              <th className="p-3">Phone</th>
-              <th className="p-3">Status</th>
-              <th className="p-3 text-center">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {currentUsers.map((user,ind) => (
-              <tr
-                key={user.id}
-                onDoubleClick={() => handleToggleStatus(user)}
-                className={`border-t border-gray-200 hover:bg-gray-50 ${user.status === "inactive" ? "bg-red-50" : ""} cursor-pointer`}
-              >
-                <td className="p-3 break-all max-w-xs">{ind + 1}</td>
-                <td className="p-3">{user.name}</td>
-                <td className="p-3">{user.email}</td>
-                <td className="p-3">{user.role}</td>
-                <td className="p-3">{user.phone}</td>
-                <td className="p-3">
-                  <span
-                    className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-semibold ${
-                      user.status === "active"
-                        ? "bg-green-100 text-green-800"
-                        : "bg-red-100 text-red-800"
-                    }`}
-                  >
-                    {user.status}
-                  </span>
-                </td>
-                <td className="p-3">
-                  <div className="flex justify-center gap-2">
-                    <button
-                      onClick={() => handleView(user)}
-                      className="text-gray-600 cursor-pointer hover:text-blue-600 border p-2 rounded"
-                    >
-                      <FaEye />
-                    </button>
-                    <button
-                      onClick={() => handleEdit(user)}
-                      className="text-gray-600 cursor-pointer hover:text-yellow-600 border p-2 rounded"
-                    >
-                      <FaEdit />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(user)}
-                      className="text-gray-600 cursor-pointer hover:text-red-600 border p-2 rounded"
-                    >
-                      <FaTrash />
-                    </button>
-                  </div>
-                </td>
+      {/* Desktop Table View */}
+      {viewMode === "table" && (
+        <div className="hidden md:block overflow-x-auto bg-white rounded-lg shadow">
+          <table className="min-w-full text-sm text-left">
+            <thead className="bg-gray-800 text-white">
+              <tr>
+                <th className="p-3">S No</th>
+                <th className="p-3">Name</th>
+                <th className="p-3">Email</th>
+                <th className="p-3">Role</th>
+                <th className="p-3">Phone</th>
+                <th className="p-3">Status</th>
+                <th className="p-3 text-center">Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {currentUsers.map((user, ind) => (
+                <tr
+                  key={user.id}
+                  onDoubleClick={() => handleToggleStatus(user)}
+                  className={`border-t border-gray-200 hover:bg-gray-50 ${
+                    user.status === "inactive" ? "bg-red-50" : ""
+                  } cursor-pointer`}
+                >
+                  <td className="p-3 break-all max-w-xs">{ind + 1}</td>
+                  <td className="p-3">{user.name}</td>
+                  <td className="p-3">{user.email}</td>
+                  <td className="p-3">{user.role}</td>
+                  <td className="p-3">{user.phone}</td>
+                  <td className="p-3">
+                    <span
+                      className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-semibold ${
+                        user.status === "active"
+                          ? "bg-green-100 text-green-800"
+                          : "bg-red-100 text-red-800"
+                      }`}
+                    >
+                      {user.status}
+                    </span>
+                  </td>
+                  <td className="p-3">
+                    <div className="flex justify-center gap-2">
+                      <button
+                        onClick={() => handleView(user)}
+                        className="text-gray-600 cursor-pointer hover:text-blue-600 border p-2 rounded"
+                      >
+                        <FaEye />
+                      </button>
+                      <button
+                        onClick={() => handleEdit(user)}
+                        className="text-gray-600 cursor-pointer hover:text-yellow-600 border p-2 rounded"
+                      >
+                        <FaEdit />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(user)}
+                        className="text-gray-600 cursor-pointer hover:text-red-600 border p-2 rounded"
+                      >
+                        <FaTrash />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
 
-     
-        
-      </div>
+      {/* Desktop Card View */}
+      {viewMode === "card" && (
+        <div className="hidden md:grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {currentUsers.map((user, ind) => (
+            <div
+              key={user.id}
+              onDoubleClick={() => handleToggleStatus(user)}
+              className={`bg-white rounded-xl shadow hover:shadow-md transition-shadow p-4 flex flex-col gap-3 cursor-pointer border ${
+                user.status === "inactive" ? "border-red-200 bg-red-50" : "border-gray-100"
+              }`}
+            >
+              {/* Avatar + Name */}
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-blue-900 text-white flex items-center justify-center font-bold text-lg flex-shrink-0">
+                  {user.name?.charAt(0)?.toUpperCase() || "?"}
+                </div>
+                <div className="min-w-0">
+                  <p className="font-semibold text-blue-900 truncate">{user.name}</p>
+                  <p className="text-xs text-gray-400">#{ind + 1}</p>
+                </div>
+              </div>
+              {/* Info */}
+              <div className="text-sm text-gray-600 space-y-1">
+                <p className="truncate" title={user.email}>
+                  <span className="font-medium text-gray-700">Email:</span> {user.email}
+                </p>
+                <p>
+                  <span className="font-medium text-gray-700">Phone:</span> {user.phone || "—"}
+                </p>
+                <p>
+                  <span className="font-medium text-gray-700">Role:</span>{" "}
+                  <span className="capitalize">{user.role || "—"}</span>
+                </p>
+              </div>
+              {/* Status + Actions */}
+              <div className="flex items-center justify-between mt-auto pt-2 border-t border-gray-100">
+                <span
+                  className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-semibold ${
+                    user.status === "active"
+                      ? "bg-green-100 text-green-800"
+                      : "bg-red-100 text-red-800"
+                  }`}
+                >
+                  {user.status}
+                </span>
+                <div className="flex gap-1">
+                  <button
+                    onClick={() => handleView(user)}
+                    className="text-gray-500 cursor-pointer hover:text-blue-600 border p-1.5 rounded"
+                    title="View"
+                  >
+                    <FaEye size={13} />
+                  </button>
+                  <button
+                    onClick={() => handleEdit(user)}
+                    className="text-gray-500 cursor-pointer hover:text-yellow-600 border p-1.5 rounded"
+                    title="Edit"
+                  >
+                    <FaEdit size={13} />
+                  </button>
+                  <button
+                    onClick={() => handleDelete(user)}
+                    className="text-gray-500 cursor-pointer hover:text-red-600 border p-1.5 rounded"
+                    title="Delete"
+                  >
+                    <FaTrash size={13} />
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
           <div className="flex justify-end gap-2 p-3">
               <button
