@@ -19,7 +19,7 @@ const generateNextCatId = (list) =>
 // ─── Component ────────────────────────────────────────────────────────────────
 const Category = () => {
   const [categories, setCategories] = useState([]);
-  const [viewMode, setViewMode] = useState("card");
+  const [viewMode, setViewMode] = useState("table");
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(false);
   const [editId, setEditId] = useState(null);

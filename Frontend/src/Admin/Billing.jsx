@@ -311,22 +311,51 @@ const Billing = ({ setActiveTab }) => {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-        <div className="relative overflow-hidden rounded-2xl p-4 text-left border border-blue-200 bg-blue-50 shadow-sm flex items-center gap-4">
-          <div className="p-3 rounded-xl bg-blue-100">
-            <FaClipboardList size={24} className="text-blue-700" />
+        {/* All Orders Card */}
+        <div className="relative overflow-hidden rounded-xl p-5 bg-gradient-to-br from-blue-500 to-blue-600 shadow-md flex flex-col justify-between group cursor-pointer hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5">
+          {/* Decorative shapes */}
+          <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/4 translate-x-1/4 blur-xl"></div>
+          <div className="absolute bottom-0 right-10 w-24 h-24 bg-white/10 rounded-full translate-y-1/2 blur-lg"></div>
+          
+          <div className="flex justify-between items-start relative z-10">
+            <div>
+              <p className="text-[11px] font-bold text-white/90 uppercase tracking-widest mb-1 shadow-sm">All Orders</p>
+              <p className="text-4xl font-black text-white drop-shadow-md tracking-tighter">{filteredOrders.length}</p>
+            </div>
+            <div className="p-3 bg-white/20 backdrop-blur-md rounded-2xl border border-white/20 shadow-sm group-hover:scale-110 transition-transform duration-300">
+              <FaClipboardList size={22} className="text-white drop-shadow-sm" />
+            </div>
           </div>
-          <div>
-            <p className="text-2xl font-extrabold text-blue-900">{filteredOrders.length}</p>
-            <p className="text-sm font-medium text-blue-700">All Orders</p>
+          
+          <div className="mt-6 relative z-10">
+            <p className="text-xs text-white/90 mb-2 font-medium">Total shop customer bills</p>
+            <div className="h-1.5 w-full bg-white/20 rounded-full overflow-hidden">
+              <div className="h-full bg-white rounded-full w-full shadow-[0_0_10px_rgba(255,255,255,0.8)]"></div>
+            </div>
           </div>
         </div>
-        <div className="relative overflow-hidden rounded-2xl p-4 text-left border border-green-200 bg-green-50 shadow-sm flex items-center gap-4">
-          <div className="p-3 rounded-xl bg-green-100">
-            <FaRupeeSign size={24} className="text-green-700" />
+        
+        {/* Total Revenue Card */}
+        <div className="relative overflow-hidden rounded-xl p-5 bg-gradient-to-br from-emerald-400 to-emerald-500 shadow-md flex flex-col justify-between group cursor-pointer hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5">
+          {/* Decorative shapes */}
+          <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/4 translate-x-1/4 blur-xl"></div>
+          <div className="absolute bottom-0 right-10 w-24 h-24 bg-white/10 rounded-full translate-y-1/2 blur-lg"></div>
+          
+          <div className="flex justify-between items-start relative z-10">
+            <div>
+              <p className="text-[11px] font-bold text-white/90 uppercase tracking-widest mb-1 shadow-sm">Total Revenue</p>
+              <p className="text-4xl font-black text-white drop-shadow-md tracking-tighter">₹{totalRevenue.toLocaleString("en-IN")}</p>
+            </div>
+            <div className="p-3 bg-white/20 backdrop-blur-md rounded-2xl border border-white/20 shadow-sm group-hover:scale-110 transition-transform duration-300">
+              <FaRupeeSign size={22} className="text-white drop-shadow-sm" />
+            </div>
           </div>
-          <div>
-            <p className="text-2xl font-extrabold text-green-900">₹{totalRevenue.toLocaleString("en-IN")}</p>
-            <p className="text-sm font-medium text-green-700">Total Revenue</p>
+          
+          <div className="mt-6 relative z-10">
+            <p className="text-xs text-white/90 mb-2 font-medium">Current results</p>
+            <div className="h-1.5 w-full bg-white/20 rounded-full overflow-hidden">
+              <div className="h-full bg-white rounded-full w-full shadow-[0_0_10px_rgba(255,255,255,0.8)]"></div>
+            </div>
           </div>
         </div>
       </div>
