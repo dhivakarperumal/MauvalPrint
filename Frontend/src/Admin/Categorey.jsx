@@ -430,8 +430,9 @@ const Category = () => {
       {viewMode === "table" && (
         <div className="overflow-x-auto rounded-2xl border border-gray-200 shadow-sm bg-white">
           <table className="min-w-[750px] w-full text-sm text-left">
-            <thead className="bg-gradient-to-r from-blue-900 to-blue-800 text-white">
+            <thead className="bg-gray-800 text-white">
               <tr>
+                <th className="px-5 py-4 font-semibold text-xs uppercase tracking-wider text-center w-16">S No</th>
                 <th className="px-5 py-4 font-semibold text-xs uppercase tracking-wider">Cat ID</th>
                 <th className="px-5 py-4 font-semibold text-xs uppercase tracking-wider">Name</th>
                 <th className="px-5 py-4 font-semibold text-xs uppercase tracking-wider">Description</th>
@@ -447,6 +448,9 @@ const Category = () => {
                     key={cat.category_id}
                     className={`border-b border-gray-100 hover:bg-blue-50/40 transition-colors ${idx % 2 === 0 ? "bg-white" : "bg-gray-50/40"}`}
                   >
+                    <td className="px-5 py-3.5 text-center font-medium text-gray-500">
+                      {idx + 1}
+                    </td>
                     <td className="px-5 py-3.5">
                       <span className="bg-blue-100 text-blue-800 text-[11px] font-bold px-2.5 py-1 rounded-md">
                         {cat.category_id}

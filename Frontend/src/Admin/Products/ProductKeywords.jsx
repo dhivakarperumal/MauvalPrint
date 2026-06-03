@@ -167,14 +167,62 @@ const ProductKeywords = () => {
      
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
-        <div className="bg-white p-4 rounded-xl shadow border border-gray-100 flex flex-col items-center justify-center text-center">
-          <h3 className="text-gray-500 text-sm font-semibold mb-1">Total Keywords</h3>
-          <p className="text-3xl font-bold text-blue-900">{stats.totalKeywords}</p>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-8">
+        {/* Total Keywords */}
+        <div
+          className="group relative overflow-hidden rounded-2xl p-5 transition-all duration-500 hover:-translate-y-1 shadow-md hover:shadow-xl"
+          style={{ background: "linear-gradient(135deg, #1e3a8a 0%, #3b82f6 50%, #60a5fa 100%)" }}
+        >
+          <div className="absolute -top-4 -right-4 w-24 h-24 rounded-full bg-white/10 group-hover:scale-150 transition-transform duration-700"></div>
+          <div className="absolute -bottom-6 -left-6 w-20 h-20 rounded-full bg-white/5"></div>
+          <div className="relative z-10 flex items-center justify-between">
+            <div>
+              <p className="text-white/70 text-xs font-semibold uppercase tracking-widest mb-1">Total Keywords</p>
+              <p className="text-white text-4xl font-black tracking-tight">{stats.totalKeywords}</p>
+              <p className="text-blue-200 text-[11px] mt-2 font-medium">All registered keywords</p>
+            </div>
+            <div className="bg-white/15 backdrop-blur-sm p-4 rounded-2xl border border-white/20 group-hover:rotate-12 transition-transform duration-500">
+              <FaSearch className="text-white text-2xl" />
+            </div>
+          </div>
         </div>
-        <div className="bg-white p-4 rounded-xl shadow border border-gray-100 flex flex-col items-center justify-center text-center">
-          <h3 className="text-gray-500 text-sm font-semibold mb-1">Active Keywords</h3>
-          <p className="text-3xl font-bold text-green-600">{stats.activeKeywords}</p>
+
+        {/* Active Keywords */}
+        <div
+          className="group relative overflow-hidden rounded-2xl p-5 transition-all duration-500 hover:-translate-y-1 shadow-md hover:shadow-xl"
+          style={{ background: "linear-gradient(135deg, #065f46 0%, #10b981 50%, #34d399 100%)" }}
+        >
+          <div className="absolute -top-4 -right-4 w-24 h-24 rounded-full bg-white/10 group-hover:scale-150 transition-transform duration-700"></div>
+          <div className="absolute -bottom-6 -left-6 w-20 h-20 rounded-full bg-white/5"></div>
+          <div className="relative z-10 flex items-center justify-between">
+            <div>
+              <p className="text-white/70 text-xs font-semibold uppercase tracking-widest mb-1">Active</p>
+              <p className="text-white text-4xl font-black tracking-tight">{stats.activeKeywords}</p>
+              <p className="text-emerald-200 text-[11px] mt-2 font-medium">Currently in use</p>
+            </div>
+            <div className="bg-white/15 backdrop-blur-sm p-4 rounded-2xl border border-white/20 group-hover:rotate-12 transition-transform duration-500">
+              <FaCheck className="text-white text-2xl" />
+            </div>
+          </div>
+        </div>
+
+        {/* Home Keywords */}
+        <div
+          className="group relative overflow-hidden rounded-2xl p-5 transition-all duration-500 hover:-translate-y-1 shadow-md hover:shadow-xl"
+          style={{ background: "linear-gradient(135deg, #581c87 0%, #a855f7 50%, #c084fc 100%)" }}
+        >
+          <div className="absolute -top-4 -right-4 w-24 h-24 rounded-full bg-white/10 group-hover:scale-150 transition-transform duration-700"></div>
+          <div className="absolute -bottom-6 -left-6 w-20 h-20 rounded-full bg-white/5"></div>
+          <div className="relative z-10 flex items-center justify-between">
+            <div>
+              <p className="text-white/70 text-xs font-semibold uppercase tracking-widest mb-1">On Home Page</p>
+              <p className="text-white text-4xl font-black tracking-tight">{homeKeywords.length}</p>
+              <p className="text-purple-200 text-[11px] mt-2 font-medium">Displayed on main screen</p>
+            </div>
+            <div className="bg-white/15 backdrop-blur-sm p-4 rounded-2xl border border-white/20 group-hover:rotate-12 transition-transform duration-500">
+              <span className="text-white text-2xl font-bold block pb-1">🏠</span>
+            </div>
+          </div>
         </div>
       </div>
 

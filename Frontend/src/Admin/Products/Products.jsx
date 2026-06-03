@@ -582,7 +582,7 @@ const ProductList = ({ setSelectedProduct, setActiveTab }) => {
                   <tr>
                     <th className="p-4 border-b border-gray-200 font-semibold w-16 text-center">S No</th>
                     <th className="p-4 border-b border-gray-200 font-semibold">Image</th>
-                    <th className="p-4 border-b border-gray-200 font-semibold">ID / Name</th>
+                    <th className="p-4 border-b border-gray-200 font-semibold">Name</th>
                     <th className="p-4 border-b border-gray-200 font-semibold">Category</th>
                     <th className="p-4 border-b border-gray-200 font-semibold">Price</th>
                     <th className="p-4 border-b border-gray-200 font-semibold">Stock</th>
