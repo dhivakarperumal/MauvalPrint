@@ -220,33 +220,41 @@ const Dealers = () => {
                 <th className="px-4 py-4 text-center">Actions</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-gray-200">
               {filteredDealers.length > 0 ? (
                 filteredDealers.map((d, index) => (
-                  <tr key={d.id} className="border-t border-gray-200 hover:bg-gray-50 transition-colors">
-                    <td className="px-4 py-4 text-center font-medium text-gray-500">
+                  <tr key={d.id} className="hover:bg-blue-50/50 transition-colors">
+                    <td className="px-4 py-5 text-center font-medium text-gray-500 align-middle">
                       {index + 1}
                     </td>
-                    <td className="px-4 py-4">
-                      <span className="bg-blue-100 text-blue-800 text-xs font-bold px-2 py-1 rounded">
-                        {d.dealerId}
-                      </span>
-                      <p className="font-semibold text-gray-800 mt-2">{d.dealerName}</p>
-                    </td>
-                    <td className="px-4 py-4">
-                      <p className="text-gray-700 font-medium">{d.phone}</p>
-                      <p className="text-xs text-gray-500 mt-0.5">{d.email}</p>
-                      <p className="text-xs text-gray-400 mt-1 max-w-[200px] truncate" title={d.address}>{d.address}</p>
-                    </td>
-                    <td className="px-4 py-4">
-                      <div className="flex flex-col gap-1">
-                        <span className="text-xs text-gray-500 uppercase font-semibold">GST</span>
-                        <span className="text-sm font-medium">{d.gstNumber || "N/A"}</span>
-                        <span className="text-xs text-gray-500 uppercase font-semibold mt-1">Invoice</span>
-                        <span className="text-sm font-medium">{d.invoiceNumber || "N/A"}</span>
+                    <td className="px-4 py-5 align-middle">
+                      <div className="flex flex-col items-start gap-1.5">
+                        <span className="bg-blue-100 text-blue-800 text-[10px] font-bold px-2 py-0.5 rounded shadow-sm border border-blue-200 uppercase tracking-wide">
+                          {d.dealerId}
+                        </span>
+                        <span className="font-bold text-gray-900 text-base">{d.dealerName}</span>
                       </div>
                     </td>
-                    <td className="px-4 py-4 text-center">
+                    <td className="px-4 py-5 align-middle">
+                      <div className="space-y-1">
+                        <p className="text-gray-900 font-semibold text-sm">{d.phone}</p>
+                        <p className="text-xs text-gray-500 font-medium">{d.email}</p>
+                        <p className="text-xs text-gray-400 leading-relaxed max-w-xs break-words" title={d.address}>{d.address}</p>
+                      </div>
+                    </td>
+                    <td className="px-4 py-5 align-middle">
+                      <div className="flex gap-4">
+                        <div className="bg-gray-50 p-2 rounded-lg border border-gray-100 min-w-[100px]">
+                          <p className="text-[10px] text-gray-400 uppercase font-bold tracking-wider mb-0.5">GST No</p>
+                          <p className="text-sm font-bold text-gray-700">{d.gstNumber || "N/A"}</p>
+                        </div>
+                        <div className="bg-gray-50 p-2 rounded-lg border border-gray-100 min-w-[100px]">
+                          <p className="text-[10px] text-gray-400 uppercase font-bold tracking-wider mb-0.5">Invoice</p>
+                          <p className="text-sm font-bold text-gray-700">{d.invoiceNumber || "N/A"}</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-4 py-5 align-middle text-center">
                       <div className="flex items-center justify-center gap-2">
                         <button
                           onClick={() => handleEdit(d)}
