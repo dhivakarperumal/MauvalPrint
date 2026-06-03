@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import api from "../../api";
-import { FaEye, FaEdit, FaTrash, FaPlus, FaThLarge, FaTable } from "react-icons/fa";
+import { FaEye, FaEdit, FaTrash, FaPlus, FaThLarge, FaTable, FaUsers, FaUserCheck, FaUserTimes } from "react-icons/fa";
 import toast from "react-hot-toast";
 
 const OldUsers = () => {
@@ -233,6 +233,40 @@ const OldUsers = () => {
         >
           <FaPlus /> Add User
         </button>
+      </div>
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+        {/* All Users */}
+        <div className="bg-gradient-to-br from-blue-900 to-blue-700 rounded-xl shadow-lg p-5 flex items-center gap-4 text-white">
+          <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center">
+            <FaUsers size={22} />
+          </div>
+          <div>
+            <p className="text-sm font-medium opacity-80">All Users</p>
+            <p className="text-2xl font-bold">{users.length}</p>
+          </div>
+        </div>
+        {/* Active Users */}
+        <div className="bg-gradient-to-br from-emerald-600 to-emerald-400 rounded-xl shadow-lg p-5 flex items-center gap-4 text-white">
+          <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center">
+            <FaUserCheck size={22} />
+          </div>
+          <div>
+            <p className="text-sm font-medium opacity-80">Active Users</p>
+            <p className="text-2xl font-bold">{users.filter((u) => u.status === "active").length}</p>
+          </div>
+        </div>
+        {/* Inactive Users */}
+        <div className="bg-gradient-to-br from-red-600 to-red-400 rounded-xl shadow-lg p-5 flex items-center gap-4 text-white">
+          <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center">
+            <FaUserTimes size={22} />
+          </div>
+          <div>
+            <p className="text-sm font-medium opacity-80">Inactive Users</p>
+            <p className="text-2xl font-bold">{users.filter((u) => u.status === "inactive").length}</p>
+          </div>
+        </div>
       </div>
 
       {/* Filters */}
