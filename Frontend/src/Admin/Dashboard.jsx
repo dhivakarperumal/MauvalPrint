@@ -526,16 +526,16 @@ const Dashboard = () => {
   }, []);
 
   const getStatusBadge = (status) => {
-    const base = "text-xs font-semibold px-2 py-1 rounded-full";
+    const base = "text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider";
     switch (status) {
       case "Placed":
-        return `${base} bg-green-100 text-green-700`;
+        return `${base} bg-emerald-100/80 text-emerald-700 border border-emerald-200/50`;
       case "Cancelled":
-        return `${base} bg-red-100 text-red-700`;
+        return `${base} bg-rose-100/80 text-rose-700 border border-rose-200/50`;
       case "Pending":
-        return `${base} bg-yellow-100 text-yellow-700`;
+        return `${base} bg-amber-100/80 text-amber-700 border border-amber-200/50`;
       default:
-        return `${base} bg-gray-100 text-gray-700`;
+        return `${base} bg-slate-100 text-slate-600 border border-slate-200`;
     }
   };
 
@@ -639,30 +639,27 @@ const Dashboard = () => {
     },
   };
 
-  return (
-    <div className="px-3 py-6 bg-[#f4f7fe] min-h-screen space-y-8">
+    return (
+    <div className="px-4 py-8 bg-slate-50 min-h-screen space-y-8 font-sans">
       {/* Header */}
       <div
         data-aos="fade-down"
-        className="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-4 border-b border-gray-200"
+        className="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-2"
       >
         <div>
-          <h2 className="text-2xl font-bold capitalize text-blue-900">
-            Hello {user.username || user.name},
+          <h2 className="text-3xl font-black tracking-tight text-slate-900">
+            Hello, {user.username || user.name}
           </h2>
-          <p className="text-sm text-gray-500">Have a good day :)</p>
+          <p className="text-sm font-medium text-slate-500 mt-1">Here is what's happening with your store today.</p>
         </div>
-        <div className="flex gap-8 mt-4 sm:mt-0">
-          <div className="text-md text-black font-bold">
-            <p className="text-lg font-semibold">
-              ₹{monthlyRevenue.toLocaleString()}
-            </p>
-
-            <p className="text-md text-gray-500">Monthly Sales</p>
+        <div className="flex gap-4 mt-6 sm:mt-0">
+          <div className="bg-white px-5 py-3 rounded-2xl shadow-sm border border-slate-100 flex flex-col items-end">
+            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Monthly Sales</p>
+            <p className="text-xl font-black text-slate-800">₹{monthlyRevenue.toLocaleString()}</p>
           </div>
-          <div className="text-md text-black font-bold">
-            <p>₹ {totalRevenue.toFixed(0)}</p>
-            <p className="text-md text-gray-500">Overall Revenue</p>
+          <div className="bg-white px-5 py-3 rounded-2xl shadow-sm border border-slate-100 flex flex-col items-end">
+            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Overall Revenue</p>
+            <p className="text-xl font-black text-slate-800">₹{totalRevenue.toFixed(0)}</p>
           </div>
         </div>
       </div>
@@ -697,30 +694,8 @@ const Dashboard = () => {
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-xl shadow-lg">
-          <img
-            src="/delivery.png"
-            alt="T-shirt Delivery"
-            className="w-full h-30 object-contain mb-4"
-          />
-
-          <div className="flex justify-around text-blue-600 font-semibold text-sm mb-6">
-            {categoryNames
-              .sort((a, b) => a.length - b.length)
-              .map((cat, idx) => (
-                <div key={idx}>
-                  <p>{cat}</p>
-                  <div
-                    className={`h-2 rounded-full`}
-                    style={{
-                      backgroundColor: `rgba(59, 130, 246, ${(idx + 1) * 0.2})`,
-                      width: `${cat.length * 6.5}px`,
-                    }}
-                  ></div>
-                </div>
-              ))}
-          </div>
-
+        <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
+          <h3 className="text-lg font-bold text-slate-800 mb-6 tracking-tight">Stock by Category</h3>
           <div className="relative h-55">
             <Bar data={chartData} options={chartOptions} />
           </div>
@@ -755,61 +730,65 @@ const Dashboard = () => {
         />
       </div>
 
-      <div className="bg-white p-6 rounded-xl shadow-md">
-        <h2 className="text-lg font-semibold text-gray-800 mb-4">
+      <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 mb-6">
+        <h3 className="text-lg font-bold text-slate-800 tracking-tight mb-6">
           Weekly Income (Delivered Orders)
-        </h2>
+        </h3>
         <div className="h-110">
           <Bar data={data} options={options} />
         </div>
       </div>
 
       {/* Orders and Transactions */}
-      <div className="bg-white p-6 rounded-xl shadow-md">
-        <h3 className="text-xl font-semibold text-gray-800 mb-5">Today's Orders</h3>
-
+      <div className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden mb-6">
+        <div className="p-6 border-b border-slate-100 flex justify-between items-center">
+          <h3 className="text-lg font-bold text-slate-800 tracking-tight">Today's Orders</h3>
+        </div>
+        
         {Orders.filter((order) => {
           const today = new Date().toISOString().split('T')[0];
           const createdAtDate = order.createdAt?.toDate ? order.createdAt.toDate() : (order.createdAt ? new Date(order.createdAt) : new Date(0));
           const orderDate = createdAtDate.toISOString().split('T')[0];
-          return order.status === "Placed" && orderDate === today;
+          return orderDate === today;
         }).length === 0 ? (
-          <p className="text-gray-500 text-sm">No orders found for today.</p>
+          <div className="p-8 text-center">
+            <p className="text-slate-400 font-medium">No orders found for today.</p>
+          </div>
         ) : (
-          <div className="hidden md:block overflow-x-auto shadow rounded-lg">
+          <div className="overflow-x-auto">
             <table className="w-full text-sm text-left">
-              <thead className="bg-gray-800 text-white">
+              <thead className="bg-slate-50 text-slate-500 uppercase tracking-wider text-[10px] font-bold">
                 <tr>
-                  <th className="px-4 py-4 font-semibold">OrderId</th>
-                  <th className="px-4 py-4 font-semibold">Customer</th>
-                  <th className="px-4 py-4 font-semibold">Payment</th>
-                  <th className="px-4 py-4 font-semibold">Status</th>
-                  <th className="px-4 py-4 font-semibold">Total (₹)</th>
+                  <th className="px-6 py-4">Order ID</th>
+                  <th className="px-6 py-4">Customer</th>
+                  <th className="px-6 py-4">Payment</th>
+                  <th className="px-6 py-4">Status</th>
+                  <th className="px-6 py-4">Total (₹)</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-slate-100">
                 {Orders.filter((order) => {
                   const today = new Date().toISOString().split('T')[0];
                   const createdAtDate = order.createdAt?.toDate ? order.createdAt.toDate() : (order.createdAt ? new Date(order.createdAt) : new Date(0));
                   const orderDate = createdAtDate.toISOString().split('T')[0];
-                  return order.status === "Placed" && orderDate === today;
+                  return orderDate === today;
                 }).map(
                   (order, idx) => (
                     <tr
                       key={idx}
-                      className="hover:bg-gray-50 transition-colors"
+                      className="hover:bg-slate-50/50 transition-colors"
                     >
-                      <td className="px-4 py-4">{order.orderID}</td>
-                      <td className="px-4 py-4">{order?.checkout.fullname}</td>
-                      <td className="px-4 py-4">
+                      <td className="px-6 py-4 font-bold text-slate-700">{order.orderID}</td>
+                      <td className="px-6 py-4 font-medium text-slate-900">{order?.checkout.fullname}</td>
+                      <td className="px-6 py-4 text-slate-500">
                         {order.paymentID ? "Online" : "Cash on Delivery"}
                       </td>
-                      <td className="px-4 py-4">
+                      <td className="px-6 py-4">
                         <span className={getStatusBadge(order.status)}>
                           {order.status}
                         </span>
                       </td>
-                      <td className="px-4 py-4 font-medium">₹{order.total}</td>
+                      <td className="px-6 py-4 font-black text-slate-900">₹{order.total}</td>
                     </tr>
                   )
                 )}
@@ -819,10 +798,10 @@ const Dashboard = () => {
         )}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6 px-2">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
         {/* Top Category Sales */}
-        <div className="bg-white rounded-xl p-6 shadow-md">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">
+        <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
+          <h3 className="text-lg font-bold text-slate-800 tracking-tight mb-4">
             Top Categories
           </h3>
           <div className="h-80 flex justify-center items-center">
@@ -832,12 +811,13 @@ const Dashboard = () => {
                 options={categorySalesOptions}
               />
             ) : (
-              <p className="text-gray-500">Loading chart...</p>
+              <p className="text-slate-400 font-medium">Loading chart...</p>
             )}
           </div>
         </div>
-        <div className="bg-white p-6 rounded-xl shadow-md mt-6">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">
+        
+        <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
+          <h3 className="text-lg font-bold text-slate-800 tracking-tight mb-4">
             Category Orders Line Chart
           </h3>
           {Object.keys(categoryOrderStats).length > 0 ? (
@@ -848,7 +828,7 @@ const Dashboard = () => {
               />
             </div>
           ) : (
-            <p className="text-gray-500">No order data available.</p>
+            <p className="text-slate-400 font-medium">No order data available.</p>
           )}
         </div>
       </div>
