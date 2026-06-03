@@ -28,7 +28,7 @@ const Reviews = () => {
   // New States
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [viewMode, setViewMode] = useState("card"); // "card" or "table"
+  const [viewMode, setViewMode] = useState("table"); // "card" or "table"
 
   const fetchReviews = async () => {
     try {
