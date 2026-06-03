@@ -300,56 +300,77 @@ const ProductList = ({ setSelectedProduct, setActiveTab }) => {
           </div>
         );
       })()}
-      {/* Top bar */}
-      <div className="flex flex-col mt-6 md:flex-row md:justify-between md:items-center mb-10 gap-4">
-        
-
-        {/* Search */}
-        <div className="relative w-full md:w-1/3">
-          <input
-            type="text"
-            placeholder="Search products..."
-            value={search}
-            onChange={(e) => {
-              setSearch(e.target.value);
-              setCurrentPage(1);
-            }}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:border-blue-500"
-          />
-          <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2 justify-start md:justify-end">
-          {/* View Mode Toggle */}
-          <div className="flex items-center gap-2 bg-gray-200 p-1 rounded-lg mr-2">
-            <button
-              onClick={() => setViewMode("card")}
-              className={`p-2 rounded-md transition-all duration-300 ${viewMode === "card" ? "bg-white shadow text-blue-900" : "text-gray-500 hover:text-gray-700"}`}
-              title="Card View"
-            >
-              <FaTh size={18} />
-            </button>
-            <button
-              onClick={() => setViewMode("table")}
-              className={`p-2 rounded-md transition-all duration-300 ${viewMode === "table" ? "bg-white shadow text-blue-900" : "text-gray-500 hover:text-gray-700"}`}
-              title="Table View"
-            >
-              <FaList size={18} />
-            </button>
+      {/* Search & Actions Top Bar */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-6">
+        <div className="flex flex-col md:flex-row gap-3 items-center">
+          {/* Search Input */}
+          <div className="relative w-full md:w-1/3">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z" />
+              </svg>
+            </span>
+            <input
+              type="text"
+              placeholder="Search products..."
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="w-full pl-9 pr-3 py-2.5 border border-gray-200 rounded-lg bg-gray-50 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-white transition-all"
+            />
           </div>
 
-          <button
-            onClick={() => setActiveTab("addProduct")}
-            className="px-4 cursor-pointer md:px-6 bg-blue-900 text-white rounded py-2 flex items-center gap-2 hover:bg-blue-800"
-          >
-            <FaPlus /> Add Products
-          </button>
-          <button
-            onClick={() => setShowFilter(!showFilter)}
-            className="px-4 cursor-pointer md:px-6 bg-blue-900 text-white rounded py-2 flex items-center gap-2 hover:bg-blue-800"
-          >
-            <FaFilter /> Filter
-          </button>
+          {/* Right side controls */}
+          <div className="flex items-center gap-3 flex-wrap ml-auto">
+            {/* View Mode Toggle */}
+            <div className="hidden md:flex items-center bg-gray-100 rounded-lg p-1 gap-1">
+              <button
+                onClick={() => setViewMode("table")}
+                title="Table View"
+                className={`p-2 rounded-md transition-all cursor-pointer ${
+                  viewMode === "table"
+                    ? "bg-blue-900 text-white shadow-sm"
+                    : "text-gray-500 hover:text-gray-700 hover:bg-gray-200"
+                }`}
+              >
+                <FaList size={14} />
+              </button>
+              <button
+                onClick={() => setViewMode("card")}
+                title="Card View"
+                className={`p-2 rounded-md transition-all cursor-pointer ${
+                  viewMode === "card"
+                    ? "bg-blue-900 text-white shadow-sm"
+                    : "text-gray-500 hover:text-gray-700 hover:bg-gray-200"
+                }`}
+              >
+                <FaTh size={14} />
+              </button>
+            </div>
+
+            {/* Divider */}
+            <div className="hidden md:block w-px h-8 bg-gray-200"></div>
+
+            {/* Action Buttons */}
+            <button
+              onClick={() => setActiveTab("addProduct")}
+              className="px-4 py-2 bg-blue-900 text-white rounded-lg text-sm font-medium flex items-center gap-2 hover:bg-blue-800 transition-colors shadow-sm cursor-pointer"
+            >
+              <FaPlus /> Add Products
+            </button>
+            <button
+              onClick={() => setShowFilter(!showFilter)}
+              className={`px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors cursor-pointer ${
+                showFilter 
+                  ? "bg-blue-100 text-blue-900 border border-blue-200 shadow-inner" 
+                  : "bg-gray-50 text-gray-700 border border-gray-200 hover:bg-gray-100 shadow-sm"
+              }`}
+            >
+              <FaFilter /> Filter
+            </button>
+          </div>
         </div>
       </div>
 
@@ -557,8 +578,9 @@ const ProductList = ({ setSelectedProduct, setActiveTab }) => {
           ) : (
             <div className="overflow-x-auto bg-white rounded-lg shadow-sm border border-gray-200">
               <table className="w-full text-left border-collapse">
-                <thead className="bg-gray-50 text-gray-700">
+               <thead className="bg-gray-800 text-white">
                   <tr>
+                    <th className="p-4 border-b border-gray-200 font-semibold w-16 text-center">S No</th>
                     <th className="p-4 border-b border-gray-200 font-semibold">Image</th>
                     <th className="p-4 border-b border-gray-200 font-semibold">ID / Name</th>
                     <th className="p-4 border-b border-gray-200 font-semibold">Category</th>
@@ -568,8 +590,11 @@ const ProductList = ({ setSelectedProduct, setActiveTab }) => {
                   </tr>
                 </thead>
                 <tbody>
-                  {currentProducts.map((p) => (
+                  {currentProducts.map((p, index) => (
                     <tr key={p.product_id} className="hover:bg-gray-50 transition-colors border-b border-gray-100 last:border-b-0">
+                      <td className="p-4 text-center font-medium text-gray-500">
+                        {indexOfFirst + index + 1}
+                      </td>
                       <td className="p-4">
                         <img
                           src={p.images?.[0] || "https://via.placeholder.com/150"}
