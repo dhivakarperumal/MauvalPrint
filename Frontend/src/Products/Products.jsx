@@ -346,12 +346,24 @@ function Products() {
   }, [products, category, priceRange, minRating, selectedSize, selectedColor, selectedSubcategory]);
 
   const productsPerPage = 6;
-  const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
+  const totalPages = Math.max(1, Math.ceil(filteredProducts.length / productsPerPage));
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
 
   const paginatedProducts = useMemo(() => {
     const start = (currentPage - 1) * productsPerPage;
     return filteredProducts.slice(start, start + productsPerPage);
   }, [filteredProducts, currentPage]);
+
+  const handlePageChange = (page) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+    }
+  };
 
   // Debounced price change
   const handlePriceChange = (value) => {
@@ -553,24 +565,62 @@ function Products() {
 
             {/* Pagination */}
             {totalPages > 1 && (
-              <div className="mt-10 flex flex-col items-center gap-2">
-                <span className="font-medium text-sm text-gray-700">
-                  Page {currentPage} of {totalPages}
-                </span>
-                <div className="flex gap-2">
-                  {[...Array(totalPages)].map((_, i) => (
-                    <button
-                      key={i}
-                      onClick={() => setCurrentPage(i + 1)}
-                      className={`h-8 w-8 rounded-full border text-sm ${currentPage === i + 1
-                        ? "bg-primary text-white border-primary"
-                        : "bg-white text-gray-700 border-gray-300"
-                        }`}
-                    >
-                      {i + 1}
-                    </button>
-                  ))}
+              <div className="mt-10 flex flex-col items-center gap-3">
+                <div className="flex flex-wrap items-center gap-2 text-sm text-gray-700">
+                  <button
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    className="rounded-full px-3 py-1 border bg-white text-gray-700 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    Prev
+                  </button>
+
+                  {[...Array(totalPages)].map((_, i) => {
+                    const page = i + 1;
+                    const shouldShow =
+                      page === 1 ||
+                      page === totalPages ||
+                      Math.abs(page - currentPage) <= 2;
+
+                    if (!shouldShow) {
+                      if (
+                        page === 2 && currentPage > 4 ||
+                        page === totalPages - 1 && currentPage < totalPages - 3
+                      ) {
+                        return (
+                          <span key={page} className="px-2 text-gray-400">
+                            ...
+                          </span>
+                        );
+                      }
+                      return null;
+                    }
+
+                    return (
+                      <button
+                        key={page}
+                        onClick={() => handlePageChange(page)}
+                        className={`h-9 min-w-[2.25rem] rounded-full border text-sm ${currentPage === page
+                          ? "bg-primary text-white border-primary"
+                          : "bg-white text-gray-700 border-gray-300"
+                          }`}
+                      >
+                        {page}
+                      </button>
+                    );
+                  })}
+
+                  <button
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                    className="rounded-full px-3 py-1 border bg-white text-gray-700 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    Next
+                  </button>
                 </div>
+                <span className="text-sm text-gray-500">
+                  Showing page {currentPage} of {totalPages}
+                </span>
               </div>
             )}
           </div>

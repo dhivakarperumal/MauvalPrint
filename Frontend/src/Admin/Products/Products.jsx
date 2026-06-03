@@ -677,18 +677,63 @@ const ProductList = ({ setSelectedProduct, setActiveTab }) => {
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <div className="flex justify-center items-center gap-2 mt-6 flex-wrap">
-          {Array.from({ length: totalPages }, (_, idx) => (
+        <div className="flex flex-col items-center gap-3 mt-8 py-6 bg-white rounded-lg border border-gray-200 shadow-sm">
+          <div className="flex flex-wrap items-center gap-2 justify-center px-4">
             <button
-              key={idx}
-              onClick={() => setCurrentPage(idx + 1)}
-              className={`px-3 py-1 cursor-pointer rounded border border-gray-300 ${
-                currentPage === idx + 1 ? "bg-gray-900 text-white" : "bg-white"
-              }`}
+              onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+              disabled={currentPage === 1}
+              className="rounded-full px-4 py-2 border border-gray-300 bg-white text-gray-700 font-medium disabled:cursor-not-allowed disabled:opacity-50 hover:bg-gray-100 transition-colors"
             >
-              {idx + 1}
+              ← Prev
             </button>
-          ))}
+
+            {Array.from({ length: totalPages }, (_, idx) => {
+              const page = idx + 1;
+              const shouldShow =
+                page === 1 ||
+                page === totalPages ||
+                Math.abs(page - currentPage) <= 2;
+
+              if (!shouldShow) {
+                if (
+                  (page === 2 && currentPage > 4) ||
+                  (page === totalPages - 1 && currentPage < totalPages - 3)
+                ) {
+                  return (
+                    <span key={page} className="px-2 text-gray-400 font-medium">
+                      ...
+                    </span>
+                  );
+                }
+                return null;
+              }
+
+              return (
+                <button
+                  key={page}
+                  onClick={() => setCurrentPage(page)}
+                  className={`h-10 min-w-[2.5rem] rounded-full border font-medium transition-colors ${
+                    currentPage === page
+                      ? "bg-gray-900 text-white border-gray-900 shadow-md"
+                      : "bg-white text-gray-700 border-gray-300 hover:border-gray-400 hover:bg-gray-50"
+                  }`}
+                >
+                  {page}
+                </button>
+              );
+            })}
+
+            <button
+              onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+              disabled={currentPage === totalPages}
+              className="rounded-full px-4 py-2 border border-gray-300 bg-white text-gray-700 font-medium disabled:cursor-not-allowed disabled:opacity-50 hover:bg-gray-100 transition-colors"
+            >
+              Next →
+            </button>
+          </div>
+          <p className="text-sm text-gray-500 font-medium">
+            Page <span className="font-bold text-gray-700">{currentPage}</span> of <span className="font-bold text-gray-700">{totalPages}</span> • Showing {currentProducts.length} of {filteredProducts.length} products
+          </p>
         </div>
       )}
 
