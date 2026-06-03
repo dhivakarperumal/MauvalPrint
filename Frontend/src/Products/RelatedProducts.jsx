@@ -1,8 +1,7 @@
 import { useEffect, useState, memo } from "react";
 import { Link } from "react-router-dom";
 import Slider from "react-slick";
-import { collection, getDocs, query, where, limit } from "firebase/firestore";
-import { db } from "../firebase";
+import api from "../api";
 import { FaStar, FaHeart, FaShoppingCart, FaEye } from "react-icons/fa";
 import { IoIosArrowDown } from "react-icons/io";
 import { toast } from "react-toastify";
@@ -182,30 +181,38 @@ const RelatedProducts = ({ category, subcategory, currentId, addToCart, addToWis
       setLoading(true);
 
       try {
-        let q;
+        const res = await api.get("/products");
+        const all = res.data?.products || [];
 
-        // ✅ If subcategory exists, filter by both AND LIMIT RESULTS
-        if (subcategory) {
-          q = query(
-            collection(db, "products"),
-            where("category", "==", category),
-            where("subcategory", "==", subcategory),
-          limit(8)  // Reduced from 12 to 8 for speed
-        );
-        } else {
-          // ✅ Otherwise only by category with limit
-          q = query(
-            collection(db, "products"), 
-            where("category", "==", category),
-            limit(8)  // Reduced from 12 to 8 for speed
-          );
-        }
+        // normalize and filter
+        const products = all
+          .map((p) => {
+            // parse JSON fields if necessary
+            const parse = (val) => {
+              if (!val) return [];
+              if (Array.isArray(val) || typeof val === "object") return val;
+              try {
+                return JSON.parse(val);
+              } catch {
+                return [];
+              }
+            };
 
-        const querySnapshot = await getDocs(q);
-        const products = querySnapshot.docs
-          .map((doc) => ({ id: doc.id, ...doc.data() }))
-          .filter((p) => p.id !== currentId)
-          .slice(0, 5);  // Show only 5 products in slider for speed
+            return {
+              ...p,
+              id: p.product_id || p.id,
+              product_id: p.product_id || p.id,
+              name: p.name || p.title || p.product_name,
+              images: parse(p.images) || parse(p.image),
+              size: parse(p.size),
+              color: parse(p.color),
+              stockByVariant: (typeof p.stock_by_variant === 'string') ? (() => { try { return JSON.parse(p.stock_by_variant); } catch { return {}; } })() : (p.stock_by_variant || {}),
+              rating: p.rating || 0,
+            };
+          })
+          .filter((p) => p.product_id !== currentId)
+          .filter((p) => p.category === category && (subcategory ? p.subcategory === subcategory : true))
+          .slice(0, 5);
 
         setRelatedProducts(products);
       } catch (error) {

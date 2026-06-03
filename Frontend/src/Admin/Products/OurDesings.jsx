@@ -1,13 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { db } from "../../firebase";
-import {
-  collection,
-  addDoc,
-  getDocs,
-  updateDoc,
-  doc,
-  deleteDoc,
-} from "firebase/firestore";
+import api from "../../api";
 import imageCompression from "browser-image-compression";
 import toast from "react-hot-toast";
 import { FaEye, FaEdit, FaTrash } from "react-icons/fa";
@@ -59,24 +51,10 @@ const OurDesings = () => {
     setDocId(null);
     setStockByVariant({});
     setPreviewImg([]);
-    generateNextProductId();
+    // let backend generate product id when creating
   };
 
-  const generateNextProductId = async () => {
-    try {
-      const snapshot = await getDocs(collection(db, "ourdesings"));
-      const ids = snapshot.docs
-        .map((doc) => doc.data().id)
-        .filter((id) => id && id.startsWith("MD"))
-        .map((id) => parseInt(id.replace("MD", ""), 10))
-        .filter((num) => !isNaN(num));
-      const maxId = ids.length > 0 ? Math.max(...ids) : 0;
-      const nextId = `MD${String(maxId + 1).padStart(3, "0")}`;
-      setProduct((prev) => ({ ...prev, id: nextId }));
-    } catch (error) {
-      toast.error("Could not generate product ID");
-    }
-  };
+  // No local ID generation; backend assigns product_id.
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -146,33 +124,37 @@ const OurDesings = () => {
     }
 
     const totalStock = Object.values(stockByVariant).reduce((a, b) => a + b, 0);
-    const finalProduct = {
-      ...product,
-      stock: totalStock,
-      stockByVariant,
+    const payload = {
+      title: product.name,
+      name: product.name,
+      category: product.category,
+      size: product.size,
+      color: product.color,
       mrp: Number(product.mrp),
-      salePrice: Number(product.salePrice),
+      sale_price: Number(product.salePrice),
       offer: Number(product.offer) || 0,
       rating: Number(product.rating) || 0,
-      updatedAt: new Date(),
+      stock: totalStock,
+      description: product.description,
+      images: product.images,
+      stock_by_variant: stockByVariant,
+      our_design: true,
     };
 
     try {
       if (docId) {
-        await updateDoc(doc(db, "ourdesings", docId), finalProduct);
+        // update existing product - docId represents product_id
+        await api.put(`/products/${docId}`, payload);
         toast.success("Product updated!");
       } else {
-        const docRef = await addDoc(collection(db, "ourdesings"), {
-          ...finalProduct,
-          createdAt: new Date(),
-        });
-        await updateDoc(docRef, { productId: docRef.id });
+        await api.post(`/products`, payload);
         toast.success("Product added!");
       }
       resetForm();
       fetchDesignProducts();
       setViewMode("table");
     } catch (err) {
+      console.error(err);
       toast.error("Error submitting product.");
     }
 
@@ -181,9 +163,8 @@ const OurDesings = () => {
 
   const fetchCategories = async () => {
     try {
-      const snapshot = await getDocs(collection(db, "categories"));
-      const categoryList = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-      setCategories(categoryList);
+      const { data } = await api.get(`/categories`);
+      setCategories(data.categories || []);
     } catch (error) {
       console.error("Error fetching categories:", error);
     }
@@ -191,10 +172,14 @@ const OurDesings = () => {
 
   const fetchDesignProducts = async () => {
     try {
-      const snapshot = await getDocs(collection(db, "ourdesings"));
-      const data = snapshot.docs.map((doc) => ({ docId: doc.id, ...doc.data() }));
-      setDesignProducts(data);
+      const { data } = await api.get(`/products`);
+      const products = data.products || [];
+      const designs = products
+        .filter((p) => p.our_design === 1 || p.our_design === true)
+        .map((p) => ({ ...p, docId: p.product_id }));
+      setDesignProducts(designs);
     } catch (error) {
+      console.error(error);
       toast.error("Failed to load products.");
     }
   };
@@ -206,7 +191,7 @@ const OurDesings = () => {
       size: Array.isArray(p.size) ? p.size : [],
       images: Array.isArray(p.images) ? p.images : [],
     });
-    setDocId(p.docId);
+    setDocId(p.product_id || p.docId);
     setStockByVariant(p.stockByVariant || {});
     setPreviewImg(Array.isArray(p.images) ? p.images : []);
     setViewMode("form");
@@ -217,7 +202,7 @@ const OurDesings = () => {
     if (!window.confirm("Are you sure you want to delete this product?")) return;
 
     try {
-      await deleteDoc(doc(db, "ourdesings", id));
+      await api.delete(`/products/${id}`);
       toast.success("Product deleted.");
       await fetchDesignProducts();
     } catch (err) {

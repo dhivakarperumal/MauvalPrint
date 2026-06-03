@@ -26,10 +26,8 @@ import {
   FiHome
 } from "react-icons/fi";
 import { Link, useNavigate } from "react-router-dom";
-import { collection, getDocs } from "firebase/firestore";
-import { db } from "../firebase";
-import { toast } from "react-toastify";
 import api from "../api";
+import { toast } from "react-toastify";
 import { AuthContext } from "../Context/AuthContext";
 
 // Components
@@ -251,16 +249,14 @@ const AdminPanel = () => {
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const snapshot = await getDocs(collection(db, "orders"));
+        const { data } = await api.get("/orders");
+        const orders = data?.orders || [];
         const todayStr = new Date().toISOString().split("T")[0];
 
-        const todayOrders = snapshot.docs
-          .map((doc) => {
-            const data = doc.data();
-            const createdAt = data.createdAt?.toDate
-              ? data.createdAt.toDate()
-              : new Date(data.createdAt);
-            return { ...data, id: doc.id, createdAt };
+        const todayOrders = orders
+          .map((o) => {
+            const createdAt = o.created_at ? new Date(o.created_at) : new Date(o.createdAt || Date.now());
+            return { ...o, id: o.order_id || o.id, createdAt };
           })
           .filter(
             (order) =>
@@ -269,7 +265,6 @@ const AdminPanel = () => {
           );
 
         setNotifications(todayOrders);
-
         setCounts((prev) => ({ ...prev, newOrders: todayOrders.length }));
       } catch (error) {
         console.error(error);
@@ -283,14 +278,12 @@ const AdminPanel = () => {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const snapshot = await getDocs(collection(db, "users"));
+        const { data } = await api.get("/users");
+        const users = data?.users || [];
         const todayStr = new Date().toISOString().split("T")[0];
 
-        const newUsers = snapshot.docs.filter((doc) => {
-          const data = doc.data();
-          const createdAt = data.createdAt?.toDate
-            ? data.createdAt.toDate()
-            : new Date(data.createdAt);
+        const newUsers = users.filter((u) => {
+          const createdAt = u.created_at ? new Date(u.created_at) : new Date(u.createdAt || Date.now());
           return createdAt.toISOString().split("T")[0] === todayStr;
         });
 

@@ -1,7 +1,5 @@
 import React, { useState } from "react";
-import { auth, db } from "../../firebase";
-import { createUserWithEmailAndPassword } from "firebase/auth";
-import { collection, addDoc } from "firebase/firestore";
+import api from "../../api";
 import toast from "react-hot-toast";
 
 export default function AddUser() {
@@ -24,21 +22,12 @@ export default function AddUser() {
     }
 
     try {
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
-        form.email,
-        form.password
-      );
-
-      const user = userCredential.user;
-
-      await addDoc(collection(db, "users"), {
-        uid: user.uid,
+      await api.post(`/register`, {
         username: form.username,
         email: form.email,
         phone: form.phone,
-        role: form.role,
-        createdAt: new Date().toISOString(),
+        password: form.password,
+        confirmPassword: form.password,
       });
 
       toast.success("User added successfully!");
@@ -51,8 +40,8 @@ export default function AddUser() {
       });
       setError("");
     } catch (err) {
-      console.error("Firebase Error:", err);
-      setError(err.message);
+      console.error("Add user error:", err);
+      setError(err?.response?.data?.message || err.message || "Failed to add user.");
       toast.error("Failed to add user.");
     }
   };
