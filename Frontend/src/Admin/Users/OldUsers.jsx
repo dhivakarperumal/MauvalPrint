@@ -236,36 +236,45 @@ const OldUsers = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
         {/* All Users */}
-        <div className="bg-gradient-to-br from-blue-900 to-blue-700 rounded-xl shadow-lg p-5 flex items-center gap-4 text-white">
-          <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center">
-            <FaUsers size={22} />
+        <div className="relative overflow-hidden bg-gradient-to-r from-blue-600 to-blue-400 rounded-xl shadow-lg p-6 text-white flex justify-between items-center">
+          <div className="flex flex-col z-10">
+            <p className="text-xs font-bold tracking-widest uppercase mb-3 opacity-90 text-blue-50">Total Users</p>
+            <p className="text-5xl font-black mb-4 drop-shadow-md italic tracking-tighter">{users.length}</p>
+            <p className="text-xs opacity-80 text-blue-50">All registered users</p>
           </div>
-          <div>
-            <p className="text-sm font-medium opacity-80">All Users</p>
-            <p className="text-2xl font-bold">{users.length}</p>
+          <div className="z-10 w-16 h-16 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center shadow-inner border border-white/20">
+            <FaUsers size={28} className="drop-shadow-md text-white" />
           </div>
+          <div className="absolute -right-8 -top-8 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
+          <div className="absolute -right-4 -bottom-4 w-24 h-24 bg-blue-400/30 rounded-full blur-xl"></div>
         </div>
         {/* Active Users */}
-        <div className="bg-gradient-to-br from-emerald-600 to-emerald-400 rounded-xl shadow-lg p-5 flex items-center gap-4 text-white">
-          <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center">
-            <FaUserCheck size={22} />
+        <div className="relative overflow-hidden bg-gradient-to-r from-emerald-600 to-emerald-400 rounded-xl shadow-lg p-6 text-white flex justify-between items-center">
+          <div className="flex flex-col z-10">
+            <p className="text-xs font-bold tracking-widest uppercase mb-3 opacity-90 text-emerald-50">Active Users</p>
+            <p className="text-5xl font-black mb-4 drop-shadow-md italic tracking-tighter">{users.filter((u) => u.status === "active").length}</p>
+            <p className="text-xs opacity-80 text-emerald-50">Currently active</p>
           </div>
-          <div>
-            <p className="text-sm font-medium opacity-80">Active Users</p>
-            <p className="text-2xl font-bold">{users.filter((u) => u.status === "active").length}</p>
+          <div className="z-10 w-16 h-16 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center shadow-inner border border-white/20">
+            <FaUserCheck size={28} className="drop-shadow-md text-white" />
           </div>
+          <div className="absolute -right-8 -top-8 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
+          <div className="absolute -right-4 -bottom-4 w-24 h-24 bg-emerald-400/30 rounded-full blur-xl"></div>
         </div>
         {/* Inactive Users */}
-        <div className="bg-gradient-to-br from-red-600 to-red-400 rounded-xl shadow-lg p-5 flex items-center gap-4 text-white">
-          <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center">
-            <FaUserTimes size={22} />
+        <div className="relative overflow-hidden bg-gradient-to-r from-purple-600 to-purple-400 rounded-xl shadow-lg p-6 text-white flex justify-between items-center">
+          <div className="flex flex-col z-10">
+            <p className="text-xs font-bold tracking-widest uppercase mb-3 opacity-90 text-purple-50">Inactive Users</p>
+            <p className="text-5xl font-black mb-4 drop-shadow-md italic tracking-tighter">{users.filter((u) => u.status === "inactive").length}</p>
+            <p className="text-xs opacity-80 text-purple-50">Currently inactive</p>
           </div>
-          <div>
-            <p className="text-sm font-medium opacity-80">Inactive Users</p>
-            <p className="text-2xl font-bold">{users.filter((u) => u.status === "inactive").length}</p>
+          <div className="z-10 w-16 h-16 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center shadow-inner border border-white/20">
+            <FaUserTimes size={28} className="drop-shadow-md text-white" />
           </div>
+          <div className="absolute -right-8 -top-8 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
+          <div className="absolute -right-4 -bottom-4 w-24 h-24 bg-purple-400/30 rounded-full blur-xl"></div>
         </div>
       </div>
 

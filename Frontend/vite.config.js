@@ -7,6 +7,11 @@ export default defineConfig({
   plugins: [react(),tailwindcss()],
   server: {
     proxy: {
+      '/api': {
+        target: 'https://printmy.qtechx.com/api',
+        // target: 'http://localhost:5000/api',
+        changeOrigin: true,
+      },
       '/proxy-uploads': {
         target: 'https://mauvalprint.in/uploads',
         changeOrigin: true,

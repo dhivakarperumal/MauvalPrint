@@ -322,44 +322,62 @@ const Dashboard = () => {
 
   const labels = getLast7DaysLabels();
 
-  const data = {
+  const weeklyIncomeData = {
     labels,
     datasets: [
       {
-        label: "Weekly Income (₹)",
+        label: "Weekly Income",
         data: weeklyIncome,
-        backgroundColor: [
-          "#4F46E5",
-          "#6366F1",
-          "#818CF8",
-          "#A5B4FC",
-          "#C7D2FE",
-          "#E0E7FF",
-          "#EEF2FF",
-        ],
-        borderRadius: 20,
-        barPercentage: 0.4,
+        backgroundColor: "rgba(99, 102, 241, 0.85)",
+        hoverBackgroundColor: "rgba(79, 70, 229, 1)",
+        borderRadius: 6,
+        barPercentage: 0.5,
       },
     ],
   };
 
-  const options = {
+  const weeklyIncomeOptions = {
     responsive: true,
+    maintainAspectRatio: false,
     plugins: {
       legend: {
         display: false,
       },
       tooltip: {
+        backgroundColor: "rgba(15, 23, 42, 0.9)",
+        titleFont: { size: 13, family: "'Inter', sans-serif" },
+        bodyFont: { size: 14, weight: "bold", family: "'Inter', sans-serif" },
+        padding: 12,
+        cornerRadius: 8,
+        displayColors: false,
         callbacks: {
-          label: (context) => `₹${context.parsed.y}`,
+          label: (context) => `₹ ${context.parsed.y.toLocaleString()}`,
         },
       },
     },
     scales: {
+      x: {
+        grid: {
+          display: false,
+          drawBorder: false,
+        },
+        ticks: {
+          font: { family: "'Inter', sans-serif", size: 12 },
+          color: "#64748b",
+        },
+      },
       y: {
         beginAtZero: true,
+        grid: {
+          color: "#f1f5f9",
+          drawBorder: false,
+          borderDash: [5, 5],
+        },
         ticks: {
-          callback: (value) => `₹${value}`,
+          font: { family: "'Inter', sans-serif", size: 12 },
+          color: "#94a3b8",
+          callback: (value) => `₹${value.toLocaleString()}`,
+          padding: 10,
         },
       },
     },
@@ -730,12 +748,24 @@ const Dashboard = () => {
         />
       </div>
 
-      <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 mb-6">
-        <h3 className="text-lg font-bold text-slate-800 tracking-tight mb-6">
-          Weekly Income (Delivered Orders)
-        </h3>
-        <div className="h-110">
-          <Bar data={data} options={options} />
+      <div className="bg-white p-6 sm:p-8 rounded-3xl shadow-sm border border-slate-100 mb-6 relative overflow-hidden group">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-50 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none group-hover:bg-indigo-100 transition-colors duration-500"></div>
+        <div className="relative z-10 flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
+          <div>
+            <h3 className="text-xl font-black text-slate-800 tracking-tight">
+              Weekly Income
+            </h3>
+            <p className="text-sm font-medium text-slate-500 mt-1">
+              Revenue from delivered orders over the past 7 days
+            </p>
+          </div>
+          <div className="bg-indigo-50 text-indigo-700 px-4 py-2 rounded-xl border border-indigo-100 flex items-center gap-3 shadow-inner">
+            <span className="text-xs font-bold uppercase tracking-widest opacity-80">7-Day Total</span>
+            <span className="text-xl font-black">₹{weeklyIncome.reduce((a, b) => a + b, 0).toLocaleString()}</span>
+          </div>
+        </div>
+        <div className="relative z-10 h-[350px] w-full">
+          <Bar data={weeklyIncomeData} options={weeklyIncomeOptions} />
         </div>
       </div>
 
