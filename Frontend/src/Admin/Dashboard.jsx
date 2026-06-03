@@ -787,43 +787,53 @@ const Dashboard = () => {
           <h3 className="text-lg font-bold text-slate-800 tracking-tight">Today's Orders</h3>
         </div>
         
-        {Orders.filter((order) => {
-          const today = new Date().toISOString().split('T')[0];
-          const createdAtDate = order.createdAt?.toDate ? order.createdAt.toDate() : (order.createdAt ? new Date(order.createdAt) : new Date(0));
-          const orderDate = createdAtDate.toISOString().split('T')[0];
-          return orderDate === today;
-        }).length === 0 ? (
-          <div className="p-8 text-center">
-            <p className="text-slate-400 font-medium">No orders found for today.</p>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm text-left">
-              <thead className="bg-slate-50 text-slate-500 uppercase tracking-wider text-[10px] font-bold">
-                <tr>
-                  <th className="px-6 py-4">Order ID</th>
-                  <th className="px-6 py-4">Customer</th>
-                  <th className="px-6 py-4">Payment</th>
-                  <th className="px-6 py-4">Status</th>
-                  <th className="px-6 py-4">Total (₹)</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {Orders.filter((order) => {
+        <div className="overflow-x-auto rounded-2xl border border-gray-200 shadow-sm bg-white">
+          <table className="min-w-[750px] w-full text-sm text-left">
+            <thead className="bg-gray-800 text-white">
+              <tr>
+                <th className="px-6 py-4">Order ID</th>
+                <th className="px-6 py-4">Customer</th>
+                <th className="px-6 py-4">Payment</th>
+                <th className="px-6 py-4">Status</th>
+                <th className="px-6 py-4">Total (₹)</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {(() => {
+                const todayOrdersFiltered = Orders.filter((order) => {
                   const today = new Date().toISOString().split('T')[0];
-                  const createdAtDate = order.createdAt?.toDate ? order.createdAt.toDate() : (order.createdAt ? new Date(order.createdAt) : new Date(0));
+                  const dateValue = order.created_at || order.createdAt;
+                  const createdAtDate = dateValue?.toDate ? dateValue.toDate() : (dateValue ? new Date(dateValue) : new Date(0));
                   const orderDate = createdAtDate.toISOString().split('T')[0];
                   return orderDate === today;
-                }).map(
+                });
+
+                if (todayOrdersFiltered.length === 0) {
+                  return (
+                    <tr>
+                      <td colSpan="5" className="px-6 py-16 text-center">
+                        <div className="flex flex-col items-center justify-center space-y-3">
+                          <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-2">
+                            <FaClipboardList className="text-slate-300 text-2xl" />
+                          </div>
+                          <p className="text-slate-500 font-bold text-base">No orders yet today</p>
+                          <p className="text-slate-400 text-sm">When new orders are placed, they will appear here.</p>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                }
+
+                return todayOrdersFiltered.map(
                   (order, idx) => (
                     <tr
                       key={idx}
                       className="hover:bg-slate-50/50 transition-colors"
                     >
-                      <td className="px-6 py-4 font-bold text-slate-700">{order.orderID}</td>
-                      <td className="px-6 py-4 font-medium text-slate-900">{order?.checkout.fullname}</td>
+                      <td className="px-6 py-4 font-bold text-slate-700">{order.order_id || order.orderID}</td>
+                      <td className="px-6 py-4 font-medium text-slate-900">{order?.checkout?.fullname || order?.checkout?.customerName || order?.customerName || "Unknown"}</td>
                       <td className="px-6 py-4 text-slate-500">
-                        {order.paymentID ? "Online" : "Cash on Delivery"}
+                        {order.payment_id || order.paymentID ? "Online" : "Cash on Delivery"}
                       </td>
                       <td className="px-6 py-4">
                         <span className={getStatusBadge(order.status)}>
@@ -833,11 +843,11 @@ const Dashboard = () => {
                       <td className="px-6 py-4 font-black text-slate-900">₹{order.total}</td>
                     </tr>
                   )
-                )}
-              </tbody>
-            </table>
-          </div>
-        )}
+                );
+              })()}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
