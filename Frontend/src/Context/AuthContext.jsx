@@ -330,6 +330,7 @@ export function AuthProvider({ children }) {
     <AuthContext.Provider
       value={{
         user,
+        setUser,
         registerUser: () => { },
         loginWithEmail,
         logout,

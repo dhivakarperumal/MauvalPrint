@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import {
   FaUser,
   FaMapMarkerAlt,
@@ -10,20 +10,13 @@ import {
   FaEdit,
 } from "react-icons/fa";
 import { useLocation, useNavigate } from "react-router-dom";
+import { AuthContext } from "../Context/AuthContext";
+import api from "../api";
+import { toast } from "react-toastify";
 import Head from "./Head";
-import { auth, db } from "../firebase";
-import {
-  doc,
-  getDoc,
-  setDoc,
-  updateDoc,
-  collection,
-  getDocs,
-  deleteDoc,
-} from "firebase/firestore";
-import { signOut } from "firebase/auth";
 
 const Account = () => {
+  const { user, setUser } = useContext(AuthContext);
   const [activeTab, setActiveTab] = useState("personal");
   const [userInfo, setUserInfo] = useState({});
   const [addresses, setAddresses] = useState([]);
@@ -52,104 +45,156 @@ const Account = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const user = auth.currentUser;
-
   useEffect(() => {
     if (!user) {
-      navigate("/login");
+      navigate("/");
       return;
     }
+    
+    // Load addresses from localStorage
+    const savedAddresses = JSON.parse(localStorage.getItem(`addresses_${user.uid}`) || "[]");
+    setAddresses(savedAddresses);
+    
     const fetchUserData = async () => {
-      const userRef = doc(db, "users", user.uid);
-      const docSnap = await getDoc(userRef);
-      if (docSnap.exists()) {
-        setUserInfo(docSnap.data());
+      try {
+        const { data } = await api.get(`/users/${user.uid}`);
+        if (data?.success) {
+          setUserInfo({
+            username: data.user?.username || user.username || "",
+            email: data.user?.email || user.email || "",
+            phone: data.user?.phone || user.phone || "",
+          });
+        }
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+        setUserInfo({
+          username: user.username || "",
+          email: user.email || "",
+          phone: user.phone || "",
+        });
       }
-
-      const addressSnapshot = await getDocs(
-        collection(db, `users/${user.uid}/address`)
-      );
-      const addressData = addressSnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
-      setAddresses(addressData);
     };
+
     fetchUserData();
 
     if (location.state?.goTo === "address") {
       setActiveTab("address");
     }
-  }, [user]);
+  }, [user, navigate, location.state]);
+
 
   const logout = async () => {
     if (window.confirm("Are you sure you want to logout?")) {
-      await signOut(auth);
+      setUser(null);
+      localStorage.removeItem("apiUser");
+      localStorage.removeItem("token");
       navigate("/");
+      toast.success("Logged out successfully");
     }
   };
 
   const updateUserInfo = async () => {
-    const userRef = doc(db, "users", user.uid);
-    await updateDoc(userRef, userInfo);
-    alert("Profile updated successfully!");
+    try {
+      const { data } = await api.put(`/users/${user.uid}`, {
+        username: userInfo.username,
+        email: userInfo.email,
+        phone: userInfo.phone,
+      });
+      if (data?.success) {
+        toast.success("Profile updated successfully!");
+        setUser({ ...user, ...userInfo });
+        localStorage.setItem("apiUser", JSON.stringify({ ...user, ...userInfo }));
+      }
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      toast.error(error?.response?.data?.message || "Failed to update profile");
+    }
   };
 
   const updatePassword = async () => {
     const { currentPassword, newPassword, confirmPassword } = passwordFields;
 
     if (newPassword !== confirmPassword) {
-      alert("Passwords do not match");
+      toast.error("Passwords do not match");
+      return;
+    }
+
+    if (!newPassword) {
+      toast.error("Please enter a new password");
       return;
     }
 
     try {
-      await auth.currentUser.updatePassword(newPassword);
-      alert("Password updated successfully");
-      setPasswordFields({
-        currentPassword: "",
-        newPassword: "",
-        confirmPassword: "",
+      const { data } = await api.put(`/users/${user.uid}/password`, {
+        currentPassword,
+        newPassword,
       });
-    } catch (err) {
-      alert("Error updating password: " + err.message);
+      if (data?.success) {
+        toast.success("Password updated successfully");
+        setPasswordFields({
+          currentPassword: "",
+          newPassword: "",
+          confirmPassword: "",
+        });
+      }
+    } catch (error) {
+      console.error("Error updating password:", error);
+      toast.error(error?.response?.data?.message || "Failed to update password");
     }
   };
 
   const handleAddressSave = async () => {
-    if (editingIndex != null) {
-      const addrId = addresses[editingIndex].id;
-      const addrRef = doc(db, `users/${user.uid}/address`, addrId);
-      await updateDoc(addrRef, newAddress);
-    } else {
-      const newRef = doc(collection(db, `users/${user.uid}/address`));
-      await setDoc(newRef, newAddress);
-    }
+    try {
+      if (!newAddress.fullname || !newAddress.contact || !newAddress.city) {
+        toast.error("Please fill in all required fields");
+        return;
+      }
 
-    const updatedSnapshot = await getDocs(
-      collection(db, `users/${user.uid}/address`)
-    );
-    const addressData = updatedSnapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    }));
-    setAddresses(addressData);
-    setNewAddress({
-      fullname: "",
-      contact: "",
-      email: "",
-      city: "",
-      zip: "",
-      state: "",
-      street: "",
-      country: "",
-    });
-    setEditingIndex(null);
+      let updatedAddresses = [...addresses];
+      if (editingIndex != null) {
+        updatedAddresses[editingIndex] = { ...newAddress, id: addresses[editingIndex].id };
+      } else {
+        updatedAddresses.push({ ...newAddress, id: `addr_${Date.now()}` });
+      }
+      
+      const savedAddresses = JSON.parse(localStorage.getItem(`addresses_${user.uid}`) || "[]");
+      if (editingIndex != null) {
+        savedAddresses[editingIndex] = updatedAddresses[editingIndex];
+      } else {
+        savedAddresses.push(updatedAddresses[updatedAddresses.length - 1]);
+      }
+      localStorage.setItem(`addresses_${user.uid}`, JSON.stringify(savedAddresses));
+      
+      setAddresses(updatedAddresses);
+      setNewAddress({
+        fullname: "",
+        contact: "",
+        email: "",
+        city: "",
+        zip: "",
+        state: "",
+        street: "",
+        country: "",
+      });
+      setEditingIndex(null);
+      toast.success(editingIndex != null ? "Address updated!" : "Address added!");
+    } catch (error) {
+      console.error("Error saving address:", error);
+      toast.error("Failed to save address");
+    }
   };
 
   const handleAddressDelete = async (id) => {
-    await deleteDoc(doc(db, `users/${user.uid}/address`, id));
-    setAddresses(addresses.filter((a) => a.id !== id));
+    try {
+      const updatedAddresses = addresses.filter((a) => a.id !== id);
+      const savedAddresses = updatedAddresses.map(({ id, ...rest }) => rest);
+      localStorage.setItem(`addresses_${user.uid}`, JSON.stringify(savedAddresses));
+      setAddresses(updatedAddresses);
+      toast.success("Address deleted!");
+    } catch (error) {
+      console.error("Error deleting address:", error);
+      toast.error("Failed to delete address");
+    }
   };
 
   const renderTabContent = () => {
