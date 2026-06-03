@@ -164,11 +164,61 @@ const Reviews = () => {
     r.product.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const totalReviews = reviews.length;
+  const featuredReviews = reviews.filter((r) => r.featured).length;
+  const standardReviews = reviews.filter((r) => !r.featured).length;
+
   return (
-    <div className="p-6 max-w-7xl mx-auto space-y-8 min-h-screen">
+    <div className="p-4 sm:p-6 bg-gray-50 min-h-screen space-y-6">
       
-        
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div className="mb-2">
+        <h2 className="text-2xl font-bold text-blue-900">Reviews Management</h2>
+        <p className="text-sm text-gray-500 mt-1">View, edit, and feature customer reviews.</p>
+      </div>
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+        <div className="bg-gradient-to-br from-blue-500 to-blue-700 rounded-2xl shadow-lg p-6 text-white relative overflow-hidden group hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+          <div className="relative z-10 flex items-center justify-between">
+            <div>
+              <p className="text-blue-100 text-sm font-semibold uppercase tracking-wider mb-1">Total Reviews</p>
+              <h3 className="text-4xl font-black">{totalReviews}</h3>
+            </div>
+            <div className="bg-white/20 p-4 rounded-xl group-hover:scale-110 transition-transform duration-300">
+              <FaStar className="text-3xl text-white" />
+            </div>
+          </div>
+          <div className="absolute -bottom-4 -right-4 w-32 h-32 bg-white/10 rounded-full blur-2xl group-hover:bg-white/20 transition-all duration-300"></div>
+        </div>
+
+        <div className="bg-gradient-to-br from-green-500 to-green-700 rounded-2xl shadow-lg p-6 text-white relative overflow-hidden group hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+          <div className="relative z-10 flex items-center justify-between">
+            <div>
+              <p className="text-green-100 text-sm font-semibold uppercase tracking-wider mb-1">Featured</p>
+              <h3 className="text-4xl font-black">{featuredReviews}</h3>
+            </div>
+            <div className="bg-white/20 p-4 rounded-xl group-hover:scale-110 transition-transform duration-300">
+              <FaStar className="text-3xl text-white" />
+            </div>
+          </div>
+          <div className="absolute -bottom-4 -right-4 w-32 h-32 bg-white/10 rounded-full blur-2xl group-hover:bg-white/20 transition-all duration-300"></div>
+        </div>
+
+        <div className="bg-gradient-to-br from-purple-500 to-purple-700 rounded-2xl shadow-lg p-6 text-white relative overflow-hidden group hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+          <div className="relative z-10 flex items-center justify-between">
+            <div>
+              <p className="text-purple-100 text-sm font-semibold uppercase tracking-wider mb-1">Standard</p>
+              <h3 className="text-4xl font-black">{standardReviews}</h3>
+            </div>
+            <div className="bg-white/20 p-4 rounded-xl group-hover:scale-110 transition-transform duration-300">
+              <FaRegStar className="text-3xl text-white" />
+            </div>
+          </div>
+          <div className="absolute -bottom-4 -right-4 w-32 h-32 bg-white/10 rounded-full blur-2xl group-hover:bg-white/20 transition-all duration-300"></div>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-6 flex flex-col md:flex-row items-center justify-between gap-4">
         {/* Left Side: Search */}
         <div className="relative w-full sm:w-72 md:w-96">
           <input 
