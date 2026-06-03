@@ -15,6 +15,25 @@ const StockDetails = () => {
   
   const [showAddStockModal, setShowAddStockModal] = useState(false);
 
+  const getProductImage = (product) => {
+    if (product.image) return product.image;
+    if (product.image_url) return product.image_url;
+
+    const images = (() => {
+      if (Array.isArray(product.images)) return product.images;
+      if (typeof product.images === "string") {
+        try {
+          return JSON.parse(product.images || "[]");
+        } catch {
+          return [product.images];
+        }
+      }
+      return [];
+    })();
+
+    return images?.[0] || "";
+  };
+
   const fetchStock = async () => {
     try {
       const { data } = await api.get("/products");
@@ -42,7 +61,7 @@ const StockDetails = () => {
         productList.push({
           productId: product.product_id || product.id || "",
           name: product.name || "",
-          image: product.image || product.image_url || "",
+          image: getProductImage(product),
           variants,
           totalStock,
         });
