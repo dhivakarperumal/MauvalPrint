@@ -1,26 +1,30 @@
 import React, { useEffect, useState, useRef, useContext } from "react";
 import {
-  FaTachometerAlt,
-  FaBoxOpen,
-  FaBookOpen,
-  FaClipboardList,
-  FaUserFriends,
-  FaMoneyBillWave,
-  FaFileAlt,
-  FaPalette,
-  FaPlusCircle,
-  FaShoppingCart,
-  FaRegUserCircle,
-  FaReceipt,
-  FaBars,
-  FaSearch,
-  FaBell,
-  FaUserCircle,
-  FaSignOutAlt,
-  FaHome,
-  FaTags
-} from "react-icons/fa";
-import { TiUserAdd } from "react-icons/ti";
+  FiLayout,
+  FiPackage,
+  FiFolder,
+  FiFeather,
+  FiTag,
+  FiShoppingCart,
+  FiShoppingBag,
+  FiList,
+  FiClock,
+  FiTruck,
+  FiXCircle,
+  FiUsers,
+  FiUserPlus,
+  FiBox,
+  FiPlusCircle,
+  FiSearch,
+  FiFileText,
+  FiStar,
+  FiBriefcase,
+  FiMenu,
+  FiBell,
+  FiUser,
+  FiLogOut,
+  FiHome
+} from "react-icons/fi";
 import { Link, useNavigate } from "react-router-dom";
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "../firebase";
@@ -59,60 +63,58 @@ import GetOrdersDetails from "./GetOrdersDetails";
 import logo from "/Image/logo.png";
 
 const tabLabels = {
-  dashboard: { label: "Dashboard", icon: <FaTachometerAlt /> },
+  dashboard: { label: "Dashboard", icon: <FiLayout /> },
   allProducts: {
     label: "Products",
-    icon: <FaBookOpen />,
+    icon: <FiPackage />,
     isDropdown: true,
     children: {
-      allProducts: { label: "All Products", icon: <FaBookOpen /> },
-      category: { label: "Category", icon: <FaFileAlt /> },
-      ourDesigns: { label: "Our Designs", icon: <FaPalette /> },
-      productKeywords: { label: "Product Keywords", icon: <FaTags /> },
+      allProducts: { label: "All Products", icon: <FiPackage /> },
+      category: { label: "Category", icon: <FiFolder /> },
+      ourDesigns: { label: "Our Designs", icon: <FiFeather /> },
+      productKeywords: { label: "Product Keywords", icon: <FiTag /> },
     },
   },
   orders: {
     label: "Orders",
-    icon: <FaClipboardList />,
+    icon: <FiShoppingCart />,
     isDropdown: true,
     children: {
-      newOrders: { label: "New Orders", icon: <FaShoppingCart /> },
-      allOrders: { label: "All Orders", icon: <FaClipboardList /> },
-      processingOrders: { label: "Processing Orders", icon: <FaClipboardList /> },
-      deliveryOrders: { label: "Delivery Orders", icon: <FaClipboardList /> },
-      cancelOrders: { label: "Cancelled Orders", icon: <FaFileAlt /> },
+      newOrders: { label: "New Orders", icon: <FiShoppingBag /> },
+      allOrders: { label: "All Orders", icon: <FiList /> },
+      processingOrders: { label: "Processing Orders", icon: <FiClock /> },
+      deliveryOrders: { label: "Delivery Orders", icon: <FiTruck /> },
+      cancelOrders: { label: "Cancelled Orders", icon: <FiXCircle /> },
     },
   },
   customers: {
     label: "Users",
-    icon: <FaUserFriends />,
+    icon: <FiUsers />,
     isDropdown: true,
     children: {
-      newUsers: { label: "New Users", icon: <FaUserFriends /> },
-      users: { label: "All Users", icon: <FaRegUserCircle /> },
+      newUsers: { label: "New Users", icon: <FiUserPlus /> },
+      users: { label: "All Users", icon: <FiUsers /> },
     },
   },
-  // stock: {
-  //   label: "Stock",
-  //   icon: <FaBoxOpen />,
-  //   isDropdown: true,
-  //   children: {
-  //     addStock: { label: "Add Stock", icon: <FaPlusCircle /> },
-  //     stockDetails: { label: "Stock Details", icon: <FaBoxOpen /> },
-  //   },
-  // },
-
-  stockDetails: { label: "Stock Details", icon: <FaMoneyBillWave /> },
-  billing: { label: "Billing", icon: <FaMoneyBillWave /> },
-  getOrders: { label: "Get Order Details", icon: <FaReceipt /> },
-  reviews: { label: "Reviews", icon: <FaFileAlt /> },
-  dealers: {
-    label: "Dealers",
-    icon: <FaUserFriends />,
+  stock: {
+    label: "Stock",
+    icon: <FiBox />,
     isDropdown: true,
     children: {
-      dealers: { label: "All Dealers", icon: <FaUserFriends /> },
-      invoice: { label: "Invoice", icon: <FaFileAlt /> },
+      addStock: { label: "Add Stock", icon: <FiPlusCircle /> },
+      stockDetails: { label: "Stock Details", icon: <FiSearch /> },
+    },
+  },
+  billing: { label: "Billing", icon: <FiFileText /> },
+  getOrders: { label: "Get Order Details", icon: <FiSearch /> },
+  reviews: { label: "Reviews", icon: <FiStar /> },
+  dealers: {
+    label: "Dealers",
+    icon: <FiBriefcase />,
+    isDropdown: true,
+    children: {
+      dealers: { label: "All Dealers", icon: <FiBriefcase /> },
+      invoice: { label: "Invoice", icon: <FiFileText /> },
     },
   },
 };
@@ -489,7 +491,7 @@ if (
                 to="/"
                 className="group flex items-center justify-center gap-2 px-4 py-3 bg-white/5 border border-white/10 text-white font-medium rounded-xl shadow-sm hover:bg-white/10 hover:shadow-md transition-all duration-300 w-full"
               >
-                <FaHome className="group-hover:scale-110 transition-transform duration-300 text-blue-400" />
+                <FiHome className="group-hover:scale-110 transition-transform duration-300 text-blue-400" />
                 Back Home
               </Link>
             </div>
@@ -506,7 +508,7 @@ if (
               className="md:hidden text-2xl"
               onClick={() => setMobileMenu(true)}
             >
-              <FaBars />
+              <FiMenu />
             </button>
             <h1 className="font-bold text-lg whitespace-nowrap tracking-wide">
               {getTabLabel(activeTab)}
@@ -520,7 +522,7 @@ if (
             ref={profileRef}
           >
             <div className="relative hidden md:block mr-2">
-              <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
               <input
                 type="text"
                 value={searchQuery}
@@ -660,7 +662,7 @@ if (
                 onClick={() => setOpen(!open)}
                 className="relative  cursor-pointer w-10 h-10 border-2 rounded-full flex items-center justify-center"
               >
-                <FaBell className="text-xl" />
+                <FiBell className="text-xl" />
                 {notifications.length > 0 && (
                   <span className="absolute -top-1 -right-1 bg-red-600 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">
                     {notifications.length}
@@ -743,7 +745,7 @@ if (
                   }}
                   className="w-full text-left px-4 py-2 hover:bg-gray-900 text-gray-800 hover:text-white flex items-center gap-2"
                 >
-                  <FaUserCircle className="text-gray-600 group-hover:text-white" />
+                  <FiUser className="text-gray-600 group-hover:text-white" />
                   My Profile
                 </button>
 
@@ -751,7 +753,7 @@ if (
                   onClick={handleLogout}
                   className="w-full text-left px-4 py-2 hover:bg-red-100 text-red-600 hover:text-red-800 flex items-center gap-2"
                 >
-                  <FaSignOutAlt className="text-red-600 hover:text-red-800" />
+                  <FiLogOut className="text-red-600 hover:text-red-800" />
                   Logout
                 </button>
               </div>
