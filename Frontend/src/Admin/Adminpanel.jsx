@@ -426,8 +426,11 @@ if (
       >
         <div className="flex flex-col h-full overflow-y-auto">
           {/* Header */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 shrink-0 bg-white/5 backdrop-blur-sm">
-            <img src={logo} alt="Logo" className="h-14 w-auto object-contain drop-shadow-lg" />
+          <div className="flex items-center justify-between px-6 py-5 border-b border-white/10 shrink-0 bg-white/5 backdrop-blur-sm">
+            <div className="flex items-center gap-3">
+              <img src={logo} alt="Logo" className="h-10 w-auto object-contain drop-shadow-md" />
+              <span className="text-xl font-black tracking-widest uppercase bg-clip-text text-transparent bg-gradient-to-r from-cyan-300 to-blue-400 drop-shadow-sm">Mauval Print</span>
+            </div>
             <button className="md:hidden text-2xl text-gray-400 hover:text-white cursor-pointer transition-colors" onClick={() => setMobileMenu(false)}>✕</button>
           </div>
 
@@ -498,31 +501,35 @@ if (
 
       <div className="flex-1 flex flex-col md:ml-0 min-h-screen">
         <header className="bg-[#192f59] text-white flex items-center justify-between px-4 h-auto md:h-20 shadow sticky top-0 z-40 py-3">
-          <div className="flex items-center   gap-4 w-full md:w-auto">
+          <div className="flex items-center gap-4 w-full md:w-auto">
             <button
               className="md:hidden text-2xl"
               onClick={() => setMobileMenu(true)}
             >
               <FaBars />
             </button>
-            {/* <h1 className="font-bold text-lg whitespace-nowrap">
-              {tabLabels[activeTab]?.label || "Admin"}
-            </h1> */}
-            <h1 className="font-bold text-lg whitespace-nowrap">
-  {getTabLabel(activeTab)}
-</h1>
+            <h1 className="font-bold text-lg whitespace-nowrap tracking-wide">
+              {getTabLabel(activeTab)}
+              <span className="text-sm text-gray-300 block mt-1">Hi Welcome toAdmin Panel</span>
+            </h1>
+          </div>
 
-            <div className="relative hidden md:block">
-              <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
+          {/* Right section */}
+          <div
+            className="flex items-center gap-4 md:gap-6 ml-auto relative"
+            ref={profileRef}
+          >
+            <div className="relative hidden md:block mr-2">
+              <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search menu..."
-                className="pl-10 pr-4 py-2 w-64 rounded-md text-sm text-black bg-white focus:outline-none shadow"
+                className="pl-10 pr-4 py-2 w-64 rounded-full text-sm text-black bg-white focus:outline-none shadow-sm border border-gray-200 transition-shadow focus:shadow-md"
               />
               {suggestions.length > 0 && (
-                <ul className="absolute mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg z-50 max-h-60 overflow-auto">
+                <ul className="absolute mt-2 w-full bg-white border border-gray-200 rounded-xl shadow-xl z-50 max-h-60 overflow-auto">
                   {suggestions.map((s) => (
                     <li
                       key={s.key}
@@ -532,7 +539,7 @@ if (
                         setSuggestions([]);
                         setMobileMenu(false);
                       }}
-                      className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-gray-800"
+                      className="px-4 py-3 hover:bg-blue-50 cursor-pointer text-gray-800 transition-colors border-b border-gray-100 last:border-0"
                     >
                       {s.label}
                     </li>
@@ -540,13 +547,7 @@ if (
                 </ul>
               )}
             </div>
-          </div>
 
-          {/* Right section */}
-          <div
-            className="flex items-center gap-4 md:gap-6 ml-auto relative"
-            ref={profileRef}
-          >
             <div className="relative">
               {/* Low Stock Alert Button */}
               <button
