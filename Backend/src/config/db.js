@@ -1,11 +1,12 @@
 const dotenv = require('dotenv');
+const path = require('path');
 const mysql = require('mysql2/promise');
 const { randomUUID, randomBytes, scrypt: _scrypt } = require('crypto');
 const { promisify } = require('util');
 
 const scrypt = promisify(_scrypt);
 
-dotenv.config();
+dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@gmail.com';
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin@123';
@@ -35,8 +36,20 @@ async function ensureDatabaseExists() {
     port: poolConfig.port,
   });
 
-  await adminConnection.query(`CREATE DATABASE IF NOT EXISTS \`${dbName}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci`);
-  await adminConnection.end();
+  try {
+    await adminConnection.query(`CREATE DATABASE IF NOT EXISTS \`${dbName}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci`);
+  } catch (error) {
+    if (error.code === 'ER_DBACCESS_DENIED_ERROR' || error.code === 'ER_ACCESS_DENIED_ERROR') {
+      console.warn(
+        `Warning: Unable to create database ${dbName}. ` +
+        `This may be okay if the database already exists and the configured user has access to it.`
+      );
+    } else {
+      throw error;
+    }
+  } finally {
+    await adminConnection.end();
+  }
 }
 
 async function ensureTables() {
@@ -237,7 +250,15 @@ async function ensureTables() {
   ];
 
   for (const statement of statements) {
-    await pool.query(statement);
+    try {
+      await pool.query(statement);
+    } catch (error) {
+      if (error.code === 'ER_TABLEACCESS_DENIED_ERROR' || error.code === 'ER_DBACCESS_DENIED_ERROR') {
+        console.warn(`Warning: unable to execute schema statement due to permissions: ${error.code}. Continuing if the schema already exists.`);
+      } else {
+        throw error;
+      }
+    }
   }
 
   // Ensure additional columns exist on user_cart for easier querying
@@ -338,6 +359,7 @@ async function ensureTables() {
 
 async function connectDB() {
   if (!pool) {
+    console.info(`[DB] connecting to ${poolConfig.host}:${poolConfig.port} database=${poolConfig.database} user=${poolConfig.user} usingPassword=${poolConfig.password ? 'YES' : 'NO'}`);
     await ensureDatabaseExists();
     pool = mysql.createPool(poolConfig);
     await ensureTables();
