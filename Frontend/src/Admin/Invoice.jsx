@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import api from "../api";
 import toast from "react-hot-toast";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
-import { FaEdit, FaTrash } from "react-icons/fa";
+import { FaEdit, FaTrash, FaSearch, FaPlus, FaTimes, FaTh, FaList, FaFileInvoice, FaFileDownload } from "react-icons/fa";
 
 const Invoice = () => {
   const [invoiceData, setInvoiceData] = useState({
@@ -18,8 +18,11 @@ const Invoice = () => {
   });
 
   const [invoiceList, setInvoiceList] = useState([]);
-  const [view, setView] = useState("form");
+  const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState(null);
+  
+  const [search, setSearch] = useState("");
+  const [viewMode, setViewMode] = useState("table");
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -71,6 +74,13 @@ const Invoice = () => {
     fetchInvoices();
   }, []);
 
+  const filteredInvoices = useMemo(() => {
+    return invoiceList.filter((inv) =>
+      inv.invoiceNo?.toLowerCase().includes(search.toLowerCase()) ||
+      inv.invoiceDate?.includes(search)
+    );
+  }, [invoiceList, search]);
+
   const resetForm = () => {
     setInvoiceData({
       invoiceNo: "",
@@ -90,17 +100,15 @@ const Invoice = () => {
 
     try {
       if (editingId) {
-        // Update invoice
         await api.put(`/invoices/${editingId}`, invoiceData);
         toast.success("Invoice updated successfully!");
       } else {
-        // Add invoice
         await api.post("/invoices", invoiceData);
         toast.success("Invoice added successfully!");
       }
       resetForm();
       fetchInvoices();
-      setView("invoice");
+      setShowModal(false);
     } catch (error) {
       console.error("Error adding/updating invoice:", error);
       toast.error("Failed to save invoice.");
@@ -109,17 +117,17 @@ const Invoice = () => {
 
   const handleEdit = (invoice) => {
     setInvoiceData({
-      invoiceNo: invoice.invoiceNo,
-      invoiceDate: invoice.invoiceDate,
-      invoiceValue: invoice.invoiceValue,
-      invoiceGSTValue: invoice.invoiceGSTValue,
-      invoiceTotalValue: invoice.invoiceTotalValue,
-      transportAmount: invoice.transportAmount,
-      billPdfBase64: invoice.billPdfBase64,
-      billPdfName: invoice.billPdfName,
+      invoiceNo: invoice.invoiceNo || "",
+      invoiceDate: invoice.invoiceDate || "",
+      invoiceValue: invoice.invoiceValue || "",
+      invoiceGSTValue: invoice.invoiceGSTValue || "",
+      invoiceTotalValue: invoice.invoiceTotalValue || "",
+      transportAmount: invoice.transportAmount || "",
+      billPdfBase64: invoice.billPdfBase64 || null,
+      billPdfName: invoice.billPdfName || "",
     });
     setEditingId(invoice.id);
-    setView("form");
+    setShowModal(true);
   };
 
   const handleDelete = async (id) => {
@@ -142,7 +150,7 @@ const Invoice = () => {
     }
 
     const excelData = invoiceList.map((invoice, idx) => ({
-      ID: idx + 1,
+      "S No": idx + 1,
       "Invoice No": invoice.invoiceNo,
       "Invoice Date": invoice.invoiceDate,
       "Invoice Value (₹)": invoice.invoiceValue,
@@ -161,191 +169,348 @@ const Invoice = () => {
   };
 
   return (
-    <div className="p-4 min-h-screen">
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h2 className="text-3xl font-bold text-blue-900">Invoice System</h2>
-          <p className="text-sm text-gray-500">Manage invoice records</p>
-        </div>
-        <div className="flex gap-2">
-          <button
-            onClick={() => setView("form")}
-            className={`px-4 py-2 rounded-full text-sm font-medium cursor-pointer ${
-              view === "form"
-                ? "bg-blue-900 text-white"
-                : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-            }`}
-          >
-            {editingId ? "Edit Invoice" : "Add Invoice"}
-          </button>
-          <button
-            onClick={() => setView("invoice")}
-            className={`px-4 py-2 rounded-full text-sm font-medium cursor-pointer ${
-              view === "invoice"
-                ? "bg-blue-900 text-white"
-                : "bg-gray-300 text-blue-900 hover:bg-gray-200"
-            }`}
-          >
-            Show Invoices
-          </button>
+    <div className="p-4 sm:p-6 bg-gray-50 min-h-screen">
+      <div className="mb-6">
+        <h2 className="text-2xl font-bold text-blue-900">Invoice System</h2>
+        <p className="text-sm text-gray-500 mt-1">Manage, view, and export invoice records.</p>
+      </div>
+
+      {/* Top Bar: Search, View Toggles, Excel, Add Button */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-6">
+        <div className="flex flex-col md:flex-row gap-3 items-center">
+          {/* Search */}
+          <div className="relative w-full md:w-1/3">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+              <FaSearch />
+            </span>
+            <input
+              type="text"
+              placeholder="Search by Invoice No or Date..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full pl-9 pr-3 py-2.5 border border-gray-200 rounded-lg bg-gray-50 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-white transition-all"
+            />
+          </div>
+
+          <div className="flex items-center gap-3 flex-wrap ml-auto">
+            {/* View Toggles */}
+            <div className="hidden md:flex items-center bg-gray-100 rounded-lg p-1 gap-1">
+              <button
+                onClick={() => setViewMode("table")}
+                title="Table View"
+                className={`p-2 rounded-md transition-all cursor-pointer ${
+                  viewMode === "table"
+                    ? "bg-blue-900 text-white shadow-sm"
+                    : "text-gray-500 hover:text-gray-700 hover:bg-gray-200"
+                }`}
+              >
+                <FaList size={14} />
+              </button>
+              <button
+                onClick={() => setViewMode("card")}
+                title="Card View"
+                className={`p-2 rounded-md transition-all cursor-pointer ${
+                  viewMode === "card"
+                    ? "bg-blue-900 text-white shadow-sm"
+                    : "text-gray-500 hover:text-gray-700 hover:bg-gray-200"
+                }`}
+              >
+                <FaTh size={14} />
+              </button>
+            </div>
+
+            <div className="hidden md:block w-px h-8 bg-gray-200"></div>
+
+            {/* Export Button */}
+            <button
+              onClick={downloadInvoiceExcel}
+              className="px-4 py-2 bg-green-50 text-green-700 rounded-lg text-sm font-medium flex items-center gap-2 hover:bg-green-100 transition-colors cursor-pointer border border-green-200"
+            >
+              <FaFileDownload size={12} /> Export Excel
+            </button>
+
+            {/* Add New Invoice Button */}
+            <button
+              onClick={() => { resetForm(); setShowModal(true); }}
+              className="px-4 py-2 bg-blue-900 text-white rounded-lg text-sm font-medium flex items-center gap-2 hover:bg-blue-800 transition-colors shadow-sm cursor-pointer"
+            >
+              <FaPlus size={12} /> Add Invoice
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* === FORM VIEW === */}
-      {view === "form" && (
-        <form
-          onSubmit={handleAddOrUpdateInvoice}
-          className="grid gap-4 md:grid-cols-2 bg-white p-6 rounded-lg shadow"
-        >
-          {editingId && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Invoice Number</label>
-              <input
-                type="text"
-                name="invoiceNo"
-                value={invoiceData.invoiceNo}
-                disabled
-                className="w-full border border-gray-300 rounded-lg px-4 py-2 bg-gray-100 cursor-not-allowed text-gray-500"
-              />
-            </div>
-          )}
-          {[
-            { label: "Invoice Date", name: "invoiceDate", type: "date", placeholder: "Select date" },
-            { label: "Invoice Value (₹)", name: "invoiceValue", type: "number", placeholder: "e.g., 1000" },
-            { label: "GST Value (₹)", name: "invoiceGSTValue", type: "number", placeholder: "e.g., 180" },
-            { label: "Total Value (₹)", name: "invoiceTotalValue", type: "number", placeholder: "e.g., 1180" },
-            { label: "Transport Amount (₹)", name: "transportAmount", type: "number", placeholder: "e.g., 50" },
-          ].map((field, idx) => (
-            <div key={idx}>
-              <label className="block text-sm font-medium text-gray-700 mb-1">{field.label}</label>
-              <input
-                type={field.type || "text"}
-                name={field.name}
-                placeholder={field.placeholder}
-                value={invoiceData[field.name]}
-                onChange={handleChange}
-                className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
-          ))}
-
-          {/* PDF Upload */}
-          <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Upload Invoice PDF</label>
-            <input type="file" accept=".pdf" onChange={handleFileChange} className="w-full" />
-            {invoiceData.billPdfName && (
-              <p className="text-sm mt-1 text-green-700">Selected: {invoiceData.billPdfName}</p>
-            )}
-          </div>
-
-          {/* Submit Button */}
-          <div className="md:col-span-2 text-right">
-            <button
-              type="submit"
-              className="bg-blue-900 cursor-pointer text-white px-8 py-2 rounded-lg font-semibold hover:bg-blue-800"
-            >
-              {editingId ? "Update Invoice" : "Add Invoice"}
-            </button>
-          </div>
-        </form>
-      )}
-
-      {/* === INVOICE VIEW === */}
-      {view === "invoice" && (
-        <div className="mt-6 rounded-lg">
-          <div className="flex justify-end mb-4 gap-2">
-            <button
-              onClick={downloadInvoiceExcel}
-              className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded shadow text-sm"
-            >
-              Download Excel
-            </button>
-          </div>
-
-          {invoiceList.length > 0 ? (
-            <>
-              {/* Desktop Table View */}
-              <div className="hidden md:block overflow-x-auto shadow rounded-lg">
-                <table className="w-full text-sm text-left">
-                  <thead className="bg-gray-800 text-white">
-                    <tr>
-                      <th className="px-4 py-4">ID</th>
-                      <th className="px-4 py-4">Invoice No</th>
-                      <th className="px-4 py-4">Date</th>
-                      <th className="px-4 py-4">Value</th>
-                      <th className="px-4 py-4">GST</th>
-                      <th className="px-4 py-4">Transport</th>
-                      <th className="px-4 py-4">Total</th>
-                      <th className="px-4 py-4">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {invoiceList.map((item, idx) => (
-                      <tr key={item.id} className="hover:bg-gray-50">
-                        <td className="px-4 py-4">{idx + 1}</td>
-                        <td className="px-4 py-4">{item.invoiceNo}</td>
-                        <td className="px-4 py-4">{item.invoiceDate}</td>
-                        <td className="px-4 py-4">₹{item.invoiceValue}</td>
-                        <td className="px-4 py-4">₹{item.invoiceGSTValue}</td>
-                        <td className="px-4 py-4">₹{item.transportAmount}</td>
-                        <td className="px-4 py-4 text-green-700 font-semibold">₹{item.invoiceTotalValue}</td>
-                        <td className="px-4 py-4 flex gap-2">
-                          <button
-                            onClick={() => handleEdit(item)}
-                            className="text-gray-600 border p-2 rounded cursor-pointer flex items-center justify-center"
-                            title="Edit Invoice"
-                          >
-                            <FaEdit />
-                          </button>
-                          <button
-                            onClick={() => handleDelete(item.id)}
-                            className="text-gray-600 border p-2 rounded cursor-pointer flex items-center justify-center"
-                            title="Delete Invoice"
-                          >
-                            <FaTrash />
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-
-              {/* Mobile Card View */}
-              <div className="md:hidden flex flex-col gap-4">
-                {invoiceList.map((item, idx) => (
-                  <div key={item.id} className="border rounded-lg p-4 shadow-sm">
-                    <p><span className="font-semibold">Invoice No:</span> {item.invoiceNo}</p>
-                    <p><span className="font-semibold">Date:</span> {item.invoiceDate}</p>
-                    <p><span className="font-semibold">Value:</span> ₹{item.invoiceValue}</p>
-                    <p><span className="font-semibold">GST:</span> ₹{item.invoiceGSTValue}</p>
-                    <p><span className="font-semibold text-green-700">Total:</span> ₹{item.invoiceTotalValue}</p>
-                    <p><span className="font-semibold">Transport:</span> ₹{item.transportAmount}</p>
-                    <div className="flex gap-2 mt-2">
-                      <button
-                        onClick={() => handleEdit(item)}
-                        className="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded flex items-center justify-center"
-                        title="Edit Invoice"
-                      >
-                        <FaEdit />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(item.id)}
-                        className="bg-red-600 hover:bg-red-700 text-white p-2 rounded flex items-center justify-center"
-                        title="Delete Invoice"
-                      >
-                        <FaTrash />
-                      </button>
-                    </div>
+      {/* Main Content Area */}
+      {viewMode === "table" ? (
+        <div className="overflow-x-auto bg-white rounded-xl shadow-sm border border-gray-200">
+          <table className="min-w-full text-sm text-left">
+            <thead className="bg-gray-800 text-white">
+              <tr>
+                <th className="px-4 py-4 w-16 text-center">S No</th>
+                <th className="px-4 py-4">Invoice No</th>
+                <th className="px-4 py-4">Date</th>
+                <th className="px-4 py-4">Base Value</th>
+                <th className="px-4 py-4">GST</th>
+                <th className="px-4 py-4">Transport</th>
+                <th className="px-4 py-4 text-green-400 font-bold">Total</th>
+                <th className="px-4 py-4 text-center">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredInvoices.length > 0 ? (
+                filteredInvoices.map((item, index) => (
+                  <tr key={item.id} className="border-t border-gray-200 hover:bg-gray-50 transition-colors">
+                    <td className="px-4 py-4 text-center font-medium text-gray-500">
+                      {index + 1}
+                    </td>
+                    <td className="px-4 py-4 font-bold text-gray-800">
+                      {item.invoiceNo || "N/A"}
+                    </td>
+                    <td className="px-4 py-4 text-gray-600">
+                      {item.invoiceDate}
+                    </td>
+                    <td className="px-4 py-4 font-medium text-gray-700">₹{item.invoiceValue}</td>
+                    <td className="px-4 py-4 font-medium text-red-600">₹{item.invoiceGSTValue}</td>
+                    <td className="px-4 py-4 font-medium text-blue-600">₹{item.transportAmount}</td>
+                    <td className="px-4 py-4 font-black text-green-700">₹{item.invoiceTotalValue}</td>
+                    <td className="px-4 py-4 text-center">
+                      <div className="flex items-center justify-center gap-2">
+                        <button
+                          onClick={() => handleEdit(item)}
+                          className="text-blue-600 bg-blue-50 p-2 rounded-lg hover:bg-blue-100 hover:text-blue-800 cursor-pointer transition-colors"
+                          title="Edit"
+                        >
+                          <FaEdit size={14} />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(item.id)}
+                          className="text-red-600 bg-red-50 p-2 rounded-lg hover:bg-red-100 hover:text-red-800 cursor-pointer transition-colors"
+                          title="Delete"
+                        >
+                          <FaTrash size={14} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="8" className="text-center py-12 text-gray-500">
+                    <FaFileInvoice className="mx-auto text-4xl mb-3 text-gray-300" />
+                    <p className="font-medium text-lg text-gray-600">No invoices found</p>
+                    <p className="text-sm">Try adjusting your search or add a new invoice.</p>
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        /* Card View */
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {filteredInvoices.length > 0 ? (
+            filteredInvoices.map((item) => (
+              <div key={item.id} className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 hover:shadow-md transition-shadow relative flex flex-col">
+                <div className="flex justify-between items-start mb-4">
+                  <div>
+                    <span className="bg-blue-100 text-blue-800 text-xs font-bold px-2.5 py-1 rounded">
+                      {item.invoiceNo || "N/A"}
+                    </span>
+                    <h3 className="font-bold text-gray-500 mt-2 text-xs uppercase tracking-wider">Date</h3>
+                    <p className="text-sm font-semibold text-gray-800">{item.invoiceDate}</p>
                   </div>
-                ))}
+                  <div className="bg-green-50 p-2 rounded-xl text-green-600 border border-green-100">
+                    <FaFileInvoice size={18} />
+                  </div>
+                </div>
+
+                <div className="space-y-2 mb-4 flex-1 bg-gray-50 p-3 rounded-lg border border-gray-100">
+                  <div className="flex justify-between text-xs">
+                    <span className="text-gray-500 font-medium">Base Value</span>
+                    <span className="font-bold text-gray-700">₹{item.invoiceValue}</span>
+                  </div>
+                  <div className="flex justify-between text-xs">
+                    <span className="text-gray-500 font-medium">GST</span>
+                    <span className="font-bold text-red-600">₹{item.invoiceGSTValue}</span>
+                  </div>
+                  <div className="flex justify-between text-xs">
+                    <span className="text-gray-500 font-medium">Transport</span>
+                    <span className="font-bold text-blue-600">₹{item.transportAmount}</span>
+                  </div>
+                  <div className="pt-2 mt-2 border-t border-gray-200 flex justify-between">
+                    <span className="text-sm font-bold text-gray-800">Total</span>
+                    <span className="text-lg font-black text-green-700">₹{item.invoiceTotalValue}</span>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-end gap-2 pt-3 border-t border-gray-100 mt-auto">
+                  <button
+                    onClick={() => handleEdit(item)}
+                    className="text-blue-600 bg-blue-50 px-3 py-1.5 text-xs font-bold rounded-lg hover:bg-blue-100 transition-colors cursor-pointer flex items-center gap-1.5"
+                  >
+                    <FaEdit /> Edit
+                  </button>
+                  <button
+                    onClick={() => handleDelete(item.id)}
+                    className="text-red-600 bg-red-50 px-3 py-1.5 text-xs font-bold rounded-lg hover:bg-red-100 transition-colors cursor-pointer flex items-center gap-1.5"
+                  >
+                    <FaTrash /> Delete
+                  </button>
+                </div>
               </div>
-            </>
+            ))
           ) : (
-            <p className="text-center text-gray-500">No invoices found.</p>
+            <div className="col-span-full bg-white rounded-xl shadow-sm p-12 text-center border border-gray-200">
+              <FaFileInvoice className="mx-auto text-4xl mb-3 text-gray-300" />
+              <p className="text-gray-500 font-medium text-lg">No invoices found.</p>
+            </div>
           )}
         </div>
       )}
+
+      {/* Add / Edit Invoice Modal */}
+      {showModal && (
+        <div className="fixed inset-0 z-[60] flex justify-end bg-black/50 backdrop-blur-sm">
+          <div className="w-full sm:w-[500px] h-full bg-white shadow-2xl relative flex flex-col overflow-y-auto animate-[slideIn_0.3s_ease-out]">
+            {/* Modal Header */}
+            <div className="bg-gradient-to-r from-blue-900 to-blue-700 p-6 flex justify-between items-center text-white sticky top-0 z-10 shadow-md">
+              <div>
+                <h3 className="text-xl font-bold">{editingId ? "Edit Invoice" : "Add New Invoice"}</h3>
+                <p className="text-blue-200 text-sm mt-1">Fill out the invoice details below.</p>
+              </div>
+              <button 
+                onClick={() => setShowModal(false)}
+                className="bg-white/20 p-2 rounded-xl hover:bg-white/30 transition-colors cursor-pointer"
+              >
+                <FaTimes size={18} />
+              </button>
+            </div>
+            
+            {/* Modal Body */}
+            <div className="flex-1 overflow-y-auto bg-gray-50 p-6">
+              <form onSubmit={handleAddOrUpdateInvoice} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 space-y-5">
+                
+                {editingId && (
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1">Invoice Number</label>
+                    <input
+                      type="text"
+                      name="invoiceNo"
+                      value={invoiceData.invoiceNo}
+                      disabled
+                      className="w-full border border-gray-200 rounded-xl px-4 py-2.5 bg-gray-100 cursor-not-allowed text-gray-500 font-bold text-sm"
+                    />
+                  </div>
+                )}
+
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1">Invoice Date *</label>
+                  <input
+                    type="date"
+                    name="invoiceDate"
+                    required
+                    value={invoiceData.invoiceDate}
+                    onChange={handleChange}
+                    className="w-full border border-gray-200 rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50 focus:bg-white transition-all text-sm"
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1">Invoice Value (₹) *</label>
+                    <input
+                      type="number"
+                      name="invoiceValue"
+                      required
+                      placeholder="e.g. 1000"
+                      value={invoiceData.invoiceValue}
+                      onChange={handleChange}
+                      className="w-full border border-gray-200 rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50 focus:bg-white transition-all text-sm font-medium"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1">GST Value (₹) *</label>
+                    <input
+                      type="number"
+                      name="invoiceGSTValue"
+                      required
+                      placeholder="e.g. 180"
+                      value={invoiceData.invoiceGSTValue}
+                      onChange={handleChange}
+                      className="w-full border border-gray-200 rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50 focus:bg-white transition-all text-sm font-medium"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1">Transport Amount (₹) *</label>
+                    <input
+                      type="number"
+                      name="transportAmount"
+                      required
+                      placeholder="e.g. 50"
+                      value={invoiceData.transportAmount}
+                      onChange={handleChange}
+                      className="w-full border border-gray-200 rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50 focus:bg-white transition-all text-sm font-medium"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1 text-green-700">Total Value (₹) *</label>
+                    <input
+                      type="number"
+                      name="invoiceTotalValue"
+                      required
+                      placeholder="e.g. 1180"
+                      value={invoiceData.invoiceTotalValue}
+                      onChange={handleChange}
+                      className="w-full border border-green-300 rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-green-50 focus:bg-white transition-all text-sm font-black text-green-700"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1">Upload Invoice PDF (Optional)</label>
+                  <input
+                    type="file"
+                    accept=".pdf"
+                    onChange={handleFileChange}
+                    className="w-full border border-gray-200 rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50 focus:bg-white transition-all text-sm"
+                  />
+                  {invoiceData.billPdfName && (
+                    <p className="text-xs mt-2 text-green-700 font-medium">
+                      Selected: {invoiceData.billPdfName}
+                    </p>
+                  )}
+                </div>
+
+                <div className="pt-4 border-t border-gray-100 flex gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setShowModal(false)}
+                    className="flex-1 bg-gray-100 text-gray-700 px-4 py-3 rounded-xl font-medium hover:bg-gray-200 transition-colors cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="flex-[2] bg-blue-900 text-white px-4 py-3 rounded-xl font-medium hover:bg-blue-800 shadow-md transition-colors cursor-pointer"
+                  >
+                    {editingId ? "Update Invoice" : "Save Invoice"}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <style>{`
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+      `}</style>
     </div>
   );
 };
