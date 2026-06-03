@@ -99,15 +99,21 @@ const ProductList = ({ setSelectedProduct, setActiveTab }) => {
     }
   };
 
-  // ─── Excel Import ─────────────────────────────────────────────────────────
+  // ─── Import (Excel / JSON) ─────────────────────────────────────────────────────────
   const handleFileUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
     try {
-      const buffer = await file.arrayBuffer();
-      const workbook = XLSX.read(buffer);
-      const sheet = workbook.Sheets[workbook.SheetNames[0]];
-      const jsonData = XLSX.utils.sheet_to_json(sheet);
+      let jsonData = [];
+      if (file.name.endsWith('.json')) {
+        const text = await file.text();
+        jsonData = JSON.parse(text);
+      } else {
+        const buffer = await file.arrayBuffer();
+        const workbook = XLSX.read(buffer);
+        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+        jsonData = XLSX.utils.sheet_to_json(sheet);
+      }
 
       if (!window.confirm(`Import ${jsonData.length} products?`)) return;
 
@@ -115,21 +121,27 @@ const ProductList = ({ setSelectedProduct, setActiveTab }) => {
       let successCount = 0;
       for (const item of jsonData) {
         try {
-          const images = item.images ? item.images.split(",").map((s) => s.trim()) : [];
+          const images = item.images ? (Array.isArray(item.images) ? item.images : item.images.split(",").map((s) => s.trim())) : [];
           const payload = {
             title: item.id || item.title || "",
             name: item.name || "",
             category: item.category || "",
             subcategory: item.subcategory || "",
-            color: item.color ? item.color.split(",").map((s) => s.trim()) : [],
-            size: item.size ? item.size.split(",").map((s) => s.trim()) : [],
+            color: item.color ? (Array.isArray(item.color) ? item.color : item.color.split(",").map((s) => s.trim())) : [],
+            size: item.size ? (Array.isArray(item.size) ? item.size : item.size.split(",").map((s) => s.trim())) : [],
             mrp: Number(item.mrp) || 0,
             sale_price: Number(item.salePrice || item.sale_price) || 0,
             offer: Number(item.offer) || 0,
             rating: Number(item.rating) || 0,
             description: item.description || "",
             fabric_details: item.fabricDetails || item.fabric_details || "",
-            our_design: item.ourDesign?.toString().toLowerCase() === "yes",
+            fabric_gsm: item.fabricGSM || item.fabric_gsm ? (Array.isArray(item.fabricGSM || item.fabric_gsm) ? (item.fabricGSM || item.fabric_gsm) : (item.fabricGSM || item.fabric_gsm).split(",").map(s => s.trim())) : [],
+            washing_details: item.washingDetails || item.washing_details ? (Array.isArray(item.washingDetails || item.washing_details) ? (item.washingDetails || item.washing_details) : (item.washingDetails || item.washing_details).split(",").map(s => s.trim())) : [],
+            keywords: item.keywords ? (Array.isArray(item.keywords) ? item.keywords : item.keywords.split(",").map(s => s.trim())) : [],
+            keyword: item.keyword || "",
+            notes: item.notes || "",
+            customizable: item.customizable === true || item.customizable?.toString().toLowerCase() === "yes",
+            our_design: item.ourDesign === true || item.our_design === true || item.ourDesign?.toString().toLowerCase() === "yes",
             images,
             stock: Number(item.stock) || 0,
           };
@@ -142,9 +154,11 @@ const ProductList = ({ setSelectedProduct, setActiveTab }) => {
       toast.success(`Imported ${successCount} / ${jsonData.length} products`, { id: toastId });
       fetchProducts();
     } catch (err) {
-      console.error("Excel upload error:", err);
+      console.error("Upload error:", err);
       toast.error("Failed to import products.");
     }
+    // Reset file input
+    e.target.value = null;
   };
 
   // ─── Filtering ────────────────────────────────────────────────────────────
@@ -354,6 +368,15 @@ const ProductList = ({ setSelectedProduct, setActiveTab }) => {
             <div className="hidden md:block w-px h-8 bg-gray-200"></div>
 
             {/* Action Buttons */}
+            <label className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium flex items-center gap-2 hover:bg-green-700 transition-colors shadow-sm cursor-pointer mb-0">
+              <FaPlus /> Import
+              <input
+                type="file"
+                accept=".xlsx,.xls,.json"
+                className="hidden"
+                onChange={handleFileUpload}
+              />
+            </label>
             <button
               onClick={() => setActiveTab("addProduct")}
               className="px-4 py-2 bg-blue-900 text-white rounded-lg text-sm font-medium flex items-center gap-2 hover:bg-blue-800 transition-colors shadow-sm cursor-pointer"
@@ -474,19 +497,10 @@ const ProductList = ({ setSelectedProduct, setActiveTab }) => {
                   setOnlyOffers(false);
                   setSelectedOfferRange("");
                 }}
-                className="flex-1 cursor-pointer bg-gray-200 rounded py-2 hover:bg-gray-300"
+                className="w-full cursor-pointer bg-gray-200 rounded py-2 hover:bg-gray-300"
               >
-                Reset
+                Reset Filters
               </button>
-              <label className="flex-1 cursor-pointer bg-green-600 text-white rounded py-2 text-center hover:bg-green-700">
-                Import
-                <input
-                  type="file"
-                  accept=".xlsx,.xls"
-                  className="hidden"
-                  onChange={handleFileUpload}
-                />
-              </label>
             </div>
           </div>
         )}
