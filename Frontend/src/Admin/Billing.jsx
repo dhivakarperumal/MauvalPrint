@@ -23,6 +23,7 @@ const Billing = ({ setActiveTab }) => {
   const [shopCustomerType, setShopCustomerType] = useState("");
 
   const [orderSaved, setOrderSaved] = useState(false);
+  const [showPopup, setShowPopup] = useState(false);
 
   const invoiceRef = useRef();
   const navigate = useNavigate();
@@ -211,11 +212,55 @@ const Billing = ({ setActiveTab }) => {
 
 
   return (
-    <div className="p-6 max-w-7xl mx-auto min-h-screen">
-      <h2 className="text-3xl font-bold text-blue-900 mb-2">T-Shirt Billing</h2>
+    <div className="p-6 max-w-7xl mx-auto min-h-screen relative">
+      <div className="flex justify-between items-center mb-2">
+        <h2 className="text-3xl font-bold text-blue-900">T-Shirt Billing</h2>
+        <button 
+          onClick={() => {
+            setCustomerName("");
+            setCustomerPhone("");
+            setGstNumber("");
+            setAddress("");
+            setShopCustomerType("");
+            setCart([]);
+            setOrderSaved(false);
+            setSelectedId("");
+            setQuantity(1);
+            setColor("");
+            setSize("");
+            setCategory("");
+            setAvailableColors([]);
+            setAvailableSizes([]);
+            setDerivedCategory("");
+            setAvailableQty(0);
+            setShowPopup(true);
+          }}
+          className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded shadow transition-colors cursor-pointer"
+        >
+          + Add New Bill
+        </button>
+      </div>
       <p className="text-sm text-gray-500 mb-6">Generate invoices with multiple items and customer info.</p>
 
-      <div className="bg-white p-6 rounded shadow space-y-4 mb-8">
+      {/* Side Popup Modal */}
+      {showPopup && (
+        <div className="fixed inset-0 z-[60] flex justify-end bg-black/50 backdrop-blur-sm">
+          <div className="w-full sm:w-[600px] lg:w-[700px] h-full bg-gray-50 shadow-2xl relative flex flex-col overflow-y-auto animate-[slideIn_0.3s_ease-out]">
+            <div className="bg-gradient-to-r from-blue-900 to-blue-700 p-6 flex justify-between items-center text-white sticky top-0 z-10 shadow-md">
+              <div>
+                <h3 className="text-xl font-bold">Add New Bill</h3>
+                <p className="text-blue-200 text-sm mt-1">Generate invoices with multiple items and customer info.</p>
+              </div>
+              <button 
+                onClick={() => setShowPopup(false)}
+                className="bg-white/20 p-2 rounded-xl hover:bg-white/30 transition-colors cursor-pointer"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+            
+            <div className="flex-1 overflow-y-auto p-6 space-y-6">
+              <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
   <div>
     <label className="block text-sm font-medium text-gray-700 mb-1">Customer Name</label>
@@ -380,6 +425,10 @@ const Billing = ({ setActiveTab }) => {
   </div>
 </div>
 
+      )}
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
