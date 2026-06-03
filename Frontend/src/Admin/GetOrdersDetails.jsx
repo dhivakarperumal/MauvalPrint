@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import api from "../api";
 import imageCompression from "browser-image-compression";
 import toast from "react-hot-toast";
-import { FaEdit, FaTrash } from "react-icons/fa";
+import { FaEdit, FaTrash, FaSearch, FaPlus, FaTimes, FaTh, FaList, FaPrint } from "react-icons/fa";
 
 const GetOrdersDetails = () => {
   const [form, setForm] = useState({
@@ -15,8 +15,11 @@ const GetOrdersDetails = () => {
   });
 
   const [orders, setOrders] = useState([]);
-  const [showForm, setShowForm] = useState(true);
+  const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState(null);
+  
+  const [search, setSearch] = useState("");
+  const [viewMode, setViewMode] = useState("table");
 
   useEffect(() => {
     fetchOrders();
@@ -31,6 +34,14 @@ const GetOrdersDetails = () => {
       toast.error("Failed to load orders");
     }
   };
+
+  const filteredOrders = useMemo(() => {
+    return orders.filter(o => 
+      o.name?.toLowerCase().includes(search.toLowerCase()) || 
+      o.phone?.includes(search) || 
+      o.order_id?.toLowerCase().includes(search.toLowerCase())
+    );
+  }, [orders, search]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -104,6 +115,7 @@ const GetOrdersDetails = () => {
         toast.success("Order submitted successfully!");
       }
       resetForm();
+      setShowModal(false);
       fetchOrders();
     } catch (error) {
       console.error("Error submitting order:", error);
@@ -118,10 +130,12 @@ const GetOrdersDetails = () => {
       email: order.email || "",
       testimonial: order.testimonial || "",
       logo: order.logo || "",
-      products: order.products || [{ color: "", size: "", quantity: "", printType: "" }],
+      products: order.products && order.products.length > 0 
+        ? order.products 
+        : [{ color: "", size: "", quantity: "", printType: "" }],
     });
     setEditingId(order.order_id);
-    setShowForm(true);
+    setShowModal(true);
   };
 
   const handleDelete = async (id) => {
@@ -140,327 +154,427 @@ const GetOrdersDetails = () => {
   const formatDate = (dateStr) => {
     if (!dateStr) return "-";
     const date = new Date(dateStr);
-    return date.toLocaleDateString() + " " + date.toLocaleTimeString();
+    return date.toLocaleDateString() + " " + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
   return (
-    <div className="p-4 min-h-screen">
-      <div className="flex items-center justify-between flex-wrap">
-        <div>
-          <h2 className="text-2xl font-bold text-[#192f59]">T-Shirt Print Orders</h2>
-          <p className="text-sm text-gray-500">Add new print order or review existing orders</p>
-        </div>
-        <div className="flex gap-3 mt-4 md:mt-0">
-          <button
-            onClick={() => { setShowForm(true); resetForm(); }}
-            className={`px-4 py-2 rounded-full text-sm font-medium cursor-pointer ${
-              showForm ? "bg-blue-900 text-white" : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-            }`}
-          >
-            Add Form
-          </button>
-          <button
-            onClick={() => setShowForm(false)}
-            className={`px-4 py-2 rounded-full text-sm font-medium cursor-pointer ${
-              !showForm ? "bg-blue-900 text-white" : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-            }`}
-          >
-            Show Orders
-          </button>
+    <div className="p-4 sm:p-6 bg-gray-50 min-h-screen">
+      <div className="mb-6">
+        <h2 className="text-2xl font-bold text-blue-900">T-Shirt Print Orders</h2>
+        <p className="text-sm text-gray-500 mt-1">Review existing custom print orders and manage them.</p>
+      </div>
+
+      {/* Top Bar: Search, View Toggles, Add Button */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-6">
+        <div className="flex flex-col md:flex-row gap-3 items-center">
+          {/* Search */}
+          <div className="relative w-full md:w-1/3">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+              <FaSearch />
+            </span>
+            <input
+              type="text"
+              placeholder="Search by ID, Name or Phone..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full pl-9 pr-3 py-2.5 border border-gray-200 rounded-lg bg-gray-50 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-white transition-all"
+            />
+          </div>
+
+          <div className="flex items-center gap-3 flex-wrap ml-auto">
+            {/* View Toggles */}
+            <div className="hidden md:flex items-center bg-gray-100 rounded-lg p-1 gap-1">
+              <button
+                onClick={() => setViewMode("table")}
+                title="Table View"
+                className={`p-2 rounded-md transition-all cursor-pointer ${
+                  viewMode === "table"
+                    ? "bg-blue-900 text-white shadow-sm"
+                    : "text-gray-500 hover:text-gray-700 hover:bg-gray-200"
+                }`}
+              >
+                <FaList size={14} />
+              </button>
+              <button
+                onClick={() => setViewMode("card")}
+                title="Card View"
+                className={`p-2 rounded-md transition-all cursor-pointer ${
+                  viewMode === "card"
+                    ? "bg-blue-900 text-white shadow-sm"
+                    : "text-gray-500 hover:text-gray-700 hover:bg-gray-200"
+                }`}
+              >
+                <FaTh size={14} />
+              </button>
+            </div>
+
+            <div className="hidden md:block w-px h-8 bg-gray-200"></div>
+
+            {/* Add New Order Button */}
+            <button
+              onClick={() => { resetForm(); setShowModal(true); }}
+              className="px-4 py-2 bg-blue-900 text-white rounded-lg text-sm font-medium flex items-center gap-2 hover:bg-blue-800 transition-colors shadow-sm cursor-pointer"
+            >
+              <FaPlus size={12} /> Add New Order
+            </button>
+          </div>
         </div>
       </div>
 
-      <div className="p-6 mt-7 bg-white rounded-xl shadow space-y-6 max-w-7xl mx-auto">
-        {showForm ? (
-          <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-            {/* Customer Name */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Customer Name</label>
-              <input
-                name="name"
-                value={form.name}
-                onChange={handleChange}
-                required
-                placeholder="Enter full name"
-                className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
-
-            {/* Phone */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
-              <input
-                name="phone"
-                value={form.phone}
-                onChange={handleChange}
-                required
-                placeholder="e.g. +91 9876543210"
-                className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
-
-            {/* Email */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-              <input
-                name="email"
-                type="email"
-                value={form.email}
-                onChange={handleChange}
-                placeholder="example@gmail.com"
-                className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
-
-            {/* Logo Upload */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Upload Logo</label>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleLogoUpload}
-                className="w-full mb-2"
-              />
-              {form.logo && (
-                <img
-                  src={form.logo}
-                  alt="Logo Preview"
-                  className="h-20 border rounded object-contain mt-1"
-                />
-              )}
-            </div>
-
-            {/* Product Variants */}
-            {form.products.map((product, index) => (
-              <div key={index} className="md:col-span-2 rounded-lg p-0">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Color</label>
-                    <select
-                      name="color"
-                      value={product.color}
-                      onChange={(e) => handleProductChange(index, e)}
-                      required
-                      className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    >
-                      <option value="">Select Color</option>
-                      <option value="Black">Black</option>
-                      <option value="White">White</option>
-                      <option value="Red">Red</option>
-                      <option value="Blue">Blue</option>
-                      <option value="Green">Green</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Size</label>
-                    <select
-                      name="size"
-                      value={product.size}
-                      onChange={(e) => handleProductChange(index, e)}
-                      required
-                      className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    >
-                      <option value="">Select Size</option>
-                      <option value="S">S</option>
-                      <option value="M">M</option>
-                      <option value="L">L</option>
-                      <option value="XL">XL</option>
-                      <option value="XXL">XXL</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Quantity</label>
-                    <input
-                      type="number"
-                      name="quantity"
-                      value={product.quantity}
-                      onChange={(e) => handleProductChange(index, e)}
-                      required
-                      min={1}
-                      placeholder="e.g. 25"
-                      className="w-full border border-gray-300 rounded-lg px-4 py-2"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Print Type</label>
-                    <input
-                      name="printType"
-                      value={product.printType}
-                      onChange={(e) => handleProductChange(index, e)}
-                      required
-                      placeholder="e.g. Logo, Text"
-                      className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    />
-                  </div>
-                </div>
-
-                {form.products.length > 1 && (
-                  <div className="text-right mt-2">
-                    <button
-                      type="button"
-                      onClick={() => removeProduct(index)}
-                      className="text-sm cursor-pointer text-red-600 hover:underline"
-                    >
-                      Remove
-                    </button>
-                  </div>
-                )}
-              </div>
-            ))}
-
-            <div className="md:col-span-2">
-              <button
-                type="button"
-                onClick={addProduct}
-                className="text-blue-600 cursor-pointer hover:underline text-sm"
-              >
-                + Add Another Product
-              </button>
-            </div>
-
-            {/* Testimonial */}
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Testimonial (optional)</label>
-              <textarea
-                name="testimonial"
-                value={form.testimonial}
-                onChange={handleChange}
-                rows="3"
-                placeholder="What did the customer say?"
-                className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              ></textarea>
-            </div>
-
-            {/* Submit */}
-            <div className="md:col-span-2 text-right">
-              <button
-                type="submit"
-                className="bg-blue-900 cursor-pointer text-white px-6 py-2 rounded-lg hover:bg-blue-700"
-              >
-                {editingId ? "Update Order" : "Submit Order"}
-              </button>
-            </div>
-          </form>
-        ) : (
-          <div className="mt-6">
-            {orders.length === 0 ? (
-              <p className="text-gray-500">No orders yet.</p>
-            ) : (
-              <>
-                {/* Desktop Table */}
-                <div className="hidden md:block overflow-x-auto shadow rounded-lg mt-6">
-                  <table className="min-w-[900px] w-full text-sm text-left">
-                    <thead className="bg-gray-800 text-white">
-                      <tr>
-                        <th className="p-2">Order ID</th>
-                        <th className="p-2">Name</th>
-                        <th className="p-2">Phone</th>
-                        <th className="p-2">Logo</th>
-                        <th className="p-2">Products</th>
-                        <th className="p-2">Testimonial</th>
-                        <th className="p-2">Date</th>
-                        <th className="p-2">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {orders.map((order) => (
-                        <tr key={order.order_id} className="border-b border-gray-300 hover:bg-gray-50">
-                          <td className="p-2 font-mono text-xs">{order.order_id}</td>
-                          <td className="p-2">{order.name}</td>
-                          <td className="p-2">{order.phone}</td>
-                          <td className="p-2">
-                            {order.logo ? (
-                              <img
-                                src={order.logo}
-                                alt="Logo"
-                                className="w-12 h-12 object-contain rounded border"
-                              />
-                            ) : (
-                              "-"
-                            )}
-                          </td>
-                          <td className="p-2">
-                            {order.products?.map((p, i) => (
-                              <div key={i}>
-                                <b>Color:</b> {p.color}, <b>Size:</b> {p.size},{" "}
-                                <b>Qty:</b> {p.quantity}, <b>Type:</b> {p.printType}
-                              </div>
-                            ))}
-                          </td>
-                          <td className="p-2 italic text-gray-600">{order.testimonial || "-"}</td>
-                          <td className="p-2">{formatDate(order.created_at)}</td>
-                          <td className="p-2 flex items-center justify-center mt-4 gap-2">
-                            <button
-                              onClick={() => handleEdit(order)}
-                              className="text-green-500 cursor-pointer border-2 border-gray-200 p-2 rounded-full hover:text-blue-800"
-                              title="Edit"
-                            >
-                              <FaEdit />
-                            </button>
-                            <button
-                              onClick={() => handleDelete(order.order_id)}
-                              className="text-black border-2 cursor-pointer border-gray-200 p-2 rounded-full hover:text-red-800"
-                              title="Delete"
-                            >
-                              <FaTrash />
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-
-                {/* Mobile Cards */}
-                <div className="md:hidden space-y-4">
-                  {orders.map((order) => (
-                    <div key={order.order_id} className="bg-white p-4 rounded-lg shadow">
-                      <div className="flex justify-between mb-2">
-                        <h3 className="font-semibold">{order.name}</h3>
-                        <span className="text-sm text-gray-500">{order.phone}</span>
-                      </div>
-                      {order.logo && (
+      {/* Main Content */}
+      {viewMode === "table" ? (
+        <div className="overflow-x-auto bg-white rounded-xl shadow-sm border border-gray-200">
+          <table className="min-w-full text-sm text-left">
+            <thead className="bg-gray-800 text-white">
+              <tr>
+                <th className="px-4 py-4 w-16 text-center">S No</th>
+                <th className="px-4 py-4">Order ID</th>
+                <th className="px-4 py-4">Customer Info</th>
+                <th className="px-4 py-4">Design / Logo</th>
+                <th className="px-4 py-4">Products</th>
+                <th className="px-4 py-4 text-center">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredOrders.length > 0 ? (
+                filteredOrders.map((order, idx) => (
+                  <tr key={order.order_id} className="border-t border-gray-200 hover:bg-gray-50 transition-colors">
+                    <td className="px-4 py-4 text-center font-medium text-gray-500">{idx + 1}</td>
+                    <td className="px-4 py-4">
+                      <span className="bg-blue-100 text-blue-800 text-xs font-bold px-2 py-1 rounded">
+                        {order.order_id}
+                      </span>
+                      <div className="text-xs text-gray-400 mt-2">{formatDate(order.created_at)}</div>
+                    </td>
+                    <td className="px-4 py-4">
+                      <p className="font-semibold text-gray-800">{order.name}</p>
+                      <p className="text-xs text-gray-500 mt-1">{order.phone}</p>
+                      {order.email && <p className="text-xs text-gray-400">{order.email}</p>}
+                    </td>
+                    <td className="px-4 py-4">
+                      {order.logo ? (
                         <img
                           src={order.logo}
                           alt="Logo"
-                          className="w-16 h-16 object-contain mb-2"
+                          className="w-14 h-14 object-contain rounded-lg border border-gray-200 shadow-sm bg-gray-50"
                         />
+                      ) : (
+                        <span className="text-xs text-gray-400 italic">No Design</span>
                       )}
-                      <div className="text-sm text-gray-700 mb-1">
+                    </td>
+                    <td className="px-4 py-4">
+                      <div className="flex flex-col gap-1 max-h-24 overflow-y-auto pr-2 custom-scrollbar">
                         {order.products?.map((p, i) => (
-                          <div key={i}>
-                            <b>Color:</b> {p.color}, <b>Size:</b> {p.size}, <b>Qty:</b> {p.quantity},{" "}
-                            <b>Type:</b> {p.printType}
+                          <div key={i} className="text-xs bg-gray-100 px-2 py-1.5 rounded flex flex-wrap gap-2 items-center">
+                            <span className="font-semibold text-gray-700">{p.printType}</span>
+                            <span className="bg-white border px-1.5 py-0.5 rounded text-[10px]">{p.color} - {p.size}</span>
+                            <span className="ml-auto font-bold text-blue-600">x{p.quantity}</span>
                           </div>
                         ))}
                       </div>
-                      <p className="italic text-sm text-gray-500">{order.testimonial || "-"}</p>
-                      <p className="text-xs text-gray-400 mt-1">{formatDate(order.created_at)}</p>
-                      <div className="flex items-center justify-center gap-4 mt-2">
+                    </td>
+                    <td className="px-4 py-4 text-center">
+                      <div className="flex items-center justify-center gap-2">
                         <button
                           onClick={() => handleEdit(order)}
-                          className="text-blue-600 cursor-pointer flex items-center gap-1"
+                          className="text-blue-600 bg-blue-50 p-2 rounded-lg hover:bg-blue-100 hover:text-blue-800 cursor-pointer transition-colors"
+                          title="Edit"
                         >
-                          <FaEdit />
+                          <FaEdit size={14} />
                         </button>
                         <button
                           onClick={() => handleDelete(order.order_id)}
-                          className="text-red-600 cursor-pointer flex items-center gap-1"
+                          className="text-red-600 bg-red-50 p-2 rounded-lg hover:bg-red-100 hover:text-red-800 cursor-pointer transition-colors"
+                          title="Delete"
                         >
-                          <FaTrash />
+                          <FaTrash size={14} />
                         </button>
                       </div>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="6" className="text-center py-12 text-gray-500">
+                    <FaPrint className="mx-auto text-4xl mb-3 text-gray-300" />
+                    <p className="font-medium text-lg text-gray-600">No print orders found</p>
+                    <p className="text-sm">Try adjusting your search or add a new order.</p>
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        /* Card View */
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredOrders.length > 0 ? (
+            filteredOrders.map((order) => (
+              <div key={order.order_id} className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 hover:shadow-md transition-shadow relative">
+                <div className="flex justify-between items-start mb-4">
+                  <div>
+                    <span className="bg-blue-100 text-blue-800 text-xs font-bold px-2.5 py-1 rounded">
+                      {order.order_id}
+                    </span>
+                    <h3 className="font-bold text-gray-800 mt-2 text-lg">{order.name}</h3>
+                    <p className="text-sm text-gray-500">{order.phone}</p>
+                  </div>
+                  {order.logo && (
+                    <img
+                      src={order.logo}
+                      alt="Logo"
+                      className="w-16 h-16 object-contain rounded-lg border border-gray-100 bg-gray-50 shadow-sm"
+                    />
+                  )}
+                </div>
+
+                <div className="space-y-2 mb-4 max-h-32 overflow-y-auto custom-scrollbar pr-1">
+                  {order.products?.map((p, i) => (
+                    <div key={i} className="flex justify-between items-center bg-gray-50 p-2 rounded border border-gray-100">
+                      <div className="text-xs">
+                        <span className="font-bold text-gray-700 block">{p.printType}</span>
+                        <span className="text-gray-500">{p.color} - {p.size}</span>
+                      </div>
+                      <span className="font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded">
+                        x{p.quantity}
+                      </span>
                     </div>
                   ))}
                 </div>
-              </>
-            )}
+
+                {order.testimonial && (
+                  <div className="mb-4 bg-purple-50 text-purple-800 p-2.5 rounded text-xs italic border border-purple-100">
+                    "{order.testimonial}"
+                  </div>
+                )}
+
+                <div className="flex items-center justify-between pt-4 border-t border-gray-100 mt-auto">
+                  <span className="text-xs text-gray-400">{formatDate(order.created_at)}</span>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => handleEdit(order)}
+                      className="text-blue-600 bg-blue-50 p-1.5 rounded-lg hover:bg-blue-100 transition-colors cursor-pointer"
+                    >
+                      <FaEdit />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(order.order_id)}
+                      className="text-red-600 bg-red-50 p-1.5 rounded-lg hover:bg-red-100 transition-colors cursor-pointer"
+                    >
+                      <FaTrash />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="col-span-full bg-white rounded-xl shadow-sm p-12 text-center border border-gray-200">
+              <FaPrint className="mx-auto text-4xl mb-3 text-gray-300" />
+              <p className="text-gray-500 font-medium text-lg">No print orders found.</p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Add / Edit Order Modal */}
+      {showModal && (
+        <div className="fixed inset-0 z-[60] flex justify-end bg-black/50 backdrop-blur-sm">
+          <div className="w-full sm:w-[600px] h-full bg-white shadow-2xl relative flex flex-col overflow-y-auto animate-[slideIn_0.3s_ease-out]">
+            {/* Modal Header */}
+            <div className="bg-gradient-to-r from-blue-900 to-blue-700 p-6 flex justify-between items-center text-white sticky top-0 z-10 shadow-md">
+              <div>
+                <h3 className="text-xl font-bold">{editingId ? "Edit Print Order" : "Add New Print Order"}</h3>
+                <p className="text-blue-200 text-sm mt-1">Fill out the form details below.</p>
+              </div>
+              <button 
+                onClick={() => setShowModal(false)}
+                className="bg-white/20 p-2 rounded-xl hover:bg-white/30 transition-colors cursor-pointer"
+              >
+                <FaTimes size={18} />
+              </button>
+            </div>
+            
+            {/* Modal Body */}
+            <div className="flex-1 overflow-y-auto bg-gray-50 p-6">
+              <form onSubmit={handleSubmit} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 space-y-5">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1">Customer Name *</label>
+                    <input
+                      name="name"
+                      value={form.name}
+                      onChange={handleChange}
+                      required
+                      placeholder="Enter full name"
+                      className="w-full border border-gray-200 rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50 focus:bg-white transition-all text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1">Phone *</label>
+                    <input
+                      name="phone"
+                      value={form.phone}
+                      onChange={handleChange}
+                      required
+                      placeholder="e.g. +91 9876543210"
+                      className="w-full border border-gray-200 rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50 focus:bg-white transition-all text-sm"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1">Email (Optional)</label>
+                  <input
+                    name="email"
+                    type="email"
+                    value={form.email}
+                    onChange={handleChange}
+                    placeholder="example@gmail.com"
+                    className="w-full border border-gray-200 rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50 focus:bg-white transition-all text-sm"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1">Upload Logo / Design</label>
+                  <div className="flex items-center gap-4">
+                    <label className="cursor-pointer bg-blue-50 text-blue-700 px-4 py-2.5 rounded-xl font-medium text-sm hover:bg-blue-100 border border-blue-200 transition-colors flex items-center gap-2">
+                      <FaPlus size={12} /> Choose File
+                      <input type="file" accept="image/*" onChange={handleLogoUpload} className="hidden" />
+                    </label>
+                    {form.logo && (
+                      <img src={form.logo} alt="Preview" className="h-12 w-auto object-contain rounded border border-gray-200 shadow-sm" />
+                    )}
+                  </div>
+                </div>
+
+                <div className="pt-4 border-t border-gray-100">
+                  <h4 className="text-sm font-bold text-gray-800 mb-4 flex items-center gap-2">
+                    <FaPrint className="text-blue-600" /> Print Details
+                  </h4>
+                  <div className="space-y-4">
+                    {form.products.map((product, index) => (
+                      <div key={index} className="bg-gray-50 p-4 rounded-xl border border-gray-200 relative group">
+                        {form.products.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => removeProduct(index)}
+                            className="absolute top-2 right-2 text-gray-400 hover:text-red-500 p-1 cursor-pointer bg-white rounded-md shadow-sm border border-gray-200 opacity-0 group-hover:opacity-100 transition-opacity"
+                            title="Remove Product"
+                          >
+                            <FaTimes size={10} />
+                          </button>
+                        )}
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Color *</label>
+                            <select
+                              name="color"
+                              value={product.color}
+                              onChange={(e) => handleProductChange(index, e)}
+                              required
+                              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm bg-white"
+                            >
+                              <option value="">Select</option>
+                              <option value="Black">Black</option>
+                              <option value="White">White</option>
+                              <option value="Red">Red</option>
+                              <option value="Blue">Blue</option>
+                              <option value="Green">Green</option>
+                            </select>
+                          </div>
+                          <div>
+                            <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Size *</label>
+                            <select
+                              name="size"
+                              value={product.size}
+                              onChange={(e) => handleProductChange(index, e)}
+                              required
+                              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm bg-white"
+                            >
+                              <option value="">Select</option>
+                              <option value="S">S</option>
+                              <option value="M">M</option>
+                              <option value="L">L</option>
+                              <option value="XL">XL</option>
+                              <option value="XXL">XXL</option>
+                            </select>
+                          </div>
+                          <div>
+                            <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Print Type *</label>
+                            <input
+                              name="printType"
+                              value={product.printType}
+                              onChange={(e) => handleProductChange(index, e)}
+                              required
+                              placeholder="e.g. Front Logo"
+                              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm bg-white"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Quantity *</label>
+                            <input
+                              type="number"
+                              name="quantity"
+                              value={product.quantity}
+                              onChange={(e) => handleProductChange(index, e)}
+                              required min={1}
+                              placeholder="e.g. 10"
+                              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm bg-white"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  <button
+                    type="button"
+                    onClick={addProduct}
+                    className="mt-4 text-blue-600 bg-blue-50 px-4 py-2 rounded-lg text-xs font-bold hover:bg-blue-100 transition-colors cursor-pointer w-full border border-blue-200 border-dashed"
+                  >
+                    + Add Another Product Variant
+                  </button>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1">Testimonial / Notes</label>
+                  <textarea
+                    name="testimonial"
+                    value={form.testimonial}
+                    onChange={handleChange}
+                    rows="3"
+                    placeholder="Customer instructions or feedback..."
+                    className="w-full border border-gray-200 rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50 focus:bg-white text-sm resize-none"
+                  ></textarea>
+                </div>
+
+                <div className="pt-4 border-t border-gray-100 flex gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setShowModal(false)}
+                    className="flex-1 bg-gray-100 text-gray-700 px-4 py-3 rounded-xl font-medium hover:bg-gray-200 transition-colors cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="flex-[2] bg-blue-900 text-white px-4 py-3 rounded-xl font-medium hover:bg-blue-800 shadow-md transition-colors cursor-pointer"
+                  >
+                    {editingId ? "Update Order" : "Submit Order"}
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
+
+      <style>{`
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+      `}</style>
     </div>
   );
 };
