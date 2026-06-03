@@ -434,10 +434,10 @@ const Category = () => {
               <tr>
                 <th className="px-5 py-4 font-semibold text-xs uppercase tracking-wider text-center w-16">S No</th>
                 <th className="px-5 py-4 font-semibold text-xs uppercase tracking-wider">Cat ID</th>
-                <th className="px-5 py-4 font-semibold text-xs uppercase tracking-wider">Name</th>
-                <th className="px-5 py-4 font-semibold text-xs uppercase tracking-wider">Description</th>
-                <th className="px-5 py-4 font-semibold text-xs uppercase tracking-wider">Subcategories</th>
                 <th className="px-5 py-4 font-semibold text-xs uppercase tracking-wider">Images</th>
+                <th className="px-5 py-4 font-semibold text-xs uppercase tracking-wider">Name</th>
+                
+                <th className="px-5 py-4 font-semibold text-xs uppercase tracking-wider">Subcategories</th>
                 <th className="px-5 py-4 font-semibold text-xs uppercase tracking-wider text-center">Actions</th>
               </tr>
             </thead>
@@ -456,10 +456,22 @@ const Category = () => {
                         {cat.category_id}
                       </span>
                     </td>
-                    <td className="px-5 py-3.5 font-semibold text-gray-800">{cat.name}</td>
-                    <td className="px-5 py-3.5 text-gray-500 max-w-[200px]">
-                      <p className="line-clamp-2 text-xs">{cat.description || "—"}</p>
+                     <td className="px-5 py-3.5">
+                      <div className="flex gap-1.5 flex-wrap">
+                        {(cat.images || []).slice(0, 3).map((img, i) => (
+                          <img key={i} src={img} className="h-10 w-10 object-cover rounded-lg border border-gray-200 shadow-sm" alt={`cat-${i}`} />
+                        ))}
+                        {cat.images?.length > 3 && (
+                          <div className="h-10 w-10 rounded-lg bg-gray-100 border border-gray-200 flex items-center justify-center text-[10px] text-gray-500 font-bold">
+                            +{cat.images.length - 3}
+                          </div>
+                        )}
+                      </div>
                     </td>
+                    <td className="px-5 py-3.5 font-semibold text-gray-800">{cat.name}</td>
+
+                   
+                    
                     <td className="px-5 py-3.5">
                       <div className="flex gap-1.5 flex-wrap">
                         {(cat.subcategories || []).length > 0 ? (
@@ -473,18 +485,7 @@ const Category = () => {
                         )}
                       </div>
                     </td>
-                    <td className="px-5 py-3.5">
-                      <div className="flex gap-1.5 flex-wrap">
-                        {(cat.images || []).slice(0, 3).map((img, i) => (
-                          <img key={i} src={img} className="h-10 w-10 object-cover rounded-lg border border-gray-200 shadow-sm" alt={`cat-${i}`} />
-                        ))}
-                        {cat.images?.length > 3 && (
-                          <div className="h-10 w-10 rounded-lg bg-gray-100 border border-gray-200 flex items-center justify-center text-[10px] text-gray-500 font-bold">
-                            +{cat.images.length - 3}
-                          </div>
-                        )}
-                      </div>
-                    </td>
+                    
                     <td className="px-5 py-3.5 text-center">
                       <div className="flex justify-center gap-2">
                         <button

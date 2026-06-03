@@ -71,7 +71,7 @@ const tabLabels = {
     children: {
       allProducts: { label: "All Products", icon: <FiPackage /> },
       category: { label: "Category", icon: <FiFolder /> },
-      ourDesigns: { label: "Our Designs", icon: <FiFeather /> },
+      // ourDesigns: { label: "Our Designs", icon: <FiFeather /> },
       productKeywords: { label: "Product Keywords", icon: <FiTag /> },
     },
   },

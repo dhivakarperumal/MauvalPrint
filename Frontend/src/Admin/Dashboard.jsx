@@ -903,32 +903,41 @@ const Dashboard = () => {
 
 const StatBox = ({ title, count, color, icon }) => {
   const gradientMap = {
-    blue: "bg-gradient-to-br from-blue-500 to-blue-600",
-    red: "bg-gradient-to-br from-orange-400 to-orange-500",
-    purple: "bg-gradient-to-br from-purple-500 to-purple-600",
-    green: "bg-gradient-to-br from-emerald-400 to-emerald-500",
+    blue: "bg-gradient-to-br from-indigo-500 via-blue-500 to-blue-700",
+    red: "bg-gradient-to-br from-rose-500 via-red-500 to-orange-500",
+    purple: "bg-gradient-to-br from-fuchsia-500 via-purple-500 to-indigo-600",
+    green: "bg-gradient-to-br from-teal-400 via-emerald-500 to-green-600",
+  };
+
+  const shadowMap = {
+    blue: "shadow-blue-500/40",
+    red: "shadow-red-500/40",
+    purple: "shadow-purple-500/40",
+    green: "shadow-emerald-500/40",
   };
 
   return (
-    <div className={`relative overflow-hidden rounded-xl p-5 ${gradientMap[color]} shadow-md flex flex-col justify-between group cursor-pointer hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5`}>
-      {/* Decorative shapes */}
-      <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/4 translate-x-1/4 blur-xl"></div>
-      <div className="absolute bottom-0 right-10 w-24 h-24 bg-white/10 rounded-full translate-y-1/2 blur-lg"></div>
+    <div className={`relative overflow-hidden rounded-2xl p-6 ${gradientMap[color]} shadow-lg ${shadowMap[color]} flex flex-col justify-between group cursor-pointer hover:-translate-y-1 transition-all duration-300`}>
+      {/* Decorative glass shapes */}
+      <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 group-hover:scale-125 transition-transform duration-700 ease-out pointer-events-none"></div>
+      <div className="absolute bottom-0 left-0 w-32 h-32 bg-black/10 rounded-full blur-2xl translate-y-1/3 -translate-x-1/3 group-hover:scale-125 transition-transform duration-700 ease-out pointer-events-none"></div>
       
       <div className="flex justify-between items-start relative z-10">
-        <div>
-          <p className="text-[11px] font-bold text-white/90 uppercase tracking-widest mb-1 shadow-sm">{title}</p>
-          <p className="text-4xl font-black text-white drop-shadow-md tracking-tighter">{count}</p>
+        <div className="text-white">
+          <p className="text-xs font-bold text-white/80 uppercase tracking-widest mb-1 drop-shadow-sm">{title}</p>
+          <p className="text-4xl font-black drop-shadow-md tracking-tight">{count}</p>
         </div>
-        <div className="p-3 bg-white/20 backdrop-blur-md rounded-2xl border border-white/20 shadow-sm group-hover:scale-110 transition-transform duration-300">
+        <div className="p-3.5 bg-white/20 backdrop-blur-md rounded-2xl border border-white/30 shadow-inner group-hover:bg-white/30 transition-colors duration-300 text-white">
           {icon}
         </div>
       </div>
       
-      <div className="mt-6 relative z-10">
-        <p className="text-xs text-white/90 mb-2 font-medium">Total registered {title.toLowerCase()}</p>
-        <div className="h-1.5 w-full bg-white/20 rounded-full overflow-hidden">
-          <div className="h-full bg-white rounded-full shadow-[0_0_10px_rgba(255,255,255,0.8)]" style={{ width: '100%' }}></div>
+      <div className="mt-8 relative z-10">
+        <p className="text-xs text-white/90 font-medium mb-2 drop-shadow-sm">Total registered {title.toLowerCase()}</p>
+        <div className="h-1.5 w-full bg-black/20 rounded-full overflow-hidden shadow-inner">
+          <div className="h-full bg-white rounded-full shadow-[0_0_10px_rgba(255,255,255,1)] relative">
+            <div className="absolute inset-0 bg-white/50 blur-sm"></div>
+          </div>
         </div>
       </div>
     </div>

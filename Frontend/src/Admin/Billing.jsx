@@ -302,7 +302,7 @@ const Billing = ({ setActiveTab }) => {
             setAvailableQty(0);
             setShowPopup(true);
           }}
-          className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded shadow transition-colors cursor-pointer"
+          className="flex items-center gap-2 px-5 py-3 bg-blue-900 text-white rounded-xl text-sm font-medium hover:bg-blue-800 transition-colors shadow-md cursor-pointer self-start sm:self-auto"
         >
           + Add New Bill
         </button>
