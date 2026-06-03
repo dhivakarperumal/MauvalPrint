@@ -7,8 +7,7 @@ import {
   FaQuoteRight,
   FaUserCircle,
 } from "react-icons/fa";
-import { db } from "../firebase";
-import { doc, updateDoc, arrayUnion } from "firebase/firestore";
+import api from "../api";
 import { toast } from "react-toastify";
 
 import "slick-carousel/slick/slick.css";
@@ -23,23 +22,24 @@ const Review = ({ uname, productname, productId, reviews = [] }) => {
     e.preventDefault();
     if (!rating || !comment) return toast.error("Please fill all fields");
 
-    const reviewData = {
-      username: uname,
-      product: productname,
-      rating,
-      comment,
-      date: new Date().toLocaleString(),
-    };
-
     try {
-      const productRef = doc(db, "products", productId);
-      await updateDoc(productRef, {
-        reviews: arrayUnion(reviewData),
-      });
+      const payload = {
+        name: uname || "Anonymous",
+        product: productname || productId,
+        rating,
+        comment,
+      };
 
-      toast.success("Review submitted!");
-      setRating(0);
-      setComment("");
+      const res = await api.post("/reviews", payload);
+      if (res.data?.success) {
+        toast.success("Review submitted!");
+        setRating(0);
+        setComment("");
+        setShowWriteReview(false);
+      } else {
+        console.error("Unexpected API response:", res.data);
+        toast.error("Failed to submit review");
+      }
     } catch (err) {
       console.error("Error adding review:", err);
       toast.error("Failed to submit review");

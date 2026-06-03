@@ -279,7 +279,7 @@ const Billing = ({ setActiveTab }) => {
 
 
   return (
-    <div className="p-6 max-w-7xl mx-auto min-h-screen relative">
+    <div className="p-8 max-w-7xl mx-auto min-h-screen relative">
       <div className="flex justify-between items-center mb-2">
         <h2 className="text-3xl font-bold text-blue-900">T-Shirt Billing</h2>
         <button 

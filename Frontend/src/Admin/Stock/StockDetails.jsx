@@ -151,7 +151,7 @@ const StockDetails = () => {
   };
 
   return (
-    <div className="p-4 sm:p-6 bg-gray-50 min-h-screen">
+    <div className="p-8 sm:p-6 bg-gray-50 min-h-screen">
       <div className="mb-6">
         <h2 className="text-2xl font-bold text-blue-900">Stock Details</h2>
         <p className="text-sm text-gray-500 mt-1">
