@@ -149,7 +149,7 @@ function ProductCard({ product, index, addToCart, addToWishlist, cardSize, setCa
 }
 
 function Products() {
-  const { products: contextProducts, addToCart, addToWishlist } = useContext(AuthContext);
+  const { products: contextProducts, designs: contextDesigns, addToCart, addToWishlist } = useContext(AuthContext);
   const location = useLocation();
 
   const [pageProducts, setPageProducts] = useState([]);
@@ -164,8 +164,12 @@ function Products() {
   const [showFilters, setShowFilters] = useState(false);
   const [cardSize, setCardSize] = useState({});
 
+  const allContextProducts = useMemo(() => {
+    return [...(contextProducts || []), ...(contextDesigns || [])];
+  }, [contextProducts, contextDesigns]);
+
   const products =
-    Array.isArray(contextProducts) && contextProducts.length > 0 ? contextProducts : pageProducts;
+    Array.isArray(allContextProducts) && allContextProducts.length > 0 ? allContextProducts : pageProducts;
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -176,15 +180,15 @@ function Products() {
 
   useEffect(() => {
     console.log("Products useEffect triggered");
-    console.log("contextProducts:", contextProducts);
+    console.log("allContextProducts:", allContextProducts);
 
     let isMounted = true;
 
     const loadProducts = async () => {
       console.log("loadProducts called");
 
-      if (Array.isArray(contextProducts) && contextProducts.length > 0) {
-        console.log("Using context products:", contextProducts);
+      if (Array.isArray(allContextProducts) && allContextProducts.length > 0) {
+        console.log("Using context products:", allContextProducts);
         setLoading(false);
         return;
       }
@@ -301,7 +305,7 @@ function Products() {
     return () => {
       isMounted = false;
     };
-  }, [contextProducts]);
+  }, [allContextProducts]);
 
   useEffect(() => {
     AOS.init({ duration: 800, once: true });
