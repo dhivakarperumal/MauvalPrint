@@ -760,6 +760,50 @@ const Dashboard = () => {
         />
       </div>
 
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+        {/* Top Category Sales */}
+        <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
+          <h3 className="text-lg font-bold text-slate-800 tracking-tight mb-4">
+            Top Categories
+          </h3>
+          <div className="h-80 flex justify-center items-center">
+            {categorySalesData ? (
+              <Doughnut
+                data={categorySalesData}
+                options={categorySalesOptions}
+              />
+            ) : (
+              <p className="text-slate-400 font-medium">Loading chart...</p>
+            )}
+          </div>
+        </div>
+        
+        <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-slate-100 relative overflow-hidden group">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-50 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none group-hover:bg-emerald-100 transition-colors duration-500"></div>
+          <div className="relative z-10 mb-6">
+            <h3 className="text-xl font-black text-slate-800 tracking-tight">
+              Order Trends by Category
+            </h3>
+            <p className="text-sm font-medium text-slate-500 mt-1">
+              Quantity of items sold across different categories
+            </p>
+          </div>
+          {Object.keys(categoryOrderStats).length > 0 ? (
+            <div className="relative z-10 h-80 w-full">
+              <Bar
+                data={categoryOrderLineData}
+                options={categoryOrderLineOptions}
+              />
+            </div>
+          ) : (
+            <div className="relative z-10 h-80 w-full flex justify-center items-center">
+              <p className="text-slate-400 font-medium">No order data available.</p>
+            </div>
+          )}
+        </div>
+      </div>
+
       <div className="bg-white p-6 sm:p-8 rounded-3xl shadow-sm border border-slate-100 mb-6 relative overflow-hidden group">
         <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-50 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none group-hover:bg-indigo-100 transition-colors duration-500"></div>
         <div className="relative z-10 flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
@@ -780,6 +824,10 @@ const Dashboard = () => {
           <Bar data={weeklyIncomeData} options={weeklyIncomeOptions} />
         </div>
       </div>
+
+      
+
+      
 
       {/* Orders and Transactions */}
       <div className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden mb-6">
@@ -847,49 +895,6 @@ const Dashboard = () => {
               })()}
             </tbody>
           </table>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-        {/* Top Category Sales */}
-        <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
-          <h3 className="text-lg font-bold text-slate-800 tracking-tight mb-4">
-            Top Categories
-          </h3>
-          <div className="h-80 flex justify-center items-center">
-            {categorySalesData ? (
-              <Doughnut
-                data={categorySalesData}
-                options={categorySalesOptions}
-              />
-            ) : (
-              <p className="text-slate-400 font-medium">Loading chart...</p>
-            )}
-          </div>
-        </div>
-        
-        <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-slate-100 relative overflow-hidden group">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-50 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none group-hover:bg-emerald-100 transition-colors duration-500"></div>
-          <div className="relative z-10 mb-6">
-            <h3 className="text-xl font-black text-slate-800 tracking-tight">
-              Order Trends by Category
-            </h3>
-            <p className="text-sm font-medium text-slate-500 mt-1">
-              Quantity of items sold across different categories
-            </p>
-          </div>
-          {Object.keys(categoryOrderStats).length > 0 ? (
-            <div className="relative z-10 h-80 w-full">
-              <Bar
-                data={categoryOrderLineData}
-                options={categoryOrderLineOptions}
-              />
-            </div>
-          ) : (
-            <div className="relative z-10 h-80 w-full flex justify-center items-center">
-              <p className="text-slate-400 font-medium">No order data available.</p>
-            </div>
-          )}
         </div>
       </div>
     </div>
