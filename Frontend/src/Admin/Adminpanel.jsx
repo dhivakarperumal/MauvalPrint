@@ -92,15 +92,17 @@ const tabLabels = {
       users: { label: "All Users", icon: <FaRegUserCircle /> },
     },
   },
-  stock: {
-    label: "Stock",
-    icon: <FaBoxOpen />,
-    isDropdown: true,
-    children: {
-      addStock: { label: "Add Stock", icon: <FaPlusCircle /> },
-      stockDetails: { label: "Stock Details", icon: <FaBoxOpen /> },
-    },
-  },
+  // stock: {
+  //   label: "Stock",
+  //   icon: <FaBoxOpen />,
+  //   isDropdown: true,
+  //   children: {
+  //     addStock: { label: "Add Stock", icon: <FaPlusCircle /> },
+  //     stockDetails: { label: "Stock Details", icon: <FaBoxOpen /> },
+  //   },
+  // },
+
+  stockDetails: { label: "Stock Details", icon: <FaMoneyBillWave /> },
   billing: { label: "Billing", icon: <FaMoneyBillWave /> },
   getOrders: { label: "Get Order Details", icon: <FaReceipt /> },
   reviews: { label: "Reviews", icon: <FaFileAlt /> },
@@ -115,18 +117,28 @@ const tabLabels = {
   },
 };
 
-const SidebarItem = ({ icon, label, active, onClick, count }) => (
+const SidebarItem = ({ icon, label, active, onClick, count, isChild }) => (
   <button
     onClick={onClick}
-    className={`flex items-center justify-between gap-3 px-4 py-2 rounded w-full transition font-medium cursor-pointer ${active ? "bg-white text-blue-900" : "hover:bg-gray-600 text-white"
-      }`}
+    className={`group flex items-center justify-between px-4 py-3 w-full transition-all duration-300 ease-in-out cursor-pointer overflow-hidden relative ${
+      isChild ? "text-sm rounded-lg my-0.5 ml-2 w-[calc(100%-8px)]" : "text-base rounded-xl my-1"
+    } ${
+      active 
+        ? "bg-gradient-to-r from-cyan-500/90 to-blue-600/90 text-white shadow-lg shadow-cyan-900/30 font-semibold" 
+        : "text-gray-300 hover:bg-white/5 hover:text-white"
+    }`}
   >
-    <div className="flex items-center gap-3">
-      {icon}
-      <span>{label}</span>
+    {active && !isChild && (
+      <span className="absolute left-0 top-0 bottom-0 w-1.5 bg-cyan-400 rounded-r-md shadow-[0_0_12px_rgba(34,211,238,0.8)]"></span>
+    )}
+    <div className="flex items-center gap-3 relative z-10">
+      <span className={`text-xl transition-all duration-300 ${active ? "scale-110 text-white drop-shadow-md" : "group-hover:scale-110 group-hover:text-cyan-400"}`}>
+        {icon}
+      </span>
+      <span className="tracking-wide">{label}</span>
     </div>
     {count > 0 && (
-      <span className="bg-red-500 text-white text-xs font-semibold px-2 py-0.5 rounded-full">
+      <span className="relative z-10 bg-rose-500 text-white text-xs font-bold px-2.5 py-0.5 rounded-full shadow-md animate-pulse">
         {count}
       </span>
     )}
@@ -408,19 +420,19 @@ if (
     <div className="flex h-screen overflow-hidden">
       {/* Sidebar */}
       <aside
-        className={`fixed md:relative z-50 bg-[#192f59] w-64 h-screen text-white transition-transform duration-300 ease-in-out ${mobileMenu ? "translate-x-0" : "-translate-x-full md:translate-x-0"
+        className={`fixed md:relative z-50 bg-[#0f1c35] w-[300px] h-screen text-white transition-all duration-300 ease-in-out shadow-[4px_0_24px_rgba(0,0,0,0.15)] border-r border-white/5 ${mobileMenu ? "translate-x-0" : "-translate-x-full md:translate-x-0"
           }`}
         ref={sidebarRef}
       >
         <div className="flex flex-col h-full overflow-y-auto">
           {/* Header */}
-          <div className="flex items-center justify-between px-4 py-2 border-b border-white/10 shrink-0">
-            <img src={logo} alt="Logo" className="h-16 w-auto object-contain" />
-            <button className="md:hidden text-xl cursor-pointer" onClick={() => setMobileMenu(false)}>✕</button>
+          <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 shrink-0 bg-white/5 backdrop-blur-sm">
+            <img src={logo} alt="Logo" className="h-14 w-auto object-contain drop-shadow-lg" />
+            <button className="md:hidden text-2xl text-gray-400 hover:text-white cursor-pointer transition-colors" onClick={() => setMobileMenu(false)}>✕</button>
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 overflow-y-auto px-2 py-4 space-y-2.5">
+          <nav className="flex-1 overflow-y-auto px-4 py-6 space-y-1">
             {Object.entries(tabLabels).map(([key, value]) => {
               if (value.isDropdown) {
                 return (
@@ -434,7 +446,7 @@ if (
                       }
                     />
                     {openDropdown[key] && (
-                      <div className="ml-6 space-y-1 mt-1">
+                      <div className="ml-5 space-y-1 mt-1 border-l border-white/10 pl-2">
                         {Object.entries(value.children).map(([childKey, child]) => (
                           <SidebarItem
                             key={childKey}
@@ -446,6 +458,7 @@ if (
                               setActiveTab(childKey);
                               setMobileMenu(false);
                             }}
+                            isChild={true}
                           />
                         ))}
                       </div>
@@ -468,13 +481,15 @@ if (
                 />
               );
             })}
-            <Link
-              to="/"
-              className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-white font-medium rounded-lg shadow hover:bg-primary-dark transition-colors"
-            >
-              <FaHome />
-              Back Home
-            </Link>
+            <div className="pt-6 pb-2">
+              <Link
+                to="/"
+                className="group flex items-center justify-center gap-2 px-4 py-3 bg-white/5 border border-white/10 text-white font-medium rounded-xl shadow-sm hover:bg-white/10 hover:shadow-md transition-all duration-300 w-full"
+              >
+                <FaHome className="group-hover:scale-110 transition-transform duration-300 text-blue-400" />
+                Back Home
+              </Link>
+            </div>
           </nav>
 
 
