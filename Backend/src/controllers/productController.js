@@ -188,6 +188,7 @@ const updateProduct = async (req, res) => {
     washing_details,
     notes,
     stock_by_variant,
+    size_chart_image,
   } = req.body;
 
   if (!id) {
