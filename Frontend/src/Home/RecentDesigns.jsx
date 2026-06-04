@@ -5,7 +5,7 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay } from 'swiper/modules';
 import 'swiper/css';
 import api from "../api";
-
+import PageContainer from "../Components/PageContainer";
 const toRoman = (num) => {
   const lookup = [
     [1000, "M"], [900, "CM"], [500, "D"], [400, "CD"],
@@ -244,8 +244,9 @@ const RecentDesigns = () => {
   }, [filteredDesigns]);
 
   return (
-    <div className="min-h-screen bg-[#fef4f3] py-10 px-4">
-      {/* Filter Toggle Button for Mobile */}
+    <PageContainer>
+      <div className="min-h-screen bg-[#fef4f3] py-10 px-4">
+        {/* Filter Toggle Button for Mobile */}
       {!isDesktop && (
         <div className="mb-4 flex justify-center">
           <button
@@ -349,6 +350,7 @@ const RecentDesigns = () => {
         </>
       )}
     </div>
+    </PageContainer>
   );
 };
 

@@ -4,6 +4,7 @@ import { FaQuoteLeft, FaQuoteRight, FaStar, FaRegUser } from "react-icons/fa";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import { AuthContext } from "../Context/AuthContext";
+import PageContainer from "../Components/PageContainer";
 
 function Testimonial() {
   const { reviews } = useContext(AuthContext);
@@ -29,7 +30,8 @@ function Testimonial() {
   };
 
   return (
-    <div className="bg-[#e5e8f0] py-14 px-4">
+    <PageContainer>
+      <div className="bg-[#e5e8f0] py-14 px-4">
       <h2 className="text-3xl font-bold text-center mb-10">
         OUR CLIENT
         <span className="block text-primary text-xl italic font-signature mt-1">
@@ -82,6 +84,7 @@ function Testimonial() {
         })}
       </Slider>
     </div>
+    </PageContainer>
   );
 }
 

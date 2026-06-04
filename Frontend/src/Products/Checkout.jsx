@@ -12,6 +12,7 @@ import { AuthContext } from "../Context/AuthContext";
 import api from "../api";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import PageContainer from "../Components/PageContainer";
 
 const SHIPPING_FLAT =30; 
 
@@ -291,11 +292,12 @@ const Checkout = () => {
     "border-b border-gray-300 focus:outline-none focus:border-slate-800 p-2 bg-white w-full transition-colors";
 
   return (
-    <section className="bg-primary/5 mt-17">
-      {/* breadcrumb */}
-      <Head title="Checkout" subtitle="Checkout" />
+    <PageContainer className="bg-primary/5 mt-17">
+      <section>
+        {/* breadcrumb */}
+        <Head title="Checkout" subtitle="Checkout" />
 
-      <div className="p-4 lg:p-10">
+        <div className="p-4 lg:p-10">
         {/* Saved addresses */}
         {savedAddresses.length > 0 && (
           <div className="max-w-6xl mx-auto mb-8">
@@ -650,7 +652,8 @@ const Checkout = () => {
           </div>
         </form>
       </div>
-    </section>
+      </section>
+    </PageContainer>
   );
 };
 

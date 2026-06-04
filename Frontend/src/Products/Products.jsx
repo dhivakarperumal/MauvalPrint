@@ -4,6 +4,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { FaStar, FaHeart, FaShoppingCart, FaEye } from "react-icons/fa";
 import { IoIosArrowDown } from "react-icons/io";
 import AOS from "aos";
+import PageContainer from "../Components/PageContainer";
 import "aos/dist/aos.css";
 import { toast } from "react-toastify";
 import Head from "../Components/Head";
@@ -401,30 +402,35 @@ function Products() {
 
   if (loading) {
     return (
-      <div className="mt-18">
-        <Head title="Our Products" subtitle="Products" />
-        <section className="p-4 md:p-8 bg-white">
+      <PageContainer>
+        <div className="mt-18">
+          <Head title="Our Products" subtitle="Products" />
+          <section className="p-4 md:p-8 bg-white">
           <div className="flex justify-center items-center mt-20">
             <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
           </div>
         </section>
       </div>
+      </PageContainer>
     );
   }
 
   if (!products || products.length === 0) {
     return (
-      <div className="mt-18">
-        <Head title="Our Products" subtitle="Products" />
-        <section className="p-4 md:p-8 bg-white">
-          <p className="text-center text-gray-500 py-20">No products found.</p>
-        </section>
-      </div>
+      <PageContainer>
+        <div className="mt-18">
+          <Head title="Our Products" subtitle="Products" />
+          <section className="p-4 md:p-8 bg-white">
+            <p className="text-center text-gray-500 py-20">No products found.</p>
+          </section>
+        </div>
+      </PageContainer>
     );
   }
 
   return (
-    <div className="mt-18">
+    <PageContainer>
+      <div className="mt-18">
       <Head title="Our Products" subtitle="Products" />
 
       {/* Mobile Filter Dropdown */}
@@ -652,6 +658,7 @@ function Products() {
         </div>
       </section>
     </div>
+    </PageContainer>
   );
 }
 

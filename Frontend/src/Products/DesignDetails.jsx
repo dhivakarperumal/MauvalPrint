@@ -7,7 +7,7 @@ import Head from "../Components/Head";
 import Review from "./Review";
 import { toast } from "react-toastify";
 import RelatedProducts from "./RelatedProducts";
-
+import PageContainer from "../Components/PageContainer";
 // Image optimization utility
 const optimizeImageUrl = (url) => {
   if (!url) return url;
@@ -205,10 +205,11 @@ const DesignDetails = () => {
   };
 
   return (
-    <div className="mt-18">
-      <Head title="Design Details" subtitle={name} />
+    <PageContainer>
+      <div className="mt-18">
+        <Head title="Design Details" subtitle={name} />
 
-      <div className="bg-white py-6 px-4 sm:px-8 lg:px-20">
+        <div className="bg-white py-6 px-4 sm:px-8 lg:px-20">
         <div className="grid lg:grid-cols-2 gap-10 mt-8">
           {/* Left Image Section */}
           <div className="flex flex-col items-center">
@@ -492,7 +493,7 @@ const DesignDetails = () => {
           />
         </div>
       </div>
-    </div>
+    </PageContainer>
   );
 };
 

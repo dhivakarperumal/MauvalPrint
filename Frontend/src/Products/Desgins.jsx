@@ -4,6 +4,7 @@ import { AuthContext } from "../Context/AuthContext";
 import Head from "../Components/Head";
 import { FaHeart, FaShoppingCart, FaEye } from "react-icons/fa";
 import { toast } from "react-toastify";
+import PageContainer from "../Components/PageContainer";
 
 const Designs = () => {
   const { designs } = useContext(AuthContext);
@@ -27,9 +28,10 @@ const Designs = () => {
   // Loading state when designs haven't loaded yet
   if (!designs || designs.length === 0) {
     return (
-      <div className="mt-17">
-        <Head title="Designs" subtitle="Designs" />
-        <div className="min-h-screen bg-[#fef4f3] py-10 px-4">
+      <PageContainer>
+        <div className="mt-17">
+          <Head title="Designs" subtitle="Designs" />
+          <div className="min-h-screen bg-[#fef4f3] py-10 px-4">
           <h1 className="text-3xl font-bold text-center mb-6 text-primary">
             Our Designs
           </h1>
@@ -38,11 +40,13 @@ const Designs = () => {
           </div>
         </div>
       </div>
+      </PageContainer>
     );
   }
 
   return (
-    <div className="mt-17">
+    <PageContainer>
+      <div className="mt-17">
       <Head title="Designs" subtitle="Designs" />
 
       <div className="min-h-screen bg-[#fef4f3] py-10 px-4">
