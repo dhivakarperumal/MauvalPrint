@@ -7,6 +7,8 @@ import 'swiper/css';
 import api from "../api";
 import PageContainer from "../Components/PageContainer";
 import Select from "react-select";
+import { FaFilter } from "react-icons/fa";
+import { IoClose } from "react-icons/io5";
 
 const toRoman = (num) => {
   const lookup = [
@@ -91,17 +93,6 @@ const DesignCard = memo(({ id, name, rating, images, mrp, salePrice, size = [] }
 
   const mainImage = useMemo(() => optimizeImageUrl(images?.[0]), [images]);
   const hoverImage = useMemo(() => optimizeImageUrl(images?.[1] || images?.[0]), [images]);
-
-
-const designOptions = [
-  { value: "All", label: "All Designs" },
-  ...homeKeywords.map((kw) => ({
-    value: kw.keyword_name,
-    label: kw.keyword_name,
-  })),
-];
-
-
 
   return (
     <div
@@ -255,6 +246,96 @@ const RecentDesigns = () => {
     return groups;
   }, [filteredDesigns]);
 
+
+  const fitOptions = fits.map((f) => ({
+    value: f,
+    label: f,
+  }));
+
+  const designOptions = [
+    { value: "All", label: "All Designs" },
+    ...homeKeywords.map((kw) => ({
+      value: kw.keyword_name,
+      label: kw.keyword_name,
+    })),
+  ];
+
+
+  const customSelectStyles = {
+    control: (base, state) => ({
+      ...base,
+      minHeight: "56px",
+      borderRadius: "18px",
+      border: "2px solid #f472b6",
+      background: "linear-gradient(135deg,#ffffff,#f8fafc,#f1f5f9)",
+      boxShadow: state.isFocused
+        ? "0 0 0 4px rgba(244,114,182,0.15)"
+        : "0 8px 25px rgba(0,0,0,0.08)",
+      cursor: "pointer",
+      transition: "all 0.3s ease",
+    }),
+
+    valueContainer: (base) => ({
+      ...base,
+      padding: "0 14px",
+    }),
+
+    placeholder: (base) => ({
+      ...base,
+      color: "#374151",
+      fontWeight: 600,
+    }),
+
+    singleValue: (base) => ({
+      ...base,
+      color: "#1f2937",
+      fontWeight: 600,
+    }),
+
+    indicatorSeparator: () => ({
+      display: "none",
+    }),
+
+    dropdownIndicator: (base) => ({
+      ...base,
+      color: "#374151",
+    }),
+
+    menuPortal: (base) => ({
+      ...base,
+      zIndex: 99999,
+    }),
+
+    menu: (base) => ({
+      ...base,
+      zIndex: 99999,
+      borderRadius: "18px",
+      overflow: "hidden",
+      boxShadow: "0 15px 40px rgba(0,0,0,0.18)",
+      border: "1px solid #e5e7eb",
+    }),
+
+    menuList: (base) => ({
+      ...base,
+      padding: "6px",
+    }),
+
+    option: (base, state) => ({
+      ...base,
+      borderRadius: "12px",
+      marginBottom: "4px",
+      padding: "14px 16px",
+      backgroundColor: state.isSelected
+        ? "#243B55"
+        : state.isFocused
+          ? "#f3f4f6"
+          : "#ffffff",
+      color: state.isSelected ? "#ffffff" : "#374151",
+      cursor: "pointer",
+      fontWeight: 500,
+    }),
+  };
+
   return (
 
     <div className="min-h-screen bg-[#fef4f3] py-10 px-4">
@@ -270,9 +351,39 @@ const RecentDesigns = () => {
             </button>
           </div>
         )}
+        <div className="flex items-center mb-4">
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            className="
+      flex
+      items-center
+      gap-2
+      px-3
+      py-2
+      rounded-xl
+      bg-white
+      shadow-md
+      border
+      border-gray-200
+      hover:shadow-lg
+      transition-all
+      duration-300
+    "
+          >
+            {showFilters ? (
+              <IoClose className="text-lg text-primary" />
+            ) : (
+              <FaFilter className="text-lg text-primary" />
+            )}
+
+            <span className="text-sm font-medium text-gray-700">
+              {showFilters ? "Hide" : "Filters"}
+            </span>
+          </button>
+        </div>
 
         {/* Filters */}
-        {shouldShowFilters && (
+        {showFilters && (
           <div className="w-full mb-12">
             <div className="bg-gradient-to-r from-pink-50 via-white to-pink-50 border border-pink-100 rounded-3xl px-6 md:px-10 py-8 shadow-md">
 
@@ -282,69 +393,55 @@ const RecentDesigns = () => {
                   Discover Your Style
                 </h2>
 
-                
+
               </div>
 
               {/* Filters */}
-            <div className="flex flex-col md:flex-row justify-center items-center gap-6">
+              <div className="flex flex-col md:flex-row justify-center items-center gap-6">
 
-  {/* Size Filter */}
-  <div className="w-full md:w-auto">
-    <label className="block text-sm font-semibold text-primary mb-2">
-      SIZE
-    </label>
+                {/* Size Filter */}
+                <div className="w-full md:w-auto">
+                  <label className="block text-sm font-semibold text-primary mb-2">
+                    SIZE
+                  </label>
 
-    <div className="p-[2px] rounded-2xl bg-gradient-to-r from-pink-400 via-orange-300 to-pink-400 shadow-lg">
-     <Select
-  styles={customSelectStyles}
-  options={fitOptions}
-  value={fitOptions.find((o) => o.value === fit)}
-  onChange={(selected) => setFit(selected.value)}
-/>
-    </div>
-  </div>
+                  <div className="p-[2px] rounded-2xl bg-gradient-to-r from-pink-400 via-orange-300 to-pink-400 shadow-lg">
+                    <Select
+                      className="w-[240px]"
+                      styles={customSelectStyles}
+                      menuPortalTarget={document.body}
+                      menuPosition="fixed"
+                      options={fitOptions}
+                      value={fitOptions.find((o) => o.value === fit)}
+                      onChange={(selected) => setFit(selected.value)}
+                    />
+                  </div>
+                </div>
 
-  {/* Design Filter */}
-  <div className="w-full md:w-auto">
-    <label className="block text-sm font-semibold text-primary mb-2">
-      DESIGN
-    </label>
+                {/* Design Filter */}
+                <div className="w-full md:w-auto">
+                  <label className="block text-sm font-semibold text-primary mb-2">
+                    DESIGN
+                  </label>
 
-    <div className="p-[2px] rounded-2xl bg-gradient-to-r from-pink-400 via-orange-300 to-pink-400 shadow-lg">
-      <select
-        value={selectedSubcategory}
-        onChange={(e) => setSelectedSubcategory(e.target.value)}
-        className="
-          w-full md:w-[280px]
-          h-14
-          px-5
-          rounded-2xl
-          bg-gradient-to-r
-          from-pink-50
-          via-white
-          to-orange-50
-          text-gray-700
-          font-semibold
-          cursor-pointer
-          outline-none
-          border-none
-        "
-      >
-        <option value="All">All Designs</option>
+                  <div className="p-[2px] rounded-2xl bg-gradient-to-r from-pink-400 via-orange-300 to-pink-400 shadow-lg">
+                    <Select
+                      className="w-[320px]"
+                      styles={customSelectStyles}
+                      menuPortalTarget={document.body}
+                      menuPosition="fixed"
+                      options={designOptions}
+                      value={designOptions.find(
+                        (o) => o.value === selectedSubcategory
+                      )}
+                      onChange={(selected) =>
+                        setSelectedSubcategory(selected.value)
+                      }
+                    />
+                  </div>
+                </div>
 
-        {homeKeywords.map((kw) => (
-          <option
-            key={kw.keyword_id}
-            value={kw.keyword_name}
-          >
-            {kw.keyword_name}
-          </option>
-        ))}
-      </select>
-    </div>
-  </div>
-
-</div>
+              </div>
             </div>
           </div>
         )}
