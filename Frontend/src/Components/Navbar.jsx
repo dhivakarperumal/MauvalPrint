@@ -31,6 +31,7 @@ import Wishlist from "../Products/Wishlist";
 import Orders from "../Products/Orders";
 import api from "../api";
 import { toast } from "react-toastify";
+import PageContainer from "./PageContainer";
 
 export default function Navbar() {
   const [accountDropdownOpen, setAccountDropdownOpen] = useState(false);
@@ -163,197 +164,198 @@ export default function Navbar() {
 
   return (
     <header className="fixed inset-x-0 top-0 z-50 bg-[#283b53] text-white shadow-md py-2">
-      <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 md:px-5 py-1">
-        {/* Logo */}
-      <Link to="/" className="flex items-center gap-2">
-  <div className="w-18 h-18 sm:w-14 sm:h-14 md:w-16 md:h-16">
-    <img
-      src={logo}
-      alt="Mauval Print Logo"
-      className="w-full h-full object-contain"
-    />
-  </div>
+      <PageContainer>
+        <nav className="flex items-center justify-between py-1">
+          {/* Logo */}
+          <Link to="/" className="flex items-center gap-2">
+            <div className="w-18 h-18 sm:w-14 sm:h-14 md:w-16 md:h-16">
+              <img
+                src={logo}
+                alt="Mauval Print Logo"
+                className="w-full h-full object-contain"
+              />
+            </div>
 
-  <span className="text-white font-bold text-base sm:text-lg md:text-xl tracking-wide">
-    Mauval Print
-  </span>
-</Link>
-
-
-
+            <span className="text-white font-bold text-base sm:text-lg md:text-xl tracking-wide">
+              Mauval Print
+            </span>
+          </Link>
 
 
-        {/* Desktop Menu */}
-        <ul className="hidden lg:flex items-center gap-6">
-          <li className={linkBase}>
-            <Link to="/">Home</Link>
-          </li>
-          <li className={linkBase}>
-            <Link to="/products">Products</Link>
-          </li>
-          <li className="relative" ref={customizeRef}>
-            <button
-              className="group flex items-center gap-2 cursor-pointer"
-              onClick={() => {
-                setCustomizeDropdownOpen(!customizeDropdownOpen);
-                setIsPagesOpen(false);
-                setAccountDropdownOpen(false);
-              }}
-            >
-              Customize <FaChevronDown className="text-sm" />
-            </button>
-            {customizeDropdownOpen && (
-              <div className="absolute top-6 left-0 mt-2 flex z-50">
-                <ul className="bg-white text-black w-48 shadow-md">
-                  {customizeData.map((category) => (
-                    <li
-                      key={category.name}
-                      className="hover:bg-gray-100 px-4 py-2 cursor-pointer"
-                      onMouseEnter={() => setHoveredCategory(category)}
-                    >
-                      {category.cname}
-                    </li>
-                  ))}
-                </ul>
-                {hoveredCategory && (
-                  <ul className="absolute top-10 left-full bg-white text-black ml-1 w-48 shadow-md">
-                    {hoveredCategory.subcategories.map((sub) => (
+
+
+
+          {/* Desktop Menu */}
+          <ul className="hidden lg:flex items-center gap-6">
+            <li className={linkBase}>
+              <Link to="/">Home</Link>
+            </li>
+            <li className={linkBase}>
+              <Link to="/products">Products</Link>
+            </li>
+            <li className="relative" ref={customizeRef}>
+              <button
+                className="group flex items-center gap-2 cursor-pointer"
+                onClick={() => {
+                  setCustomizeDropdownOpen(!customizeDropdownOpen);
+                  setIsPagesOpen(false);
+                  setAccountDropdownOpen(false);
+                }}
+              >
+                Customize <FaChevronDown className="text-sm" />
+              </button>
+              {customizeDropdownOpen && (
+                <div className="absolute top-6 left-0 mt-2 flex z-50">
+                  <ul className="bg-white text-black w-48 shadow-md">
+                    {customizeData.map((category) => (
                       <li
-                        key={sub}
-                        className="hover:bg-blue-100 px-4 py-2 cursor-pointer"
-                        onClick={() => {
-                          navigate(
-                            `/products?subcategory=${
-                              encodeURIComponent(sub).charAt(0).toUpperCase() +
-                              encodeURIComponent(sub).slice(1)
-                            }`
-                          );
-                          setCustomizeDropdownOpen(false);
-                          setHoveredCategory(null);
-                        }}
+                        key={category.name}
+                        className="hover:bg-gray-100 px-4 py-2 cursor-pointer"
+                        onMouseEnter={() => setHoveredCategory(category)}
                       >
-                        {sub.charAt(0).toUpperCase()+sub.slice(1)}
+                        {category.cname}
                       </li>
                     ))}
                   </ul>
-                )}
-              </div>
-            )}
-          </li>
-          <li className={linkBase}>
-            <Link to="/designs">Designs</Link>
-          </li>
-       
-        </ul>
+                  {hoveredCategory && (
+                    <ul className="absolute top-10 left-full bg-white text-black ml-1 w-48 shadow-md">
+                      {hoveredCategory.subcategories.map((sub) => (
+                        <li
+                          key={sub}
+                          className="hover:bg-blue-100 px-4 py-2 cursor-pointer"
+                          onClick={() => {
+                            navigate(
+                              `/products?subcategory=${encodeURIComponent(sub).charAt(0).toUpperCase() +
+                              encodeURIComponent(sub).slice(1)
+                              }`
+                            );
+                            setCustomizeDropdownOpen(false);
+                            setHoveredCategory(null);
+                          }}
+                        >
+                          {sub.charAt(0).toUpperCase() + sub.slice(1)}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              )}
+            </li>
+            <li className={linkBase}>
+              <Link to="/designs">Designs</Link>
+            </li>
 
-        {/* Icons */}
-        <div className="flex items-center gap-4 lg:gap-6">
-          <button className="cursor-pointer sm-hidden" onClick={() => setShowSearch(true)}>
-            <FaSearch className={iconBase}  />
-          </button>
-          <button
-            onClick={() => requireLogin(setShowWishlist)}
-            className="relative cursor-pointer"
-          >
-            <FaHeart className={iconBase} />
-            {user && wishlist.length > 0 && (
-              <span className="absolute -top-2 -right-2 h-4 w-4 flex items-center justify-center rounded-full bg-red-500 text-[10px]">
-                {wishlist.length}
-              </span>
-            )}
-          </button>
-          <button
-            onClick={() => requireLogin(setShowCart)}
-            className="relative cursor-pointer"
-          >
-            <FaShoppingCart className={iconBase} />
-            {user && cart.length > 0 && (
-              <span className="absolute -top-2 -right-2 h-4 w-4 flex items-center justify-center rounded-full bg-red-500 text-xs">
-                {cart.length}
-              </span>
-            )}
-          </button>
-          <div className="relative cursor-pointer hidden mt-2 lg:block">
-            <Orders show={showOrders} onClose={() => setShowOrders(false)} />
-            {user && ordersCount > 0 && (
-              <span className="absolute -top-1 -right-2 h-4 w-4 flex items-center justify-center rounded-full bg-red-500 text-xs">
-                {ordersCount}
-              </span>
-            )}
-          </div>
+          </ul>
 
-          {/* User */}
-          <div className="relative" ref={userRef}>
+          {/* Icons */}
+          <div className="flex items-center gap-4 lg:gap-6">
+            <button className="cursor-pointer sm-hidden" onClick={() => setShowSearch(true)}>
+              <FaSearch className={iconBase} />
+            </button>
             <button
-              onClick={() => {
-                if (!user) {
-                  setShowLogin(true);
-                } else {
-                  setAccountDropdownOpen(!accountDropdownOpen);
-                  setCustomizeDropdownOpen(false);
-                  setIsPagesOpen(false);
-                }
-              }}
-              className="h-6 w-6 rounded-full bg-white text-[#283b53] flex items-center justify-center text-sm font-bold cursor-pointer"
+              onClick={() => requireLogin(setShowWishlist)}
+              className="relative cursor-pointer"
             >
-              {user?.username?.charAt(0).toUpperCase() || (
-                <FaUserCircle className="text-2xl" />
+              <FaHeart className={iconBase} />
+              {user && wishlist.length > 0 && (
+                <span className="absolute -top-2 -right-2 h-4 w-4 flex items-center justify-center rounded-full bg-red-500 text-[10px]">
+                  {wishlist.length}
+                </span>
               )}
             </button>
-            {user && accountDropdownOpen && (
-              <ul className="absolute top-8 right-0 mt-2 w-48 bg-white text-gray-800 text-sm py-2 shadow-lg z-50 rounded space-y-1">
-                <li>
-                  <Link
-                    to="/account"
-                    onClick={() => setAccountDropdownOpen(false)}
-                    className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100"
-                  >
-                    <MdOutlineManageAccounts /> Account
-                  </Link>
-                </li>
-                {user.role === "admin" && (
+            <button
+              onClick={() => requireLogin(setShowCart)}
+              className="relative cursor-pointer"
+            >
+              <FaShoppingCart className={iconBase} />
+              {user && cart.length > 0 && (
+                <span className="absolute -top-2 -right-2 h-4 w-4 flex items-center justify-center rounded-full bg-red-500 text-xs">
+                  {cart.length}
+                </span>
+              )}
+            </button>
+            <div className="relative cursor-pointer hidden mt-2 lg:block">
+              <Orders show={showOrders} onClose={() => setShowOrders(false)} />
+              {user && ordersCount > 0 && (
+                <span className="absolute -top-1 -right-2 h-4 w-4 flex items-center justify-center rounded-full bg-red-500 text-xs">
+                  {ordersCount}
+                </span>
+              )}
+            </div>
+
+            {/* User */}
+            <div className="relative" ref={userRef}>
+              <button
+                onClick={() => {
+                  if (!user) {
+                    setShowLogin(true);
+                  } else {
+                    setAccountDropdownOpen(!accountDropdownOpen);
+                    setCustomizeDropdownOpen(false);
+                    setIsPagesOpen(false);
+                  }
+                }}
+                className="h-6 w-6 rounded-full bg-white text-[#283b53] flex items-center justify-center text-sm font-bold cursor-pointer"
+              >
+                {user?.username?.charAt(0).toUpperCase() || (
+                  <FaUserCircle className="text-2xl" />
+                )}
+              </button>
+              {user && accountDropdownOpen && (
+                <ul className="absolute top-8 right-0 mt-2 w-48 bg-white text-gray-800 text-sm py-2 shadow-lg z-50 rounded space-y-1">
                   <li>
                     <Link
-                      to="/admin"
+                      to="/account"
                       onClick={() => setAccountDropdownOpen(false)}
                       className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100"
                     >
-                      <MdAdminPanelSettings /> Admin Panel
+                      <MdOutlineManageAccounts /> Account
                     </Link>
                   </li>
-                )}
-                <li className="lg:hidden ml-4 flex items-center cursor-pointer text-black hover:bg-gray-100 py-2">
-                  <Orders
-                    titleorder={"My Orders"}
-                    show={showOrders}
-                    onClose={() => setShowOrders(false)}
-                  />
-                </li>
-                <li>
-                  <button
-                    onClick={handleLogout}
-                    className="flex items-center gap-2 w-full text-left px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                  >
-                    <IoIosLogOut /> Logout
-                  </button>
-                </li>
-              </ul>
-            )}
+                  {user.role === "admin" && (
+                    <li>
+                      <Link
+                        to="/admin"
+                        onClick={() => setAccountDropdownOpen(false)}
+                        className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100"
+                      >
+                        <MdAdminPanelSettings /> Admin Panel
+                      </Link>
+                    </li>
+                  )}
+                  <li className="lg:hidden ml-4 flex items-center cursor-pointer text-black hover:bg-gray-100 py-2">
+                    <Orders
+                      titleorder={"My Orders"}
+                      show={showOrders}
+                      onClose={() => setShowOrders(false)}
+                    />
+                  </li>
+                  <li>
+                    <button
+                      onClick={handleLogout}
+                      className="flex items-center gap-2 w-full text-left px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                    >
+                      <IoIosLogOut /> Logout
+                    </button>
+                  </li>
+                </ul>
+              )}
+            </div>
           </div>
-        </div>
 
-        {/* Mobile Menu Toggle */}
-        <button
-          onClick={() => setIsOpen(!isOpen)}
-          className="lg:hidden p-2 rounded-md"
-        >
-          {isOpen ? (
-            <FaTimes className="h-6 w-6" />
-          ) : (
-            <FaBars className="h-6 w-6" />
-          )}
-        </button>
-      </nav>
+          {/* Mobile Menu Toggle */}
+          <button
+            onClick={() => setIsOpen(!isOpen)}
+            className="lg:hidden p-2 rounded-md"
+          >
+            {isOpen ? (
+              <FaTimes className="h-6 w-6" />
+            ) : (
+              <FaBars className="h-6 w-6" />
+            )}
+          </button>
+        </nav>
+      </PageContainer>
 
       {/* Search, Login, Register, Cart, Wishlist */}
       {showSearch && (
@@ -389,44 +391,44 @@ export default function Navbar() {
                 Products
               </Link>
             </li>
-          <li>
-  <button
-    onClick={() => setIsMobileCustomizeOpen(!isMobileCustomizeOpen)}
-    className="flex items-center gap-2"
-  >
-    Customize <IoIosArrowDown className="text-xs" />
-  </button>
+            <li>
+              <button
+                onClick={() => setIsMobileCustomizeOpen(!isMobileCustomizeOpen)}
+                className="flex items-center gap-2"
+              >
+                Customize <IoIosArrowDown className="text-xs" />
+              </button>
 
-  {isMobileCustomizeOpen && (
-    <ul className="ml-4 space-y-1 mt-1">
-      {customizeData.map((category) => (
-        <li key={category.name}>
-          <p className="font-semibold">{category.cname}</p>
-          <ul className="ml-10">
-            {category.subcategories.map((sub) => (
-              <li key={sub}>
-                <button
-                  onClick={() => {
-                    // Capitalize first letter and encode
-                    const formattedSub = sub.charAt(0).toUpperCase() + sub.slice(1);
-                    navigate(`/products?subcategory=${encodeURIComponent(formattedSub)}`);
+              {isMobileCustomizeOpen && (
+                <ul className="ml-4 space-y-1 mt-1">
+                  {customizeData.map((category) => (
+                    <li key={category.name}>
+                      <p className="font-semibold">{category.cname}</p>
+                      <ul className="ml-10">
+                        {category.subcategories.map((sub) => (
+                          <li key={sub}>
+                            <button
+                              onClick={() => {
+                                // Capitalize first letter and encode
+                                const formattedSub = sub.charAt(0).toUpperCase() + sub.slice(1);
+                                navigate(`/products?subcategory=${encodeURIComponent(formattedSub)}`);
 
-                    // Close dropdowns
-                    setIsOpen(false);
-                    setIsMobileCustomizeOpen(false);
-                  }}
-                  className="text-left w-full hover:text-primary transition"
-                >
-                  {sub}
-                </button>
-              </li>
-            ))}
-          </ul>
-        </li>
-      ))}
-    </ul>
-  )}
-</li>
+                                // Close dropdowns
+                                setIsOpen(false);
+                                setIsMobileCustomizeOpen(false);
+                              }}
+                              className="text-left w-full hover:text-primary transition"
+                            >
+                              {sub}
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </li>
             <li>
               <Link to="/designs" onClick={() => setIsOpen(false)}>
                 Designs
