@@ -325,6 +325,13 @@ async function ensureTables() {
     );
   }
 
+  const [productsImagesByVariantRows] = await pool.query("SHOW COLUMNS FROM products LIKE 'images_by_variant'");
+  if (productsImagesByVariantRows.length === 0) {
+    await pool.query(
+      "ALTER TABLE products ADD COLUMN images_by_variant JSON AFTER images"
+    );
+  }
+
   const [productsCustomizableRows] = await pool.query("SHOW COLUMNS FROM products LIKE 'customizable'");
   if (productsCustomizableRows.length === 0) {
     await pool.query(
