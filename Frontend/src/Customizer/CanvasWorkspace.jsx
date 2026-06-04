@@ -107,7 +107,7 @@ const CanvasWorkspace = ({ onCanvasReady, product, imageSrc, selectedProductColo
   }, [proxiedImageSrc, fabricCanvas]);
 
   return (
-    <div className="w-full max-w-[500px] aspect-[5/6] rounded-2xl shadow-2xl relative flex items-center justify-center overflow-hidden shrink-0 bg-white">
+    <div className="w-full max-w-[500px] md:aspect-[5/6] h-[300px] md:h-auto rounded-2xl shadow-2xl relative flex items-center justify-center overflow-hidden shrink-0 bg-white">
       <div className="absolute inset-0 w-full h-full pointer-events-none" />
       <div className="w-full h-full [&>div]:!w-full [&>div]:!h-full [&>div>canvas]:!w-full [&>div>canvas]:!h-full">
         <canvas ref={canvasRef} />

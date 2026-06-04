@@ -305,7 +305,7 @@ const CustomizerLayout = () => {
   return (
     <div className="h-screen w-full bg-gray-900 text-white flex flex-col font-sans overflow-hidden">
       {/* Top Navigation Bar */}
-      <header className="h-auto min-h-[3.5rem] border-b border-gray-800 bg-gray-950 flex flex-wrap items-center justify-between px-2 md:px-4 py-2 shrink-0 gap-y-2">
+      <header className="h-auto min-h-[3.5rem] border-b border-gray-800 bg-gray-950 flex flex-wrap items-center justify-between px-10 md:px-4 py-2 shrink-0 gap-y-2">
         <div className="flex items-center gap-2 md:gap-4">
           <button 
             onClick={() => navigate(-1)}
@@ -320,18 +320,20 @@ const CustomizerLayout = () => {
           </h1>
         </div>
         
-        <div className="flex items-center gap-2 md:gap-3">
+        <div className="flex items-center gap-2 md:gap-3 w-full sm:w-auto overflow-x-auto">
           <span className="text-xs md:text-sm font-medium mr-1 md:mr-4">₹{product.salePrice || product.price || 0}</span>
-          <button onClick={handleSave} className="px-2 md:px-4 py-1.5 text-xs md:text-sm font-medium border border-gray-700 hover:bg-gray-800 rounded transition flex items-center gap-1 md:gap-2 cursor-pointer">
-            <IoDownloadOutline size={16} /> <span className="hidden md:inline">Save</span>
-          </button>
-          <button onClick={handlePlaceOrder} className="px-3 md:px-4 py-1.5 text-xs md:text-sm font-medium bg-indigo-600 hover:bg-indigo-700 text-white rounded transition flex items-center gap-1 md:gap-2 cursor-pointer">
-            <IoCartOutline size={16} /> <span className="hidden sm:inline">Place Order</span><span className="sm:hidden">Order</span>
-          </button>
-          {/* Mobile: open right-side panel */}
-          <button onClick={() => setShowRightPanelMobile(true)} className="ml-2 md:hidden p-2 bg-gray-800 rounded-md">
-            <IoMenu size={18} />
-          </button>
+          <div className="flex flex-row items-center gap-2 flex-nowrap">
+            <button onClick={handleSave} className="px-2 md:px-3 py-2 text-xs md:text-sm font-medium border border-gray-700 hover:bg-gray-800 rounded transition flex items-center gap-2 justify-center">
+              <IoDownloadOutline size={16} /> <span className="hidden md:inline">Save</span>
+            </button>
+            <button onClick={handlePlaceOrder} className="px-3 md:px-4 py-2 text-xs md:text-sm font-medium bg-indigo-600 hover:bg-indigo-700 text-white rounded transition flex items-center gap-2 justify-center">
+              <IoCartOutline size={16} /> <span className="hidden sm:inline">Place Order</span><span className="sm:hidden">Order</span>
+            </button>
+            {/* Mobile: open right-side panel */}
+            <button onClick={() => setShowRightPanelMobile(true)} className="ml-0 sm:ml-2 md:hidden p-2 bg-gray-800 rounded-md flex items-center justify-center">
+              <IoMenu size={18} />
+            </button>
+          </div>
         </div>
       </header>
 
@@ -344,7 +346,7 @@ const CustomizerLayout = () => {
         </div>
 
         {/* Expanded Tool Panel */}
-        <div className={`order-2 md:order-2 w-full md:w-80 ${activeTab ? 'h-64' : 'h-0 hidden'} md:h-full md:flex bg-gray-900 border-t md:border-t-0 border-b md:border-b-0 md:border-r border-gray-800 p-6 overflow-y-auto z-20 flex-col shadow-2xl relative shrink-0 transition-all`}>
+        <div className={`order-2 md:order-2 w-full md:w-80 ${activeTab ? 'h-40' : 'h-0 hidden'} md:h-full md:flex bg-gray-900 border-t md:border-t-0 border-b md:border-b-0 md:border-r border-gray-800 p-6 overflow-y-auto z-20 flex-col shadow-2xl relative shrink-0 transition-all`}>
           <h2 className="text-xl font-bold mb-6 capitalize tracking-wide bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">{activeTab}</h2>
           
           {activeTab === 'templates' && (
@@ -369,13 +371,13 @@ const CustomizerLayout = () => {
              </div>
           )}
 
-          {activeTab === 'text' && (
-             <div className="flex flex-col gap-4">
-                <button onClick={() => handleAddText('heading')} className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 rounded-xl font-semibold shadow-lg shadow-indigo-600/20 transition-all">Add a heading</button>
-                <button onClick={() => handleAddText('subheading')} className="w-full py-2 bg-gray-800 hover:bg-gray-700 rounded-xl font-medium border border-gray-700 transition-all">Add a subheading</button>
-                <button onClick={() => handleAddText('body')} className="w-full py-2 bg-gray-800 hover:bg-gray-700 rounded-xl text-sm border border-gray-700 transition-all">Add a little bit of body text</button>
+           {activeTab === 'text' && (
+             <div className="flex flex-col gap-3">
+               <button onClick={() => handleAddText('heading')} className="w-full py-2 md:py-3 bg-indigo-600 hover:bg-indigo-700 rounded-lg font-semibold shadow-lg shadow-indigo-600/20 transition-all text-sm md:text-base">Add a heading</button>
+               <button onClick={() => handleAddText('subheading')} className="w-full py-1.5 md:py-2 bg-gray-800 hover:bg-gray-700 rounded-lg font-medium border border-gray-700 transition-all text-sm">Add a subheading</button>
+               <button onClick={() => handleAddText('body')} className="w-full py-1.5 md:py-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-sm border border-gray-700 transition-all">Add a little bit of body text</button>
              </div>
-          )}
+           )}
 
           {activeTab === 'elements' && (
              <div className="grid grid-cols-3 gap-3">
@@ -439,7 +441,7 @@ const CustomizerLayout = () => {
           <div onClick={() => setShowRightPanelMobile(false)} className="fixed inset-0 bg-black/50 z-40 md:hidden" />
         )}
 
-        <aside className={`order-4 md:order-4 shrink-0 w-full md:w-96 bg-gray-950 border-t border-gray-800 md:border-t-0 md:border-l p-5 overflow-y-auto transition-transform duration-300 z-50 ${showRightPanelMobile ? 'translate-y-0 fixed bottom-0 left-0 right-0 h-[60vh] rounded-t-xl md:static md:translate-y-0 md:h-auto md:rounded-none' : 'translate-y-full fixed bottom-0 left-0 right-0 h-[60vh] rounded-t-xl md:static md:translate-y-0 md:h-auto md:rounded-none'}`}>
+        <aside className={`order-4 md:order-4 shrink-0 w-full md:w-96 bg-gray-950 border-t border-gray-800 md:border-t-0 md:border-l p-5 overflow-y-auto transition-transform duration-300 z-50 ${showRightPanelMobile ? 'translate-y-0 fixed bottom-0 left-0 right-0 h-[45vh] rounded-t-xl md:static md:translate-y-0 md:h-auto md:rounded-none' : 'translate-y-full fixed bottom-0 left-0 right-0 h-[45vh] rounded-t-xl md:static md:translate-y-0 md:h-auto md:rounded-none'}`}>
           {/* close handle for mobile */}
           <div className="md:hidden flex items-center justify-between mb-3">
             <h2 className="text-lg font-semibold tracking-wide">Customizer</h2>

@@ -148,6 +148,35 @@ const PropertiesPanel = ({ activeObject, canvas, setActiveObject }) => {
             <span className="text-xs font-medium text-gray-300">Line Height</span>
             <input type="range" min="0.5" max="3" step="0.1" value={activeObject.lineHeight || 1.16} onChange={(e) => handlePropertyChange('lineHeight', parseFloat(e.target.value))} className="w-full accent-indigo-500" />
           </div>
+      
+          <div className="flex flex-col gap-1">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-medium text-gray-300">Font Size</span>
+              <span className="text-xs text-gray-400">{Math.round(activeObject.fontSize || 24)} px</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <input
+                type="range"
+                min="8"
+                max="200"
+                step="1"
+                value={activeObject.fontSize || 24}
+                onChange={(e) => handlePropertyChange('fontSize', parseInt(e.target.value, 10))}
+                className="flex-1 accent-indigo-500"
+              />
+              <input
+                type="number"
+                min="8"
+                max="200"
+                value={activeObject.fontSize || 24}
+                onChange={(e) => {
+                  const v = parseInt(e.target.value || '24', 10);
+                  if (!isNaN(v)) handlePropertyChange('fontSize', v);
+                }}
+                className="w-16 bg-gray-800 border border-gray-700 rounded px-2 py-1 text-sm text-white"
+              />
+            </div>
+          </div>
         </>
       )}
 
