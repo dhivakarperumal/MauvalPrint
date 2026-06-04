@@ -544,7 +544,12 @@ const SingleProductView = () => {
                     if (!user) {
                       setShowLogin(true);
                     } else {
-                      navigate(`/customizer/${product.id || product.productId}`);
+                      navigate(`/customizer/${product.id || product.productId}`, {
+                        state: {
+                          selectedColor,
+                          selectedImageIndex,
+                        },
+                      });
                     }
                   }}
                   className="px-6 py-3 bg-orange-500 text-white rounded-md hover:bg-orange-600 transition-all cursor-pointer hover:shadow-md"

@@ -15,6 +15,39 @@ const CanvasWorkspace = ({ onCanvasReady, product, imageSrc, selectedProductColo
 
   const proxiedImageSrc = getProxyUrl(imageSrc || "https://via.placeholder.com/500x600.png?text=T-Shirt+Mockup");
 
+  const loadProductImage = (canvas, src) => {
+    if (!canvas || !src) return;
+
+    const existing = canvas.getObjects().find((obj) => obj.id === 'product-image');
+    if (existing) {
+      canvas.remove(existing);
+    }
+
+    const imgEl = new window.Image();
+    imgEl.crossOrigin = 'anonymous';
+    imgEl.onload = () => {
+      const img = new FabricImage(imgEl, {
+        originX: 'left',
+        originY: 'top',
+        left: 0,
+        top: 0,
+        selectable: false,
+        evented: false,
+        opacity: 0.95,
+        id: 'product-image',
+      });
+      img.scaleToWidth(250);
+      img.scaleToHeight(350);
+      canvas.add(img);
+      img.sendToBack();
+      canvas.requestRenderAll();
+    };
+    imgEl.onerror = () => {
+      console.error('Canvas image failed to load:', src);
+    };
+    imgEl.src = src;
+  };
+
   useEffect(() => {
     if (!canvasRef.current) return;
 
@@ -42,27 +75,6 @@ const CanvasWorkspace = ({ onCanvasReady, product, imageSrc, selectedProductColo
     });
 
     canvas.add(clipPath);
-
-    FabricImage.fromURL(proxiedImageSrc, (img) => {
-      img.set({
-        originX: 'left',
-        originY: 'top',
-        left: 0,
-        top: 0,
-        width: 250,
-        height: 350,
-        selectable: false,
-        evented: false,
-        opacity: 0.95,
-      });
-      canvas.setBackgroundImage(img, canvas.renderAll.bind(canvas), {
-        originX: 'left',
-        originY: 'top',
-        width: 250,
-        height: 350,
-      });
-    }, { crossOrigin: 'anonymous' });
-
     setFabricCanvas(canvas);
     if (onCanvasReady) onCanvasReady(canvas);
 
@@ -79,26 +91,7 @@ const CanvasWorkspace = ({ onCanvasReady, product, imageSrc, selectedProductColo
 
   useEffect(() => {
     if (!fabricCanvas) return;
-
-    FabricImage.fromURL(proxiedImageSrc, (img) => {
-      img.set({
-        originX: 'left',
-        originY: 'top',
-        left: 0,
-        top: 0,
-        width: 250,
-        height: 350,
-        selectable: false,
-        evented: false,
-        opacity: 0.95,
-      });
-      fabricCanvas.setBackgroundImage(img, fabricCanvas.renderAll.bind(fabricCanvas), {
-        originX: 'left',
-        originY: 'top',
-        width: 250,
-        height: 350,
-      });
-    }, { crossOrigin: 'anonymous' });
+    loadProductImage(fabricCanvas, proxiedImageSrc);
   }, [proxiedImageSrc, fabricCanvas]);
 
   return (

@@ -1,15 +1,17 @@
-import React, { useState, useEffect, useContext } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useContext, useMemo } from 'react';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { IoArrowBack, IoDownloadOutline, IoCartOutline } from 'react-icons/io5';
 import { IText, Rect, Circle, Triangle, FabricImage } from 'fabric';
 import { AuthContext } from '../Context/AuthContext';
 import SidebarTools from './SidebarTools';
 import CanvasWorkspace from './CanvasWorkspace';
 import PropertiesPanel from './PropertiesPanel';
+import { flattenVariantImages } from '../Products/helpers';
 
 const CustomizerLayout = () => {
   const { productId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const { products, addToCart } = useContext(AuthContext);
   
   const [product, setProduct] = useState(null);
@@ -19,6 +21,38 @@ const CustomizerLayout = () => {
   const [currentViewIndex, setCurrentViewIndex] = useState(0);
   const [viewStates, setViewStates] = useState({});
   const [selectedProductColor, setSelectedProductColor] = useState('#ffffff');
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+
+  const productImages = useMemo(() => {
+    if (!product) return [];
+
+    const normalizeImageArray = (images) => {
+      if (!images) return [];
+      if (Array.isArray(images)) return images.filter(Boolean);
+      if (typeof images === 'string') {
+        try {
+          const parsed = JSON.parse(images);
+          if (Array.isArray(parsed)) return parsed.filter(Boolean);
+        } catch {
+          return images.split(',').map((item) => item.trim()).filter(Boolean);
+        }
+      }
+      return [];
+    };
+
+    const primaryImages = normalizeImageArray(product.images);
+    if (primaryImages.length > 0) {
+      return primaryImages;
+    }
+
+    return flattenVariantImages(product.images_by_variant);
+  }, [product]);
+
+  useEffect(() => {
+    if (productImages.length > 0) {
+      setSelectedImageIndex(0);
+    }
+  }, [productImages]);
 
   useEffect(() => {
     if (products && products.length > 0) {
@@ -26,6 +60,15 @@ const CustomizerLayout = () => {
       setProduct(found);
     }
   }, [productId, products]);
+
+  useEffect(() => {
+    if (location?.state?.selectedColor) {
+      setSelectedProductColor(location.state.selectedColor);
+    }
+    if (location?.state?.selectedImageIndex !== undefined) {
+      setSelectedImageIndex(location.state.selectedImageIndex);
+    }
+  }, [location?.state?.selectedColor, location?.state?.selectedImageIndex]);
 
   useEffect(() => {
     if (!canvas) return;
@@ -319,12 +362,35 @@ const CustomizerLayout = () => {
              </div>
           </div>
 
-          <CanvasWorkspace 
-            product={product} 
-            imageSrc={product.images?.[currentViewIndex] || product.images?.[0]} 
-            selectedProductColor={selectedProductColor}
-            onCanvasReady={(c) => setCanvas(c)} 
-          />
+          <div className="flex flex-col items-center gap-4 w-full">
+            <CanvasWorkspace 
+              key={productImages[selectedImageIndex] || product.images?.[0] || 'customizer'}
+              product={product} 
+              imageSrc={productImages[selectedImageIndex] || product.images?.[0]}
+              selectedProductColor={selectedProductColor}
+              onCanvasReady={(c) => setCanvas(c)} 
+            />
+
+            {productImages.length > 1 && (
+              <div className="w-full overflow-x-auto py-2 px-1 flex gap-2 justify-center items-center">
+                {productImages.map((src, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => setSelectedImageIndex(idx)}
+                    className={`border rounded-lg overflow-hidden ${selectedImageIndex === idx ? 'border-indigo-500 ring-2 ring-indigo-500/30' : 'border-gray-700'} shrink-0`}
+                    style={{ width: 72, height: 72 }}
+                  >
+                    <img
+                      src={src}
+                      alt={`Product image ${idx + 1}`}
+                      className="w-full h-full object-cover"
+                    />
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
           
           {/* Bottom Zoom/View Controls */}
           <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-gray-900/80 backdrop-blur border border-gray-700 rounded-full px-2 md:px-4 py-1 md:py-2 flex items-center gap-2 md:gap-4 shadow-lg scale-90 md:scale-100 whitespace-nowrap z-20 overflow-x-auto max-w-[90vw] custom-scrollbar">
