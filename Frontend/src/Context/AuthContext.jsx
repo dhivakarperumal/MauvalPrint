@@ -93,13 +93,28 @@ export function AuthProvider({ children }) {
             }
             if (typeof parsedStockByVariant !== 'object' || !parsedStockByVariant) parsedStockByVariant = {};
 
+            // parse images_by_variant if present
+            let parsedImagesByVariant = p.images_by_variant;
+            if (typeof parsedImagesByVariant === 'string') {
+              try { parsedImagesByVariant = JSON.parse(parsedImagesByVariant); } catch (e) { parsedImagesByVariant = {}; }
+            }
+            if (typeof parsedImagesByVariant !== 'object' || !parsedImagesByVariant) parsedImagesByVariant = {};
+
+            // if images array empty, try to use first available images from variants
+            let finalImages = parsedImages;
+            if ((!Array.isArray(finalImages) || finalImages.length === 0) && Object.keys(parsedImagesByVariant).length > 0) {
+              const flat = Object.values(parsedImagesByVariant).flat().filter(Boolean);
+              if (flat.length > 0) finalImages = flat;
+            }
+
             return {
               ...p,
               id: p.product_id || p.id,
               ourDesign: p.our_design == 1 || p.our_design === true || p.ourDesign === true,
               salePrice: p.sale_price || p.salePrice || 0,
               mrp: p.mrp || 0,
-              images: parsedImages,
+              images: finalImages,
+              images_by_variant: parsedImagesByVariant,
               size: parsedSize,
               color: parsedColor,
               keywords: parsedKeywords,

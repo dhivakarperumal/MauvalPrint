@@ -10,6 +10,7 @@ import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 import ZoomImage from "./ZoomImage";
+import { pickPrimaryImage, flattenVariantImages, isValidImageSrc } from "./helpers";
 import Login from "../Components/Login";
 import RegisterPage from "../Components/Register";
 import ProductCustomizer from "./ProductCustomizer";
@@ -105,6 +106,11 @@ const SingleProductView = () => {
 
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [id, memoizedProducts]);
+
+  // reset selected image index when product images change
+  useEffect(() => {
+    setSelectedImageIndex(0);
+  }, [product?.images, product?.images_by_variant]);
 
   // Map known color names/variants to exact color codes.
   // This ensures values like "navyblue" or "Navy" render as the intended hex.
@@ -339,6 +345,11 @@ const SingleProductView = () => {
   if (!product) return <div className="p-6 text-center">Loading...</div>;
   const isWishlisted = wishlist.some((p) => p.id === product.id);
 
+  // prepare images: prefer product.images, else flatten images_by_variant
+  const displayImages = (Array.isArray(product.images) && product.images.filter(isValidImageSrc).length>0)
+    ? product.images.filter(isValidImageSrc)
+    : flattenVariantImages(product.images_by_variant || {});
+
   // Ensure numeric values
   const salePrice = Number(product.salePrice) || 0;
   const mrp = Number(product.mrp) || 0;
@@ -354,10 +365,10 @@ const SingleProductView = () => {
           <div className="z-10">
             {/* ✅ Zoom Image Component */}
             <ZoomImage
-              imageSrc={product.images[selectedImageIndex]}
-              thumbnails={product.images}
+              imageSrc={displayImages[selectedImageIndex] || displayImages[0] || ''}
+              thumbnails={displayImages}
               selectedImageIndex={selectedImageIndex}
-              onImageSelect={setSelectedImageIndex}
+              onImageSelect={(idx) => { setSelectedImageIndex(idx); }}
             />
           </div>
           {/* Info */}
