@@ -1,187 +1,37 @@
 import React, { useEffect, useState, useRef, useContext } from "react";
-import {
-  FiLayout,
-  FiPackage,
-  FiFolder,
-  FiFeather,
-  FiTag,
-  FiShoppingCart,
-  FiShoppingBag,
-  FiList,
-  FiClock,
-  FiTruck,
-  FiXCircle,
-  FiUsers,
-  FiUserPlus,
-  FiBox,
-  FiPlusCircle,
-  FiSearch,
-  FiFileText,
-  FiStar,
-  FiBriefcase,
-  FiMenu,
-  FiBell,
-  FiUser,
-  FiLogOut,
-  FiHome
-} from "react-icons/fi";
-import { Link, useNavigate } from "react-router-dom";
+import { Outlet, useNavigate } from "react-router-dom";
 import api from "../api";
 import { toast } from "react-toastify";
 import { AuthContext } from "../Context/AuthContext";
-
-// Components
-import Dashboard from "./Dashboard";
-import ProductList from "./Products/Products";
-import AddProducts from "./Products/AddProducts";
-import OurDesings from "./Products/OurDesings";
-import ProductKeywords from "./Products/ProductKeywords";
-
-import NewOrders from "./Orders/NewOrders";
-import AllOrders from "./Orders/AllOrders";
-import ProccesingOrders from "./Orders/ProccesingOrders";
-import DeliveryOrders from "./Orders/DeliveryOrders";
-import CancelOrders from "./Orders/CancleOrders";
-
-import AddUser from "./Users/AddUser";
-import NewUsers from "./Users/NewUsers";
-import OldUsers from "./Users/OldUsers";
-
-import AddStock from "./Stock/AddStock";
-import StockDetails from "./Stock/StockDetails";
-
-import Billing from "./Billing";
-import Reviews from "./Reviews";
-import Category from "./Categorey";
-import Invoice from "./Invoice";
-import Dealers from "./Delears";
-import Profile from "./Profile/Profile";
-import GetOrdersDetails from "./GetOrdersDetails";
-
-import logo from "/Image/logo.png";
-
-const tabLabels = {
-  dashboard: { label: "Dashboard", icon: <FiLayout /> },
-  allProducts: {
-    label: "Products",
-    icon: <FiPackage />,
-    isDropdown: true,
-    children: {
-      allProducts: { label: "All Products", icon: <FiPackage /> },
-      category: { label: "Category", icon: <FiFolder /> },
-      // ourDesigns: { label: "Our Designs", icon: <FiFeather /> },
-      productKeywords: { label: "Product Keywords", icon: <FiTag /> },
-    },
-  },
-  orders: {
-    label: "Orders",
-    icon: <FiShoppingCart />,
-    isDropdown: true,
-    children: {
-      newOrders: { label: "New Orders", icon: <FiShoppingBag /> },
-      allOrders: { label: "All Orders", icon: <FiList /> },
-      processingOrders: { label: "Processing Orders", icon: <FiClock /> },
-      deliveryOrders: { label: "Delivery Orders", icon: <FiTruck /> },
-      cancelOrders: { label: "Cancelled Orders", icon: <FiXCircle /> },
-    },
-  },
-  customers: {
-    label: "Users",
-    icon: <FiUsers />,
-    isDropdown: true,
-    children: {
-      newUsers: { label: "New Users", icon: <FiUserPlus /> },
-      users: { label: "All Users", icon: <FiUsers /> },
-    },
-  },
-  // stock: {
-  //   label: "Stock",
-  //   icon: <FiBox />,
-  //   isDropdown: true,
-  //   children: {
-  //     addStock: { label: "Add Stock", icon: <FiPlusCircle /> },
-  //     stockDetails: { label: "Stock Details", icon: <FiSearch /> },
-  //   },
-  // },
-  stockDetails: { label: "Stock Details", icon: <FiSearch /> },
-  billing: { label: "Billing", icon: <FiFileText /> },
-  getOrders: { label: "Get Order Details", icon: <FiSearch /> },
-  reviews: { label: "Reviews", icon: <FiStar /> },
-  dealers: {
-    label: "Dealers",
-    icon: <FiBriefcase />,
-    isDropdown: true,
-    children: {
-      dealers: { label: "All Dealers", icon: <FiBriefcase /> },
-      invoice: { label: "Invoice", icon: <FiFileText /> },
-    },
-  },
-};
-
-const SidebarItem = ({ icon, label, active, onClick, count, isChild, isParentActive }) => (
-  <button
-    onClick={onClick}
-    className={`group flex items-center justify-between px-4 py-3 w-full transition-all duration-300 ease-in-out cursor-pointer overflow-hidden relative ${
-      isChild ? "text-sm rounded-lg my-0.5 ml-2 w-[calc(100%-8px)]" : "text-base rounded-xl my-1"
-    } ${
-      active 
-        ? "bg-gradient-to-r from-cyan-500/90 to-blue-600/90 text-white shadow-lg shadow-cyan-900/30 font-semibold" 
-        : isParentActive
-        ? "bg-white/5 text-cyan-50 font-medium"
-        : "text-gray-300 hover:bg-white/5 hover:text-white"
-    }`}
-  >
-    {active && !isChild && (
-      <span className="absolute left-0 top-0 bottom-0 w-1.5 bg-cyan-400 rounded-r-md shadow-[0_0_12px_rgba(34,211,238,0.8)]"></span>
-    )}
-    <div className="flex items-center gap-3 relative z-10">
-      <span className={`text-xl transition-all duration-300 ${active ? "scale-110 text-yellow-300 drop-shadow-[0_0_8px_rgba(253,224,71,0.8)]" : isParentActive ? "text-cyan-400 scale-105" : "group-hover:scale-110 group-hover:text-cyan-400"}`}>
-        {icon}
-      </span>
-      <span className="tracking-wide">{label}</span>
-    </div>
-    {count > 0 && (
-      <span className="relative z-10 bg-rose-500 text-white text-xs font-bold px-2.5 py-0.5 rounded-full shadow-md animate-pulse">
-        {count}
-      </span>
-    )}
-  </button>
-);
+import AdminSidebar from "./AdminSidebar";
+import AdminTopbar from "./AdminTopbar";
 
 const AdminPanel = () => {
-  const [activeTab, setActiveTab] = useState("dashboard");
   const [mobileMenu, setMobileMenu] = useState(false);
-  const [openDropdown, setOpenDropdown] = useState({});
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const profileRef = useRef();
   const notificationprofileRef = useRef();
+  const sidebarRef = useRef(null);
+  const lowStockRef = useRef(null);
+  const [showLowStock, setShowLowStock] = useState(false);
+  const [open, setOpen] = useState(false);
 
   const [selectedProduct, setSelectedProduct] = useState(null);
-
-
   const [products, setProducts] = useState([]);
   const [lowStockItems, setLowStockItems] = useState([]);
   const [notifications, setNotifications] = useState([]);
   const [counts, setCounts] = useState({
-    allProducts: 0,
-    newOrders: 0,
-    newUsers: 0,
-    stockDetails: 0,
+    "/admin/products": 0,
+    "/admin/neworders": 0,
+    "/admin/newusers": 0,
+    "/admin/stockdetails": 0,
   });
 
   const [adminName, setAdminName] = useState("");
-  const [adminImage, setAdminImage] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [suggestions, setSuggestions] = useState([]);
 
   const { user, logout } = useContext(AuthContext);
-
-  const sidebarRef = useRef(null);
-  const lowStockRef = useRef(null);
-  const [showLowStock, setShowLowStock] = useState(false);
-  // const [openNotifications, setOpenNotifications] = useState(false);
-  const [open, setOpen] = useState(false)
-
   const navigate = useNavigate();
 
   // Logout
@@ -212,8 +62,8 @@ const AdminPanel = () => {
         data.products.forEach((product) => {
           let stockByVariant = {};
           try {
-            stockByVariant = product.stock_by_variant 
-              ? (typeof product.stock_by_variant === 'string' ? JSON.parse(product.stock_by_variant) : product.stock_by_variant) 
+            stockByVariant = product.stock_by_variant
+              ? (typeof product.stock_by_variant === 'string' ? JSON.parse(product.stock_by_variant) : product.stock_by_variant)
               : {};
           } catch (e) {}
 
@@ -221,7 +71,7 @@ const AdminPanel = () => {
           Object.values(stockByVariant).forEach((qty) => {
             totalStock += parseInt(qty, 10) || 0;
           });
-          
+
           productList.push({ ...product, totalStock });
 
           if (totalStock < 5) lowStockList.push({ ...product, totalStock });
@@ -230,11 +80,10 @@ const AdminPanel = () => {
         setProducts(productList);
         setLowStockItems(lowStockList);
 
-        // Update counts
         setCounts((prev) => ({
           ...prev,
-          allProducts: productList.length,
-          stockDetails: lowStockList.length,
+          "/admin/products": productList.length,
+          "/admin/stockdetails": lowStockList.length,
         }));
       } catch (error) {
         toast.error("Failed to fetch products");
@@ -265,7 +114,7 @@ const AdminPanel = () => {
           );
 
         setNotifications(todayOrders);
-        setCounts((prev) => ({ ...prev, newOrders: todayOrders.length }));
+        setCounts((prev) => ({ ...prev, "/admin/neworders": todayOrders.length }));
       } catch (error) {
         console.error(error);
       }
@@ -287,7 +136,7 @@ const AdminPanel = () => {
           return createdAt.toISOString().split("T")[0] === todayStr;
         });
 
-        setCounts((prev) => ({ ...prev, newUsers: newUsers.length }));
+        setCounts((prev) => ({ ...prev, "/admin/newusers": newUsers.length }));
       } catch (error) {
         console.error(error);
       }
@@ -300,471 +149,87 @@ const AdminPanel = () => {
   useEffect(() => {
     if (user) {
       setAdminName(user.username || user.email || "Admin");
-      setAdminImage("https://randomuser.me/api/portraits/men/75.jpg");
     }
   }, [user]);
 
-  // Search Suggestions
+  // Search Suggestions (simplified for layout)
   useEffect(() => {
     if (!searchQuery.trim()) return setSuggestions([]);
     const q = searchQuery.toLowerCase();
-    const results = [];
-    Object.entries(tabLabels).forEach(([key, value]) => {
-      if (value.label.toLowerCase().includes(q)) results.push({ key, label: value.label });
-      if (value.isDropdown) {
-        Object.entries(value.children).forEach(([childKey, child]) => {
-          if (child.label.toLowerCase().includes(q))
-            results.push({ key: childKey, label: child.label });
-        });
-      }
-    });
-    setSuggestions(results);
+    const mockSuggestions = [
+      { key: "/admin/products", label: "All Products" },
+      { key: "/admin/orders", label: "Orders" },
+      { key: "/admin/addproducts", label: "Add Product" },
+    ].filter(s => s.label.toLowerCase().includes(q));
+    setSuggestions(mockSuggestions);
   }, [searchQuery]);
 
   // Close dropdowns on outside click
   useEffect(() => {
     const handleClickOutside = (e) => {
-      if (e.target.closest("[data-ignore-outside]")) return; // 👈 add this line at the top
+      if (e.target.closest("[data-ignore-outside]")) return;
 
-if (
-  profileRef.current &&
-  !profileRef.current.contains(e.target) &&
-  (!sidebarRef.current || !sidebarRef.current.contains(e.target)) &&
-  (!notificationprofileRef.current || !notificationprofileRef.current.contains(e.target)) &&
-  (!lowStockRef.current || !lowStockRef.current.contains(e.target))
-) {
-  setProfileDropdownOpen(false);
-  setShowLowStock(false);
-  setOpen(false); // close notifications if open
-  // ❌ remove setOpenDropdown({}) so sidebar tabs don’t close
-}
-
+      if (
+        profileRef.current &&
+        !profileRef.current.contains(e.target) &&
+        (!sidebarRef.current || !sidebarRef.current.contains(e.target)) &&
+        (!notificationprofileRef.current || !notificationprofileRef.current.contains(e.target)) &&
+        (!lowStockRef.current || !lowStockRef.current.contains(e.target))
+      ) {
+        setProfileDropdownOpen(false);
+        setShowLowStock(false);
+        setOpen(false);
+      }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const renderContent = () => {
-    switch (activeTab) {
-      case "dashboard": return <Dashboard />;
-
-      case "allProducts":
-        return (
-          <ProductList
-            setSelectedProduct={setSelectedProduct}
-            setActiveTab={setActiveTab}
-          />
-        );
-
-      case "addProduct":
-        return (
-          <AddProducts
-            selectedProduct={selectedProduct}
-            setSelectedProduct={setSelectedProduct}
-            setActiveTab={setActiveTab}
-          />
-        );
-      // case "allProducts": return <ProductList setActiveTab={setActiveTab} />;
-      // case "addProduct": return <AddProducts setActiveTab={setActiveTab} />;
-      case "ourDesigns": return <OurDesings />;
-      case "productKeywords": return <ProductKeywords />;
-      case "newOrders": return <NewOrders />;
-      case "allOrders": return <AllOrders />;
-      case "processingOrders": return <ProccesingOrders />;
-      case "deliveryOrders": return <DeliveryOrders />;
-      case "cancelOrders": return <CancelOrders />;
-      // case "billing": return <Billing />;
-      case "billing": 
-        return (
-        <Billing 
-          setActiveTab={setActiveTab} />
-        );
-      case "reviews": return <Reviews />;
-      case "addUser": return <AddUser />;
-      case "newUsers": return <NewUsers />;
-      case "users": return <OldUsers />;
-      case "addStock": return <AddStock />;
-      case "stockDetails": return <StockDetails />;
-      case "category": return <Category />;
-      case "invoice": return <Invoice />;
-      case "dealers": return <Dealers />;
-      case "profile": return <Profile />;
-      case "getOrders": return <GetOrdersDetails />;
-      default: return <h2 className="text-red-500">Page not found</h2>;
-    }
-  };
-
-  const getTabLabel = (key) => {
-  // direct/top-level
-  if (tabLabels[key]?.label) return tabLabels[key].label;
-
-  // search in children
-  for (const group of Object.values(tabLabels)) {
-    if (group.isDropdown && group.children && group.children[key]?.label) {
-      return group.children[key].label;
-    }
-  }
-
-  // fallback labels for routes that aren't in tabLabels
-  const fallback = {
-    addProduct: "Add Product",
-    profile: "My Profile",
-  };
-  return fallback[key] || "Admin";
-};
-
-
   return (
     <div className="flex h-screen overflow-hidden">
-      {/* Sidebar */}
-      <aside
-        className={`fixed md:relative z-50 bg-[#0f1c35] w-[300px] h-screen text-white transition-all duration-300 ease-in-out shadow-[4px_0_24px_rgba(0,0,0,0.15)] border-r border-white/5 ${mobileMenu ? "translate-x-0" : "-translate-x-full md:translate-x-0"
-          }`}
-        ref={sidebarRef}
-      >
-        <div className="flex flex-col h-full overflow-y-auto">
-          {/* Header */}
-          <div className="flex items-center justify-between px-6 py-5 border-b border-white/10 shrink-0 bg-white/5 backdrop-blur-sm">
-            <div className="flex items-center gap-3">
-              <img src={logo} alt="Logo" className="h-10 w-auto object-contain drop-shadow-md" />
-              <span className="text-xl font-black tracking-widest uppercase bg-clip-text text-transparent bg-gradient-to-r from-cyan-300 to-blue-400 drop-shadow-sm">Mauval Print</span>
-            </div>
-            <button className="md:hidden text-2xl text-gray-400 hover:text-white cursor-pointer transition-colors" onClick={() => setMobileMenu(false)}>✕</button>
-          </div>
-
-          {/* Navigation */}
-          <nav className="flex-1 overflow-y-auto scrollbar-hide px-4 py-6 space-y-1">
-            {Object.entries(tabLabels).map(([key, value]) => {
-              if (value.isDropdown) {
-                return (
-                  <div key={key}>
-                    <SidebarItem
-                      icon={value.icon}
-                      label={value.label}
-                      active={false}
-                      isParentActive={Object.keys(value.children).includes(activeTab)}
-                      onClick={() =>
-                        setOpenDropdown((prev) => ({ ...prev, [key]: !prev[key] }))
-                      }
-                    />
-                    {openDropdown[key] && (
-                      <div className="ml-5 space-y-1 mt-1  pl-2">
-                        {Object.entries(value.children).map(([childKey, child]) => (
-                          <SidebarItem
-                            key={childKey}
-                            icon={child.icon}
-                            label={child.label}
-                            active={activeTab === childKey}
-                            count={counts[childKey] || 0}
-                            onClick={() => {
-                              setActiveTab(childKey);
-                              setMobileMenu(false);
-                            }}
-                            isChild={true}
-                          />
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                );
-              }
-
-              return (
-                <SidebarItem
-                  key={key}
-                  icon={value.icon}
-                  label={value.label}
-                  active={activeTab === key}
-                  count={counts[key] || 0}
-                  onClick={() => {
-                    setActiveTab(key);
-                    setMobileMenu(false);
-                  }}
-                />
-              );
-            })}
-            <div className="pt-6 pb-2">
-              <Link
-                to="/"
-                className="group flex items-center justify-center gap-2 px-4 py-3 bg-white/5 border border-white/10 text-white font-medium rounded-xl shadow-sm hover:bg-white/10 hover:shadow-md transition-all duration-300 w-full"
-              >
-                <FiHome className="group-hover:scale-110 transition-transform duration-300 text-blue-400" />
-                Back Home
-              </Link>
-            </div>
-          </nav>
-
-
-        </div>
-      </aside>
+      <AdminSidebar
+        mobileMenu={mobileMenu}
+        setMobileMenu={setMobileMenu}
+        sidebarRef={sidebarRef}
+        counts={counts}
+      />
 
       <div className="flex-1 flex flex-col md:ml-0 min-h-screen">
-        <header className="bg-[#192f59] text-white flex items-center justify-between px-4 h-auto md:h-20 shadow sticky top-0 z-40 py-3">
-          <div className="flex items-center gap-4 w-full md:w-auto">
-            <button
-              className="md:hidden text-2xl"
-              onClick={() => setMobileMenu(true)}
-            >
-              <FiMenu />
-            </button>
-            <h1 className="font-bold text-lg whitespace-nowrap tracking-wide">
-              {getTabLabel(activeTab)}
-              <span className="text-sm text-gray-300 block mt-1">Hi Welcome toAdmin Panel</span>
-            </h1>
-          </div>
+        <AdminTopbar
+          mobileMenu={mobileMenu}
+          setMobileMenu={setMobileMenu}
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          suggestions={suggestions}
+          setSuggestions={setSuggestions}
+          lowStockItems={lowStockItems}
+          notifications={notifications}
+          adminName={adminName}
+          user={user}
+          handleLogout={handleLogout}
+          profileRef={profileRef}
+          notificationprofileRef={notificationprofileRef}
+          lowStockRef={lowStockRef}
+          showLowStock={showLowStock}
+          setShowLowStock={setShowLowStock}
+          open={open}
+          setOpen={setOpen}
+          profileDropdownOpen={profileDropdownOpen}
+          setProfileDropdownOpen={setProfileDropdownOpen}
+        />
 
-          {/* Right section */}
-          <div
-            className="flex items-center gap-4 md:gap-6 ml-auto relative"
-            ref={profileRef}
-          >
-            <div className="relative hidden md:block mr-2">
-              <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search menu..."
-                className="pl-10 pr-4 py-2 w-64 rounded-full text-sm text-black bg-white focus:outline-none shadow-sm border border-gray-200 transition-shadow focus:shadow-md"
-              />
-              {suggestions.length > 0 && (
-                <ul className="absolute mt-2 w-full bg-white border border-gray-200 rounded-xl shadow-xl z-50 max-h-60 overflow-auto">
-                  {suggestions.map((s) => (
-                    <li
-                      key={s.key}
-                      onClick={() => {
-                        setActiveTab(s.key);
-                        setSearchQuery("");
-                        setSuggestions([]);
-                        setMobileMenu(false);
-                      }}
-                      className="px-4 py-3 hover:bg-blue-50 cursor-pointer text-gray-800 transition-colors border-b border-gray-100 last:border-0"
-                    >
-                      {s.label}
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-
-            <div className="relative">
-              {/* Low Stock Alert Button */}
-              <button
-                onClick={() => setShowLowStock((prev) => !prev)}
-                className="relative bg-white cursor-pointer text-[#192f59] font-bold w-10 h-10 font-serif rounded-full shadow hover:bg-gray-100 text-lg"
-                title="Stock Details"
-              >
-                S
-                {lowStockItems.length > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-red-600 text-xs text-white w-5 h-5 flex items-center justify-center rounded-full shadow z-10">
-                    {lowStockItems.length}
-                  </span>
-                )}
-              </button>
-
-              {/* Low Stock Alert Popup */}
-              {showLowStock && (
-                <div className="absolute top-13 right-[-120px] w-[300px] sm:w-[400px] bg-white border border-gray-200 rounded-xl shadow-lg z-50 p-4 space-y-3">
-                  <h1 className="text-lg font-bold text-red-700">
-                    Low Stock Alert
-                  </h1>
-
-                  {/* Table for Desktop */}
-                  <div className="hidden sm:block overflow-auto max-h-72 rounded border">
-                    <table className="min-w-full text-sm text-left">
-                      <thead className="bg-black">
-                        <tr>
-                          <th className="px-4 py-2">Product ID</th>
-                          <th className="px-4 py-2">Name</th>
-                          <th className="px-4 py-2 text-right">Stock</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {lowStockItems.length > 0 ? (
-                          lowStockItems.map((product) => (
-                            <tr
-                              key={product.productId}
-                              className="border-t bg-gray-50 hover:bg-gray-100"
-                            >
-                              <td className="px-4 py-2 text-black ">
-                                {product.productId}
-                              </td>
-                              <td className="px-4 py-2 text-black ">
-                                {product.name}
-                              </td>
-                              <td className="px-4 py-2 text-right font-semibold text-red-600">
-                                {product.totalStock}
-                              </td>
-                            </tr>
-                          ))
-                        ) : (
-                          <tr>
-                            <td
-                              colSpan="3"
-                              className="text-center py-4 text-gray-500"
-                            >
-                              No low stock products found.
-                            </td>
-                          </tr>
-                        )}
-                      </tbody>
-                    </table>
-                  </div>
-
-                  {/* Compact Table for Mobile */}
-                  <div className="sm:hidden overflow-auto max-h-72 rounded border">
-                    <table className="min-w-full text-sm text-left">
-                      <thead className="bg-black">
-                        <tr>
-                          <th className="px-3 py-2">ID</th>
-                          <th className="px-3 py-2 text-right">Qty</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {lowStockItems.length > 0 ? (
-                          lowStockItems.map((product) => (
-                            <tr
-                              key={product.productId}
-                              className="border-t  hover:bg-gray-100"
-                            >
-                              <td className="px-3 py-2 text-black">
-                                {product.productId}
-                              </td>
-                              <td className="px-3 py-2 text-right font-semibold text-red-600">
-                                {product.totalStock}
-                              </td>
-                            </tr>
-                          ))
-                        ) : (
-                          <tr>
-                            <td
-                              colSpan="2"
-                              className="text-center py-4 text-gray-500"
-                            >
-                              No low stock products.
-                            </td>
-                          </tr>
-                        )}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Notification Icon */}
-            <div className="relative" ref={notificationprofileRef}  >
-
-              <button
-                onClick={() => setOpen(!open)}
-                className="relative  cursor-pointer w-10 h-10 border-2 rounded-full flex items-center justify-center"
-              >
-                <FiBell className="text-xl" />
-                {notifications.length > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-red-600 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">
-                    {notifications.length}
-                  </span>
-                )}
-              </button>
-
-              {open && (
-                <div className="absolute right-[-50px] top-12 w-[90vw] max-w-xs sm:max-w-sm bg-white shadow-xl rounded-lg z-50 overflow-hidden border border-gray-200">
-                  <ul className="divide-y max-h-80 overflow-y-auto">
-                    {notifications.length === 0 ? (
-                      <li className="p-4 text-gray-500 text-sm text-center">
-                        No new orders today
-                      </li>
-                    ) : (
-                      notifications.map((order) => (
-                        <li
-                          key={order.orderID}
-                          onClick={() => {
-                            setActiveTab("allOrders");
-                            setOpen(false);
-                          }}
-                          className="flex gap-3 p-4 hover:bg-gray-50 transition cursor-pointer"
-                        >
-                          <div className="bg-gray-200 rounded-full w-10 h-10 flex items-center justify-center text-gray-600 font-bold">
-                            📦
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="font-medium text-gray-800 truncate">
-                              {order.checkout?.fullname}
-                            </p>
-                            <p className="text-sm text-gray-600 truncate">
-                              Placed an order - #{order.orderID}
-                            </p>
-                            <p className="text-xs text-gray-400 mt-1">
-                              {order.time}
-                            </p>
-                          </div>
-                        </li>
-                      ))
-                    )}
-                  </ul>
-                </div>
-              )}
-            </div>
-
-            {/* Profile Button */}
-            <button
-              onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
-              className="flex  cursor-pointer items-center gap-2"
-            >
-              {/* <img
-                src={adminImage}
-                alt="profile"
-                className="w-10 h-10 rounded-full border-2 p-1.5 object-cover max-w-[120px]"
-              /> */}
-              <p className="border-2 px-3 py-1 rounded-full text-xl font-bold ">
-                {adminName?.charAt(0).toUpperCase() || "A"}
-              </p>
-              
-            </button>
-
-            {/* Profile Dropdown */}
-            {profileDropdownOpen && (
-              <div className="absolute right-2 top-14 w-64 bg-white text-black shadow-md rounded-lg z-50 overflow-hidden">
-                <div className="flex flex-col px-4 py-3 border-b border-gray-300 gap-1">
-                  <p className="font-semibold">{user?.username || user?.email || adminName} {user?.role && (
-                    <span className="text-xs text-gray-500 mt-1">Role: {user.role}</span>
-                  )}</p>
-                  {user?.email && (
-                    <p className="text-xs text-gray-500 truncate">{user.email}</p>
-                  )}
-                  
-                </div>
-
-                <button
-                  onClick={() => {
-                    setActiveTab("profile");
-                    setProfileDropdownOpen(false);
-                  }}
-                  className="w-full text-left px-4 py-2 hover:bg-gray-900 text-gray-800 hover:text-white flex items-center gap-2"
-                >
-                  <FiUser className="text-gray-600 group-hover:text-white" />
-                  My Profile
-                </button>
-
-                <button
-                  onClick={handleLogout}
-                  className="w-full text-left px-4 py-2 hover:bg-red-100 text-red-600 hover:text-red-800 flex items-center gap-2"
-                >
-                  <FiLogOut className="text-red-600 hover:text-red-800" />
-                  Logout
-                </button>
-              </div>
-            )}
-          </div>
-        </header>
-
-        <main className="flex-1 overflow-y-auto bg-gray-50  ">
-          {renderContent()}
+        <main className="flex-1 overflow-y-auto bg-gray-50">
+          {/* Render child routes */}
+          <Outlet context={{
+            selectedProduct,
+            setSelectedProduct,
+            products,
+            setProducts
+          }} />
 
           <div className="p-0">
-            <footer className="bg-[#192f59] text-white text-sm py-4 px-6 text-center shadow-inner">
-              © {new Date().getFullYear()} T-Shirt Admin Panel. All rights
-              reserved. | Built by Q-Techx Solutions
+            <footer className="bg-[#192f59] text-white text-sm py-4 px-6 text-center shadow-inner mt-auto">
+              © {new Date().getFullYear()} T-Shirt Admin Panel. All rights reserved. | Built by Q-Techx Solutions
             </footer>
           </div>
         </main>
