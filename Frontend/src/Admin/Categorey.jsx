@@ -25,6 +25,8 @@ const Category = () => {
   const [editId, setEditId] = useState(null);
   const [previewImgs, setPreviewImgs] = useState([]);
   const [subcatInput, setSubcatInput] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   // ── Filter state ────────────────────────────────────────────────────────────
   const [search, setSearch] = useState("");
@@ -92,7 +94,17 @@ const Category = () => {
     setFilterSubcatCount("all");
     setFilterHasImage("all");
     setSortBy("default");
+    setCurrentPage(1);
   };
+
+  const indexOfLast = currentPage * itemsPerPage;
+  const indexOfFirst = indexOfLast - itemsPerPage;
+  const currentItems = filtered.slice(indexOfFirst, indexOfLast);
+  const totalPages = Math.ceil(filtered.length / itemsPerPage);
+
+  useEffect(() => {
+    if (currentPage > totalPages && totalPages > 0) setCurrentPage(totalPages);
+  }, [filtered, currentPage, totalPages]);
 
   // ── Image handling ──────────────────────────────────────────────────────────
   const handleImageChange = async (e) => {
@@ -316,9 +328,9 @@ const Category = () => {
       {/* ════════════════════ CARD MODE ════════════════════ */}
       {viewMode === "card" && (
         <>
-          {filtered.length > 0 ? (
+          {currentItems.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {filtered.map((cat) => (
+              {currentItems.map((cat) => (
                 <div
                   key={cat.category_id}
                   className="group bg-white rounded-3xl overflow-hidden shadow-md hover:shadow-2xl border border-gray-100 transition-all duration-300 hover:-translate-y-1"
@@ -442,14 +454,14 @@ const Category = () => {
               </tr>
             </thead>
             <tbody>
-              {filtered.length > 0 ? (
-                filtered.map((cat, idx) => (
+              {currentItems.length > 0 ? (
+                currentItems.map((cat, idx) => (
                   <tr
                     key={cat.category_id}
                     className={`border-b border-gray-100 hover:bg-blue-50/40 transition-colors ${idx % 2 === 0 ? "bg-white" : "bg-gray-50/40"}`}
                   >
                     <td className="px-5 py-3.5 text-center font-medium text-gray-500">
-                      {idx + 1}
+                      {indexOfFirst + idx + 1}
                     </td>
                     <td className="px-5 py-3.5">
                       <span className="bg-blue-100 text-blue-800 text-[11px] font-bold px-2.5 py-1 rounded-md">
@@ -515,6 +527,79 @@ const Category = () => {
               )}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {/* ════════════════════ PAGINATION ════════════════════ */}
+      {totalPages > 0 && (
+        <div className="flex flex-col items-center gap-3 mt-8 py-6 bg-white rounded-lg border border-gray-200 shadow-sm">
+          <div className="flex flex-col sm:flex-row items-center gap-4 justify-between w-full px-6">
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-500 font-medium">Rows per page:</span>
+              <select
+                value={itemsPerPage}
+                onChange={(e) => {
+                  setItemsPerPage(Number(e.target.value));
+                  setCurrentPage(1);
+                }}
+                className="border border-gray-300 rounded-md text-sm py-1 px-2 text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value={10}>10</option>
+                <option value={20}>20</option>
+                <option value={50}>50</option>
+                <option value={100}>100</option>
+              </select>
+            </div>
+            
+            {totalPages > 1 && (
+              <div className="flex flex-wrap items-center gap-2 justify-center">
+                <button
+                  onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                  disabled={currentPage === 1}
+                  className="rounded-full px-4 py-2 border border-gray-300 bg-white text-gray-700 font-medium disabled:cursor-not-allowed disabled:opacity-50 hover:bg-gray-100 transition-colors"
+                >
+                  ← Prev
+                </button>
+
+                {Array.from({ length: totalPages }, (_, idx) => {
+                  const page = idx + 1;
+                  const shouldShow = page === 1 || page === totalPages || Math.abs(page - currentPage) <= 2;
+                  
+                  if (!shouldShow) {
+                    if ((page === 2 && currentPage > 4) || (page === totalPages - 1 && currentPage < totalPages - 3)) {
+                      return <span key={page} className="px-2 text-gray-400 font-medium">...</span>;
+                    }
+                    return null;
+                  }
+
+                  return (
+                    <button
+                      key={page}
+                      onClick={() => setCurrentPage(page)}
+                      className={`h-10 min-w-[2.5rem] rounded-full border font-medium transition-colors ${
+                        currentPage === page
+                          ? "bg-gray-900 text-white border-gray-900 shadow-md"
+                          : "bg-white text-gray-700 border-gray-300 hover:border-gray-400 hover:bg-gray-50"
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  );
+                })}
+
+                <button
+                  onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                  disabled={currentPage === totalPages}
+                  className="rounded-full px-4 py-2 border border-gray-300 bg-white text-gray-700 font-medium disabled:cursor-not-allowed disabled:opacity-50 hover:bg-gray-100 transition-colors"
+                >
+                  Next →
+                </button>
+              </div>
+            )}
+          </div>
+          <p className="text-sm text-gray-500 font-medium">
+            Page <span className="font-bold text-gray-700">{currentPage}</span> of <span className="font-bold text-gray-700">{totalPages}</span> • Showing {currentItems.length} of {filtered.length} items
+          </p>
         </div>
       )}
 

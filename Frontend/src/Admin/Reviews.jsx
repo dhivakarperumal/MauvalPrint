@@ -30,6 +30,9 @@ const Reviews = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [viewMode, setViewMode] = useState("table"); // "card" or "table"
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+
   const fetchReviews = async () => {
     try {
       const { data } = await api.get("/reviews");
@@ -167,6 +170,15 @@ const Reviews = () => {
   const totalReviews = reviews.length;
   const featuredReviews = reviews.filter((r) => r.featured).length;
   const standardReviews = reviews.filter((r) => !r.featured).length;
+
+  const indexOfLast = currentPage * itemsPerPage;
+  const indexOfFirst = indexOfLast - itemsPerPage;
+  const currentItems = filteredReviews.slice(indexOfFirst, indexOfLast);
+  const totalPages = Math.ceil(filteredReviews.length / itemsPerPage);
+
+  useEffect(() => {
+    if (currentPage > totalPages && totalPages > 0) setCurrentPage(totalPages);
+  }, [filteredReviews, currentPage, totalPages]);
 
   return (
     <div className="p-4 sm:p-6 bg-gray-50 min-h-screen space-y-6">
@@ -372,7 +384,7 @@ const Reviews = () => {
       {/* Reviews Display */}
       {viewMode === 'card' ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredReviews.length > 0 ? filteredReviews.map((review) => (
+          {currentItems.length > 0 ? currentItems.map((review) => (
             <div
               key={review.id}
               className="bg-white rounded-lg shadow p-5 border border-gray-100 flex flex-col justify-between"
@@ -441,9 +453,9 @@ const Reviews = () => {
               </tr>
             </thead>
             <tbody>
-              {filteredReviews.length > 0 ? filteredReviews.map((review, index) => (
+              {currentItems.length > 0 ? currentItems.map((review, index) => (
                 <tr key={review.id} className="border-b border-gray-100 hover:bg-gray-50">
-                  <td className="p-4 text-gray-500 font-medium text-center">{index + 1}</td>
+                  <td className="p-4 text-gray-500 font-medium text-center">{indexOfFirst + index + 1}</td>
                   <td className="p-4">
                     {review.image ? (
                       <img src={review.image} alt="Review" className="w-12 h-12 object-cover rounded-md" />
@@ -486,6 +498,79 @@ const Reviews = () => {
               )}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {/* Pagination */}
+      {totalPages > 0 && (
+        <div className="flex flex-col sm:flex-row justify-between items-center px-5 py-4 mt-6 bg-white border border-gray-200 rounded-xl shadow-sm gap-4">
+          <div className="flex flex-wrap items-center gap-4">
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-500 font-medium">Rows per page:</span>
+              <select
+                value={itemsPerPage}
+                onChange={(e) => {
+                  setItemsPerPage(Number(e.target.value));
+                  setCurrentPage(1);
+                }}
+                className="border border-gray-300 rounded-md text-sm py-1 px-2 text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value={10}>10</option>
+                <option value={20}>20</option>
+                <option value={50}>50</option>
+                <option value={100}>100</option>
+              </select>
+            </div>
+            <p className="text-sm text-gray-600 font-medium">
+              Showing {filteredReviews.length === 0 ? 0 : indexOfFirst + 1} to {Math.min(indexOfLast, filteredReviews.length)} of {filteredReviews.length} items
+            </p>
+          </div>
+          
+          {totalPages > 1 && (
+          <div className="flex justify-center items-center gap-2 flex-wrap">
+            <button
+              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+              className="px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 text-sm font-medium transition-colors"
+            >
+              Prev
+            </button>
+            <div className="flex items-center gap-1">
+              {Array.from({ length: totalPages }, (_, idx) => {
+                const page = idx + 1;
+                const shouldShow = page === 1 || page === totalPages || Math.abs(page - currentPage) <= 2;
+                
+                if (!shouldShow) {
+                  if ((page === 2 && currentPage > 4) || (page === totalPages - 1 && currentPage < totalPages - 3)) {
+                    return <span key={page} className="px-2 text-gray-400 font-medium">...</span>;
+                  }
+                  return null;
+                }
+
+                return (
+                  <button
+                    key={page}
+                    onClick={() => setCurrentPage(page)}
+                    className={`w-8 h-8 flex items-center justify-center rounded-md text-sm font-medium transition-colors ${
+                      currentPage === page
+                        ? "bg-blue-600 text-white shadow-sm"
+                        : "bg-gray-50 border border-gray-200 hover:bg-gray-100 text-gray-700"
+                    }`}
+                  >
+                    {page}
+                  </button>
+                );
+              })}
+            </div>
+            <button
+              onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+              disabled={currentPage === totalPages}
+              className="px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 text-sm font-medium transition-colors"
+            >
+              Next
+            </button>
+          </div>
+          )}
         </div>
       )}
     </div>

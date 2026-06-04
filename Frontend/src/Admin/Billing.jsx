@@ -33,6 +33,9 @@ const Billing = ({ setActiveTab }) => {
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+
   const filteredOrders = useMemo(() => {
     const today = new Date();
     const startOfWeek = new Date(today);
@@ -70,6 +73,15 @@ const Billing = ({ setActiveTab }) => {
   const totalRevenue = useMemo(() => {
     return filteredOrders.reduce((sum, order) => sum + (parseFloat(order.total) || 0), 0);
   }, [filteredOrders]);
+
+  const indexOfLast = currentPage * itemsPerPage;
+  const indexOfFirst = indexOfLast - itemsPerPage;
+  const currentItems = filteredOrders.slice(indexOfFirst, indexOfLast);
+  const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
+
+  useEffect(() => {
+    if (currentPage > totalPages && totalPages > 0) setCurrentPage(totalPages);
+  }, [filteredOrders, currentPage, totalPages]);
 
   const invoiceRef = useRef();
   const navigate = useNavigate();
@@ -424,7 +436,7 @@ const Billing = ({ setActiveTab }) => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {filteredOrders.map((order) => (
+                {currentItems.map((order) => (
                   <tr key={order.order_id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-4 py-4 font-bold text-blue-700">{order.order_id}</td>
                     <td className="px-4 py-4">{order.checkout?.customerName || order.checkout?.fullname || "Unknown"}</td>
@@ -442,7 +454,7 @@ const Billing = ({ setActiveTab }) => {
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-          {filteredOrders.map((order) => (
+          {currentItems.map((order) => (
             <div key={order.order_id} className="bg-white rounded-2xl shadow-sm border border-gray-100 flex flex-col hover:shadow-xl transition-all duration-300 overflow-hidden">
               <div className="bg-gradient-to-r from-gray-50 to-white p-5 border-b border-gray-100 flex justify-between items-start">
                 <div className="flex flex-col gap-1">
@@ -476,6 +488,79 @@ const Billing = ({ setActiveTab }) => {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Pagination */}
+      {totalPages > 0 && (
+        <div className="flex flex-col sm:flex-row justify-between items-center px-5 py-4 mt-2 mb-8 bg-white border border-gray-200 rounded-xl shadow-sm gap-4">
+          <div className="flex flex-wrap items-center gap-4">
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-500 font-medium">Rows per page:</span>
+              <select
+                value={itemsPerPage}
+                onChange={(e) => {
+                  setItemsPerPage(Number(e.target.value));
+                  setCurrentPage(1);
+                }}
+                className="border border-gray-300 rounded-md text-sm py-1 px-2 text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value={10}>10</option>
+                <option value={20}>20</option>
+                <option value={50}>50</option>
+                <option value={100}>100</option>
+              </select>
+            </div>
+            <p className="text-sm text-gray-600 font-medium">
+              Showing {filteredOrders.length === 0 ? 0 : indexOfFirst + 1} to {Math.min(indexOfLast, filteredOrders.length)} of {filteredOrders.length} items
+            </p>
+          </div>
+          
+          {totalPages > 1 && (
+          <div className="flex justify-center items-center gap-2 flex-wrap">
+            <button
+              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+              className="px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 text-sm font-medium transition-colors"
+            >
+              Prev
+            </button>
+            <div className="flex items-center gap-1">
+              {Array.from({ length: totalPages }, (_, idx) => {
+                const page = idx + 1;
+                const shouldShow = page === 1 || page === totalPages || Math.abs(page - currentPage) <= 2;
+                
+                if (!shouldShow) {
+                  if ((page === 2 && currentPage > 4) || (page === totalPages - 1 && currentPage < totalPages - 3)) {
+                    return <span key={page} className="px-2 text-gray-400 font-medium">...</span>;
+                  }
+                  return null;
+                }
+
+                return (
+                  <button
+                    key={page}
+                    onClick={() => setCurrentPage(page)}
+                    className={`w-8 h-8 flex items-center justify-center rounded-md text-sm font-medium transition-colors ${
+                      currentPage === page
+                        ? "bg-blue-600 text-white shadow-sm"
+                        : "bg-gray-50 border border-gray-200 hover:bg-gray-100 text-gray-700"
+                    }`}
+                  >
+                    {page}
+                  </button>
+                );
+              })}
+            </div>
+            <button
+              onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+              disabled={currentPage === totalPages}
+              className="px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 text-sm font-medium transition-colors"
+            >
+              Next
+            </button>
+          </div>
+          )}
         </div>
       )}
 

@@ -60,7 +60,7 @@ const AllOrders = () => {
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
@@ -810,11 +810,31 @@ const AllOrders = () => {
           )}
 
           {/* Pagination Component */}
-          {totalPages > 1 && (
+          {totalPages > 0 && (
             <div className="flex flex-col sm:flex-row justify-between items-center px-5 py-4 mt-6 bg-white border border-gray-200 rounded-xl shadow-sm gap-4">
-              <p className="text-sm text-gray-600 font-medium">
-                Showing {startIndex + 1} to {Math.min(endIndex, filteredOrders.length)} of {filteredOrders.length} orders
-              </p>
+              <div className="flex flex-wrap items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-gray-500 font-medium">Rows per page:</span>
+                  <select
+                    value={itemsPerPage}
+                    onChange={(e) => {
+                      setItemsPerPage(Number(e.target.value));
+                      setCurrentPage(1);
+                    }}
+                    className="border border-gray-300 rounded-md text-sm py-1 px-2 text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value={10}>10</option>
+                    <option value={20}>20</option>
+                    <option value={50}>50</option>
+                    <option value={100}>100</option>
+                  </select>
+                </div>
+                <p className="text-sm text-gray-600 font-medium">
+                  Showing {filteredOrders.length === 0 ? 0 : startIndex + 1} to {Math.min(endIndex, filteredOrders.length)} of {filteredOrders.length} orders
+                </p>
+              </div>
+              
+              {totalPages > 1 && (
               <div className="flex justify-center items-center gap-2 flex-wrap">
                 <button
                   onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
@@ -846,6 +866,7 @@ const AllOrders = () => {
                   Next
                 </button>
               </div>
+              )}
             </div>
           )}
         </>

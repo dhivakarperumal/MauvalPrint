@@ -39,6 +39,9 @@ const ProductKeywords = () => {
   const [editingId, setEditingId] = useState(null);
   const [editKeywordName, setEditKeywordName] = useState("");
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+
   const fetchData = async () => {
     try {
       const [kwRes, statRes] = await Promise.all([
@@ -161,6 +164,15 @@ const ProductKeywords = () => {
 
   // Get selected home keywords sorted by order
   const homeKeywords = keywords.filter(kw => kw.show_on_home).sort((a, b) => a.display_order - b.display_order);
+
+  const indexOfLast = currentPage * itemsPerPage;
+  const indexOfFirst = indexOfLast - itemsPerPage;
+  const currentItems = filteredKeywords.slice(indexOfFirst, indexOfLast);
+  const totalPages = Math.ceil(filteredKeywords.length / itemsPerPage);
+
+  useEffect(() => {
+    if (currentPage > totalPages && totalPages > 0) setCurrentPage(totalPages);
+  }, [filteredKeywords, currentPage, totalPages]);
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
@@ -330,12 +342,12 @@ const ProductKeywords = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
-                  {filteredKeywords.length === 0 ? (
+                  {currentItems.length === 0 ? (
                     <tr>
                       <td colSpan="5" className="py-6 text-center text-gray-400">No keywords found.</td>
                     </tr>
                   ) : (
-                    filteredKeywords.map(kw => (
+                    currentItems.map(kw => (
                       <tr key={kw.keyword_id} className={`hover:bg-gray-50 ${kw.show_on_home ? 'bg-blue-50/50' : ''}`}>
                         {/* Home Checkbox */}
                         <td className="py-3 px-3 text-center">
@@ -418,6 +430,78 @@ const ProductKeywords = () => {
                 </tbody>
               </table>
             </div>
+            
+            {totalPages > 0 && (
+              <div className="flex flex-col sm:flex-row justify-between items-center px-5 py-4 mt-6 bg-white border border-gray-200 rounded-xl shadow-sm gap-4">
+                <div className="flex flex-wrap items-center gap-4">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-gray-500 font-medium">Rows per page:</span>
+                    <select
+                      value={itemsPerPage}
+                      onChange={(e) => {
+                        setItemsPerPage(Number(e.target.value));
+                        setCurrentPage(1);
+                      }}
+                      className="border border-gray-300 rounded-md text-sm py-1 px-2 text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value={10}>10</option>
+                      <option value={20}>20</option>
+                      <option value={50}>50</option>
+                      <option value={100}>100</option>
+                    </select>
+                  </div>
+                  <p className="text-sm text-gray-600 font-medium">
+                    Showing {filteredKeywords.length === 0 ? 0 : indexOfFirst + 1} to {Math.min(indexOfLast, filteredKeywords.length)} of {filteredKeywords.length} items
+                  </p>
+                </div>
+                
+                {totalPages > 1 && (
+                <div className="flex justify-center items-center gap-2 flex-wrap">
+                  <button
+                    onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                    disabled={currentPage === 1}
+                    className="px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 text-sm font-medium transition-colors"
+                  >
+                    Prev
+                  </button>
+                  <div className="flex items-center gap-1">
+                    {Array.from({ length: totalPages }, (_, idx) => {
+                      const page = idx + 1;
+                      const shouldShow = page === 1 || page === totalPages || Math.abs(page - currentPage) <= 2;
+                      
+                      if (!shouldShow) {
+                        if ((page === 2 && currentPage > 4) || (page === totalPages - 1 && currentPage < totalPages - 3)) {
+                          return <span key={page} className="px-2 text-gray-400 font-medium">...</span>;
+                        }
+                        return null;
+                      }
+
+                      return (
+                        <button
+                          key={page}
+                          onClick={() => setCurrentPage(page)}
+                          className={`w-8 h-8 flex items-center justify-center rounded-md text-sm font-medium transition-colors ${
+                            currentPage === page
+                              ? "bg-blue-600 text-white shadow-sm"
+                              : "bg-gray-50 border border-gray-200 hover:bg-gray-100 text-gray-700"
+                          }`}
+                        >
+                          {page}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <button
+                    onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                    disabled={currentPage === totalPages}
+                    className="px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 text-sm font-medium transition-colors"
+                  >
+                    Next
+                  </button>
+                </div>
+                )}
+              </div>
+            )}
 
       </div>
     </div>

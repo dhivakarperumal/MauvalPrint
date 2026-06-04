@@ -24,6 +24,9 @@ const Invoice = () => {
   const [search, setSearch] = useState("");
   const [viewMode, setViewMode] = useState("table");
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setInvoiceData((prev) => ({
@@ -80,6 +83,15 @@ const Invoice = () => {
       inv.invoiceDate?.includes(search)
     );
   }, [invoiceList, search]);
+
+  const indexOfLast = currentPage * itemsPerPage;
+  const indexOfFirst = indexOfLast - itemsPerPage;
+  const currentItems = filteredInvoices.slice(indexOfFirst, indexOfLast);
+  const totalPages = Math.ceil(filteredInvoices.length / itemsPerPage);
+
+  useEffect(() => {
+    if (currentPage > totalPages && totalPages > 0) setCurrentPage(totalPages);
+  }, [filteredInvoices, currentPage, totalPages]);
 
   const resetForm = () => {
     setInvoiceData({
@@ -257,11 +269,11 @@ const Invoice = () => {
               </tr>
             </thead>
             <tbody>
-              {filteredInvoices.length > 0 ? (
-                filteredInvoices.map((item, index) => (
+              {currentItems.length > 0 ? (
+                currentItems.map((item, index) => (
                   <tr key={item.id} className="border-t border-gray-200 hover:bg-gray-50 transition-colors">
                     <td className="px-4 py-4 text-center font-medium text-gray-500">
-                      {index + 1}
+                      {indexOfFirst + index + 1}
                     </td>
                     <td className="px-4 py-4 font-bold text-gray-800">
                       {item.invoiceNo || "N/A"}
@@ -308,8 +320,8 @@ const Invoice = () => {
       ) : (
         /* Card View */
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {filteredInvoices.length > 0 ? (
-            filteredInvoices.map((item) => (
+          {currentItems.length > 0 ? (
+            currentItems.map((item) => (
               <div key={item.id} className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 hover:shadow-md transition-shadow relative flex flex-col">
                 <div className="flex justify-between items-start mb-4">
                   <div>
@@ -364,6 +376,79 @@ const Invoice = () => {
               <FaFileInvoice className="mx-auto text-4xl mb-3 text-gray-300" />
               <p className="text-gray-500 font-medium text-lg">No invoices found.</p>
             </div>
+          )}
+        </div>
+      )}
+
+      {/* Pagination */}
+      {totalPages > 0 && (
+        <div className="flex flex-col sm:flex-row justify-between items-center px-5 py-4 mt-6 bg-white border border-gray-200 rounded-xl shadow-sm gap-4">
+          <div className="flex flex-wrap items-center gap-4">
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-500 font-medium">Rows per page:</span>
+              <select
+                value={itemsPerPage}
+                onChange={(e) => {
+                  setItemsPerPage(Number(e.target.value));
+                  setCurrentPage(1);
+                }}
+                className="border border-gray-300 rounded-md text-sm py-1 px-2 text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value={10}>10</option>
+                <option value={20}>20</option>
+                <option value={50}>50</option>
+                <option value={100}>100</option>
+              </select>
+            </div>
+            <p className="text-sm text-gray-600 font-medium">
+              Showing {filteredInvoices.length === 0 ? 0 : indexOfFirst + 1} to {Math.min(indexOfLast, filteredInvoices.length)} of {filteredInvoices.length} items
+            </p>
+          </div>
+          
+          {totalPages > 1 && (
+          <div className="flex justify-center items-center gap-2 flex-wrap">
+            <button
+              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+              className="px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 text-sm font-medium transition-colors"
+            >
+              Prev
+            </button>
+            <div className="flex items-center gap-1">
+              {Array.from({ length: totalPages }, (_, idx) => {
+                const page = idx + 1;
+                const shouldShow = page === 1 || page === totalPages || Math.abs(page - currentPage) <= 2;
+                
+                if (!shouldShow) {
+                  if ((page === 2 && currentPage > 4) || (page === totalPages - 1 && currentPage < totalPages - 3)) {
+                    return <span key={page} className="px-2 text-gray-400 font-medium">...</span>;
+                  }
+                  return null;
+                }
+
+                return (
+                  <button
+                    key={page}
+                    onClick={() => setCurrentPage(page)}
+                    className={`w-8 h-8 flex items-center justify-center rounded-md text-sm font-medium transition-colors ${
+                      currentPage === page
+                        ? "bg-blue-600 text-white shadow-sm"
+                        : "bg-gray-50 border border-gray-200 hover:bg-gray-100 text-gray-700"
+                    }`}
+                  >
+                    {page}
+                  </button>
+                );
+              })}
+            </div>
+            <button
+              onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+              disabled={currentPage === totalPages}
+              className="px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 text-sm font-medium transition-colors"
+            >
+              Next
+            </button>
+          </div>
           )}
         </div>
       )}
