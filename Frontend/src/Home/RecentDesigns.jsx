@@ -153,20 +153,51 @@ const DesignCard = memo(({ id, name, rating, images, mrp, salePrice, size = [] }
       )}
 
       {/* Bottom Info Bar */}
-      <div className="bg-primary text-white flex flex-col items-center px-4 py-3 mt-auto sm:flex-row sm:justify-between">
-        <div className="text-center sm:text-left">
-          <h3 className="font-bold text-sm sm:text-lg truncate">{name}</h3>
-          <h4 className="font-bold text-sm sm:text-lg">
-            MRP : <del>{mrp}</del> {salePrice}
-          </h4>
-          <p className="text-xs sm:text-sm">⭐ {rating || "0.0"}</p>
+      <div className="bg-primary text-white px-4 py-6 mt-auto">
+        {/* Row 1 */}
+        <div className="flex justify-between items-start gap-2">
+          <h3 className="font-bold text-lg truncate flex-1">
+            {name}
+          </h3>
+
+          <p className="text-sm whitespace-nowrap">
+            ⭐ {rating || "0.0"}
+          </p>
         </div>
-        <button
-          onClick={handleBuyNow}
-          className="bg-white border border-white text-primary font-semibold text-xs px-4 py-2 rounded-full shadow hover:bg-primary hover:text-white transition mt-2 sm:mt-0"
-        >
-          Buy Now
-        </button>
+
+        {/* Row 2 */}
+        <div className="flex justify-between items-end mt-3">
+          <div>
+            <p className="text-sm">
+              MRP : <del>{mrp}</del>
+            </p>
+
+            <p className="text-xl font-bold">
+              {salePrice}
+            </p>
+          </div>
+
+          <button
+            onClick={handleBuyNow}
+            className="
+        bg-white
+        text-primary
+        font-semibold
+        text-xs
+        px-5
+        py-2
+        rounded-full
+        shadow
+        border
+        border-white
+        hover:bg-primary
+        hover:text-white
+        transition
+      "
+          >
+            Buy Now
+          </button>
+        </div>
       </div>
     </div>
   );
