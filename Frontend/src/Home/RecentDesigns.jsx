@@ -310,7 +310,7 @@ const RecentDesigns = () => {
   const customSelectStyles = {
     control: (base, state) => ({
       ...base,
-      minHeight: "56px",
+      minHeight: "40px",
       borderRadius: "18px",
       border: "2px solid #f472b6",
       background: "linear-gradient(135deg,#ffffff,#f8fafc,#f1f5f9)",
@@ -336,6 +336,7 @@ const RecentDesigns = () => {
       ...base,
       color: "#1f2937",
       fontWeight: 600,
+      fontSize: "12px",
     }),
 
     indicatorSeparator: () => ({
@@ -370,7 +371,7 @@ const RecentDesigns = () => {
       ...base,
       borderRadius: "12px",
       marginBottom: "4px",
-      padding: "14px 16px",
+      padding: "8px 12px",
       backgroundColor: state.isSelected
         ? "#243B55"
         : state.isFocused
@@ -379,6 +380,7 @@ const RecentDesigns = () => {
       color: state.isSelected ? "#ffffff" : "#374151",
       cursor: "pointer",
       fontWeight: 500,
+      fontSize: "12px",
     }),
   };
 
@@ -423,27 +425,27 @@ const RecentDesigns = () => {
               <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-6">
 
                 {/* Left Side Hide Button */}
-                <button
-                  onClick={() => setShowFilters(false)}
-                  className="
-            flex
-            items-center
-            gap-2
-            px-4
-            py-3
-            rounded-xl
-            bg-white
-            shadow-md
-            border
-            border-gray-200
-            hover:shadow-lg
-            transition-all
-            duration-300
-            w-fit
-          "
-                >
-                  <IoClose className="text-primary text-lg" />
-                  <span className="font-medium text-gray-700">
+          <button
+  onClick={() => setShowFilters(false)}
+  className="
+    flex
+    items-center
+    gap-2
+    px-3
+    py-2
+    rounded-lg
+    bg-white
+    shadow-sm
+    border
+    border-gray-200
+    hover:shadow-md
+    transition-all
+    duration-300
+    w-fit
+  "
+>
+                  <IoClose className="text-primary text-xs" />
+                  <span className="font-medium text-xs text-gray-700">
                     Hide Filters
                   </span>
                 </button>
@@ -456,7 +458,7 @@ const RecentDesigns = () => {
 
 
                     <Select
-                      className="w-[220px] sm:w-[250px] md:w-[250px]"
+                      className="w-[175px] sm:w-[190px] md:w-[200px]"
                       styles={customSelectStyles}
                       menuPortalTarget={document.body}
                       menuPosition="fixed"
@@ -470,7 +472,7 @@ const RecentDesigns = () => {
                   <div>
 
                     <Select
-                      className="w-[220px] sm:w-[250px] md:w-[300px]"
+                      className="w-[175px] sm:w-[190px] md:w-[200px]"
                       styles={customSelectStyles}
                       menuPortalTarget={document.body}
                       menuPosition="fixed"
