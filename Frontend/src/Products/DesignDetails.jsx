@@ -493,6 +493,7 @@ const DesignDetails = () => {
           />
         </div>
       </div>
+      </div>
     </PageContainer>
   );
 };

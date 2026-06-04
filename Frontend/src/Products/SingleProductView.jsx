@@ -374,9 +374,8 @@ const SingleProductView = () => {
     mrp > 0 ? Math.round(((mrp - salePrice) / mrp) * 100) : 0;
 
   return (
-    
+    <PageContainer>
       <div className="mt-20">
-        <PageContainer>
         <Head title={product.name} subtitle={product.name} />
 
         <div className="grid lg:grid-cols-2 gap-10 border-b border-primary py-10">
@@ -658,8 +657,6 @@ const SingleProductView = () => {
         )}
       </div>
 
-       </PageContainer>
-       
       {showLogin && (
         <Login
           onClose={() => setShowLogin(false)}
@@ -679,8 +676,7 @@ const SingleProductView = () => {
         />
       )}
     </PageContainer>
-  </div>
-);
+  );
 };
 
 export default SingleProductView;
