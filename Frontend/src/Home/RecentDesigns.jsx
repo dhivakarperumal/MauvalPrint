@@ -385,17 +385,7 @@ const RecentDesigns = () => {
 
     <div className="min-h-screen bg-[#fef4f3] py-10 px-4">
       <PageContainer>
-        {/* Filter Toggle Button for Mobile */}
-        {!isDesktop && (
-          <div className="mb-4 flex justify-center">
-            <button
-              onClick={() => setShowFilters(!showFilters)}
-              className="px-4 py-2 bg-primary text-white rounded-full font-medium shadow hover:bg-primary/90 transition flex items-center gap-2"
-            >
-              <i className="fa-solid fa-filter"></i> Filters
-            </button>
-          </div>
-        )}
+        
 
         <div className="flex justify-end mb-4">
           {!showFilters && (
@@ -465,7 +455,7 @@ const RecentDesigns = () => {
 
 
                     <Select
-                      className="w-[240px]"
+                      className="w-[220px] sm:w-[250px] md:w-[250px]"
                       styles={customSelectStyles}
                       menuPortalTarget={document.body}
                       menuPosition="fixed"
@@ -479,7 +469,7 @@ const RecentDesigns = () => {
                   <div>
 
                     <Select
-                      className="w-[320px]"
+                      className="w-[220px] sm:w-[250px] md:w-[300px]"
                       styles={customSelectStyles}
                       menuPortalTarget={document.body}
                       menuPosition="fixed"
