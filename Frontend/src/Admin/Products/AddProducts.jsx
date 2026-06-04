@@ -73,69 +73,36 @@ const AddProducts = () => {
 
     let data = null;
     try {
-      data = JSON.parse(raw);
-    } catch (parseErr) {
-      // not JSON — we'll try to extract URLs from raw text below
-    }
+      try {
+        const uploadUrl = `${window.location.origin}/api/upload`;
+        const res = await fetch(uploadUrl, {
+          method: "POST",
+          body: formData,
+        });
 
-    toast.dismiss(toastId);
+        const data = await res.json();
+        toast.dismiss(toastId);
 
-    // Prefer canonical "urls" array
-    if (data && Array.isArray(data.urls) && data.urls.length > 0) {
-      toast.success(`Uploaded ${data.urls.length} file(s) successfully`);
-      return data.urls;
-    }
-
-    // Common alternative shapes: data.files or data.data
-    const altArrays = ["files", "data"];
-    for (const key of altArrays) {
-      if (data && Array.isArray(data[key]) && data[key].length > 0) {
-        const urls = data[key]
-          .map((f) => f.url || f.path || f.filename || f.name)
-          .filter(Boolean);
-        if (urls.length > 0) {
-          toast.success(`Uploaded ${urls.length} file(s) successfully`);
-          return urls;
+        if (!res.ok || !data) {
+          console.error("Upload failed response:", res.status, data);
+          toast.error(`Upload failed: server responded ${res.status}`);
+          return [];
         }
+
+        if (data.success && Array.isArray(data.urls) && data.urls.length > 0) {
+          toast.success(`Uploaded ${data.urls.length} file(s) successfully`);
+          return data.urls;
+        }
+
+        console.error("Upload response (no urls):", data);
+        toast.error("Upload failed: no URLs returned from server");
+        return [];
+      } catch (err) {
+        toast.dismiss(toastId);
+        console.error("Upload error:", err);
+        toast.error(`Upload failed: ${err.message || "network error"}`);
+        return [];
       }
-    }
-
-    // Fallback: try to find URLs in raw text
-    const urlMatches = raw.match(/https?:\/\/[^\s"']+/g) || [];
-    if (urlMatches.length > 0) {
-      toast.success(`Uploaded ${urlMatches.length} file(s) (extracted)`);
-      return urlMatches;
-    }
-
-    // Nothing usable returned
-    console.error("Upload response (no urls):", { raw, data });
-    toast.error("Upload failed: no URLs returned from server");
-    return [];
-  } catch (err) {
-    toast.dismiss(toastId);
-    console.error("Upload error:", err);
-    toast.error(`Upload failed: ${err.message || "network error"}`);
-    return [];
-  }
-};
-
-  
-  const handleFileChange = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    try {
-      const compressed = await imageCompression(file, {
-        maxSizeMB: 2 * 1024 * 1024,
-        maxWidthOrHeight: 1080,
-        useWebWorker: true,
-        initialQuality: 0.9,
-      });
-
-      const urls = await uploadToGoDaddy([compressed], "sizecharts");
-
-      if (urls.length > 0) {
-        setSizeChart(urls[0]);
         setPreview(urls[0]);
         toast.success("Size chart uploaded!");
       } else {
