@@ -15,6 +15,7 @@ import Login from "../Components/Login";
 import RegisterPage from "../Components/Register";
 import ProductCustomizer from "./ProductCustomizer";
 import RelatedProducts from "./RelatedProducts";
+import PageContainer from "../Components/PageContainer";
 
 // Image optimization utility
 const optimizeImageUrl = (url) => {
@@ -373,10 +374,10 @@ const SingleProductView = () => {
     mrp > 0 ? Math.round(((mrp - salePrice) / mrp) * 100) : 0;
 
   return (
-    <div className="mt-20">
-      <Head title={product.name} subtitle={product.name} />
-
-      <div className="px-4 md:px-20">
+      <>
+      <div className="mt-20">
+        <Head title={product.name} subtitle={product.name} />
+        <PageContainer>
         <div className="grid lg:grid-cols-2 gap-10 border-b border-primary py-10">
           <div className="z-10">
             {/* ✅ Zoom Image Component */}
@@ -593,6 +594,8 @@ const SingleProductView = () => {
             </p>
           </div>
         </div>
+        </PageContainer>
+        
         {category && (
           <div className="mt-10">
             <h3 className="text-xl font-semibold mb-4">Related Products</h3>
@@ -660,7 +663,8 @@ const SingleProductView = () => {
           />
         )}
       </div>
-      {showLogin && (
+
+      {showLogin ? (
         <Login
           onClose={() => setShowLogin(false)}
           onSwitch={() => {
@@ -668,7 +672,7 @@ const SingleProductView = () => {
             setShowRegister(true);
           }}
         />
-      )}
+      ) : null}
       {showRegister && (
         <RegisterPage
           onClose={() => setShowRegister(false)}
@@ -678,7 +682,7 @@ const SingleProductView = () => {
           }}
         />
       )}
-    </div>
+      </>
   );
 };
 
