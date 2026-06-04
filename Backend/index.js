@@ -3,6 +3,7 @@ const cors = require("cors");
 const { connectDB } = require("./src/config/db");
 const userRoutes = require("./src/routers/userRoutes");
 const productRoutes = require("./src/routers/productRoutes");
+const categoryRoutes = require("./src/routers/categoryRoutes");
 const orderRoutes = require("./src/routers/orderRoutes");
 const printOrderRoutes = require("./src/routers/printOrderRoutes");
 const reviewRoutes = require("./src/routers/reviewRoutes");
@@ -38,6 +39,7 @@ app.use((req, res, next) => {
 
 app.use("/api", userRoutes);
 app.use("/api/products", productRoutes);
+app.use("/api/categories", categoryRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/print-orders", printOrderRoutes);
 app.use("/api/reviews", reviewRoutes);

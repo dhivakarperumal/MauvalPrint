@@ -9,10 +9,10 @@ const {
 
 const router = express.Router();
 
-router.get("/reviews", getReviews);
-router.post("/reviews", createReview);
-router.put("/reviews/:id", updateReview);
-router.delete("/reviews/:id", deleteReview);
-router.patch("/reviews/:id/featured", toggleFeatured);
+router.get("/", getReviews);
+router.post("/", createReview);
+router.put("/:id", updateReview);
+router.delete("/:id", deleteReview);
+router.patch("/:id/featured", toggleFeatured);
 
 module.exports = router;

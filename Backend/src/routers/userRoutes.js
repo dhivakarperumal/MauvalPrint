@@ -13,11 +13,11 @@ const {
 
 const router = express.Router();
 
-router.get("/users", getUsers);
-router.put("/users/:id", updateUser);
-router.patch("/users/:id/status", updateUserStatus);
-router.delete("/users/:id", deleteUser);
-router.get("/users/:id/addresses", getUserAddresses);
+router.get("/", getUsers);
+router.put("/:id", updateUser);
+router.patch("/:id/status", updateUserStatus);
+router.delete("/:id", deleteUser);
+router.get("/:id/addresses", getUserAddresses);
 router.post("/users/:id/addresses", addUserAddress);
 router.post("/register", register);
 router.post("/login", login);
