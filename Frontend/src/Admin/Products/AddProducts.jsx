@@ -32,6 +32,7 @@ const AddProducts = ({ selectedProduct, setSelectedProduct, setActiveTab }) => {
 
   const [stockByVariant, setStockByVariant] = useState({});
   const [previewImg, setPreviewImg] = useState([]);
+  const [variantImages, setVariantImages] = useState({}); // { "Color-Size": [url,...] }
   const [loading, setLoading] = useState(false);
   const [categories, setCategories] = useState([]);
   const [subcategories, setSubcategories] = useState([]);
@@ -188,6 +189,7 @@ const AddProducts = ({ selectedProduct, setSelectedProduct, setActiveTab }) => {
     });
     setStockByVariant({});
     setPreviewImg([]);
+    setVariantImages({});
     setPreview(null);
     setSizeChart(null);
     generateNextProductId(); // async, will update product.id when resolved
@@ -243,6 +245,7 @@ const AddProducts = ({ selectedProduct, setSelectedProduct, setActiveTab }) => {
       });
       setStockByVariant(selectedProduct.stock_by_variant ? (typeof selectedProduct.stock_by_variant === 'string' ? JSON.parse(selectedProduct.stock_by_variant) : selectedProduct.stock_by_variant) : {});
       setPreviewImg(selectedProduct.images ? (Array.isArray(selectedProduct.images) ? selectedProduct.images : JSON.parse(selectedProduct.images || "[]")) : []);
+      setVariantImages(selectedProduct.images_by_variant ? (typeof selectedProduct.images_by_variant === 'string' ? JSON.parse(selectedProduct.images_by_variant) : selectedProduct.images_by_variant) : {});
       setSizeChart(selectedProduct.size_chart_image || null);
       setPreview(selectedProduct.size_chart_image || null);
     } else {
@@ -297,6 +300,50 @@ const handleImageUpload = async (e) => {
   }
 };
 
+const handleVariantImageUpload = async (e, color, size) => {
+  const files = Array.from(e.target.files).slice(0, 5);
+  if (files.length === 0) return;
+
+  const key = `${color}-${size}`;
+
+  try {
+    const compressedFiles = await Promise.all(
+      files.map((file) =>
+        imageCompression(file, {
+          maxSizeMB: 2 * 1024 * 1024,
+          maxWidthOrHeight: 1080,
+          useWebWorker: true,
+          initialQuality: 0.9,
+        })
+      )
+    );
+
+    const urls = await uploadToGoDaddy(compressedFiles, "products");
+
+    if (urls.length > 0) {
+      setVariantImages((prev) => {
+        const existing = Array.isArray(prev[key]) ? prev[key] : [];
+        const merged = [...existing, ...urls].slice(0, 5);
+        return { ...prev, [key]: merged };
+      });
+      toast.success(`Uploaded ${urls.length} image(s) for ${key}`);
+    } else {
+      toast.error("Variant image upload failed: no URLs returned");
+    }
+  } catch (err) {
+    console.error("Variant image upload error:", err);
+    toast.error("Variant image upload error");
+  }
+};
+
+const handleRemoveVariantImage = (variantKey, index) => {
+  setVariantImages((prev) => {
+    const arr = Array.isArray(prev[variantKey]) ? prev[variantKey] : [];
+    const updated = arr.filter((_, i) => i !== index);
+    return { ...prev, [variantKey]: updated };
+  });
+};
+
 
 
 
@@ -306,8 +353,13 @@ const handleImageUpload = async (e) => {
     setLoading(true);
 
     try {
-      if (!product.images.length)
-        return toast.error("Please upload at least one image.");
+      const hasMainImages = Array.isArray(product.images) && product.images.length > 0;
+      const hasVariantImages = Object.values(variantImages || {}).some(
+        (arr) => Array.isArray(arr) && arr.length > 0
+      );
+
+      if (!hasMainImages && !hasVariantImages)
+        return toast.error("Please upload at least one image (product or variant).");
 
       const totalStock = Object.values(stockByVariant).reduce((a, b) => a + b, 0);
       const payload = {
@@ -334,6 +386,7 @@ const handleImageUpload = async (e) => {
         washing_details: product.washingDetails,
         notes: product.notes,
         stock_by_variant: stockByVariant,
+        images_by_variant: variantImages,
         size_chart_image: sizeChart || "",
       };
 
@@ -699,6 +752,30 @@ const handleImageUpload = async (e) => {
                             }
                             className="w-13 px-2 py-1 border-2 border-b border-gray-300 rounded"
                           />
+                          <div className="mt-2">
+                            <input
+                              type="file"
+                              accept="image/*"
+                              multiple
+                              onChange={(e) => handleVariantImageUpload(e, c, s)}
+                              className="w-full text-xs mt-1"
+                            />
+
+                            <div className="flex gap-2 mt-2 flex-wrap">
+                              {(variantImages[key] || []).map((imgUrl, idx) => (
+                                <div key={idx} className="relative">
+                                  <img src={imgUrl} alt={key} className="w-12 h-12 object-cover rounded border" />
+                                  <button
+                                    type="button"
+                                    onClick={() => handleRemoveVariantImage(key, idx)}
+                                    className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
+                                  >
+                                    ×
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
                         </td>
                       );
                     })}
