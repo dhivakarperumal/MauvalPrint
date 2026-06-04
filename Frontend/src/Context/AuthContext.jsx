@@ -172,7 +172,15 @@ export function AuthProvider({ children }) {
       throw new Error("Google login credential is missing.");
     }
 
-    const response = await api.post("/google-login", { idToken });
+    const response = await api.post(
+      "/google-login",
+      JSON.stringify({ idToken }),
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
     const apiUser = response.data?.data;
     if (!apiUser) {
       throw new Error("Google login failed.");
