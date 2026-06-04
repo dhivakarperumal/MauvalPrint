@@ -3,13 +3,15 @@ import { FaEye, FaEdit, FaTrash, FaFilter, FaStar, FaPlus, FaTh, FaList, FaSearc
 import api from "../../api";
 import toast from "react-hot-toast";
 import * as XLSX from "xlsx";
+import { useNavigate } from "react-router-dom";
 
 const parseJSON = (val, fallback = []) => {
   if (Array.isArray(val) || (val && typeof val === "object")) return val;
   try { return JSON.parse(val); } catch (e) { return fallback; }
 };
 
-const ProductList = ({ setSelectedProduct, setActiveTab }) => {
+const ProductList = () => {
+  const navigate = useNavigate();
   const [products, setProducts] = useState([]);
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState([]);
@@ -81,8 +83,7 @@ const ProductList = ({ setSelectedProduct, setActiveTab }) => {
 
   // ─── Edit ─────────────────────────────────────────────────────────────────
   const handleEdit = (product) => {
-    setSelectedProduct(product);
-    setActiveTab("addProduct");
+    navigate(`/admin/addproducts/${product.product_id}`, { state: { product } });
   };
 
   // ─── Delete ───────────────────────────────────────────────────────────────
@@ -378,7 +379,7 @@ const ProductList = ({ setSelectedProduct, setActiveTab }) => {
               />
             </label>
             <button
-              onClick={() => setActiveTab("addProduct")}
+              onClick={() => navigate("/admin/addproducts")}
               className="px-4 py-2 bg-blue-900 text-white rounded-lg text-sm font-medium flex items-center gap-2 hover:bg-blue-800 transition-colors shadow-sm cursor-pointer"
             >
               <FaPlus /> Add Products

@@ -2,9 +2,12 @@ import React, { useEffect, useState } from "react";
 import api from "../../api";
 import imageCompression from "browser-image-compression";
 import toast from "react-hot-toast";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
-const AddProducts = ({ selectedProduct, setSelectedProduct, setActiveTab }) => {
+const AddProducts = () => {
+  const location = useLocation();
+  const selectedProduct = location.state?.product || null;
+
   const [product, setProduct] = useState({
     id: "",
     productTitle: "",
@@ -162,6 +165,24 @@ const AddProducts = ({ selectedProduct, setSelectedProduct, setActiveTab }) => {
 
   const navigate = useNavigate();
 
+  const generateNextProductId = async () => {
+    try {
+      const { data } = await api.get("/products");
+      const ids = (data.products || [])
+        .map((product) => product.product_id)
+        .filter((id) => id && id.startsWith("MP"))
+        .map((id) => parseInt(id.replace("MP", ""), 10))
+        .filter((num) => !isNaN(num));
+
+      const maxId = ids.length > 0 ? Math.max(...ids) : 0;
+      const nextId = `MP${String(maxId + 1).padStart(3, "0")}`;
+      setProduct((prev) => ({ ...prev, id: nextId }));
+    } catch (err) {
+      console.error("Error generating product ID:", err);
+      toast.error("Could not generate product ID");
+    }
+  };
+
   const resetForm = () => {
     setProduct({
       id: "",
@@ -192,31 +213,10 @@ const AddProducts = ({ selectedProduct, setSelectedProduct, setActiveTab }) => {
     setVariantImages({});
     setPreview(null);
     setSizeChart(null);
-    generateNextProductId(); // async, will update product.id when resolved
+    // generateNextProductId is called separately after resetForm
   };
 
-  const generateNextProductId = async () => {
-    try {
-      const { data } = await api.get("/products");
-      const ids = (data.products || [])
-        .map((product) => product.product_id)
-        .filter((id) => id && id.startsWith("MP"))
-        .map((id) => parseInt(id.replace("MP", ""), 10))
-        .filter((num) => !isNaN(num));
-
-      const maxId = ids.length > 0 ? Math.max(...ids) : 0;
-      const nextId = `MP${String(maxId + 1).padStart(3, "0")}`;
-      setProduct((prev) => ({ ...prev, id: nextId }));
-    } catch (err) {
-      console.error("Error generating product ID:", err);
-      toast.error("Could not generate product ID");
-    }
-  };
-
-  useEffect(() => {
-    if (!selectedProduct) generateNextProductId();
-  }, []);
-
+  // On mount: if editing, populate form; if adding, generate a new ID
   useEffect(() => {
     if (selectedProduct && selectedProduct.product_id) {
       setProduct({
@@ -249,9 +249,11 @@ const AddProducts = ({ selectedProduct, setSelectedProduct, setActiveTab }) => {
       setSizeChart(selectedProduct.size_chart_image || null);
       setPreview(selectedProduct.size_chart_image || null);
     } else {
+      // Adding a new product
       resetForm();
+      generateNextProductId();
     }
-  }, [selectedProduct]);
+  }, []);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -394,19 +396,13 @@ const handleRemoveVariantImage = (variantKey, index) => {
         // Update existing product
         await api.put(`/products/${selectedProduct.product_id}`, payload);
         toast.success("Product updated!");
-        if (typeof setSelectedProduct === "function") setSelectedProduct(null);
       } else {
         // Add new product
-        const { data } = await api.post("/products", payload);
+        await api.post("/products", payload);
         toast.success("Product added!");
-        if (typeof setSelectedProduct === "function") setSelectedProduct({ ...payload, product_id: data.product_id });
       }
 
-      if (typeof setActiveTab === "function") {
-        setActiveTab("allProducts");
-      } else {
-        navigate("/admin/products");
-      }
+      navigate("/admin/products");
     } catch (err) {
       console.error("Error saving product:", err);
       toast.error("Error saving product: " + (err.response?.data?.message || err.message));
@@ -1137,7 +1133,14 @@ const handleRemoveVariantImage = (variantKey, index) => {
           />
         </div>
 
-        <div className="md:col-span-2 text-right">
+        <div className="md:col-span-2 flex justify-between items-center">
+          <button
+            type="button"
+            onClick={() => navigate("/admin/products")}
+            className="bg-gray-100 cursor-pointer text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-200 border border-gray-300 font-medium"
+          >
+            ← Back to Products
+          </button>
           <button
             type="submit"
             disabled={loading}

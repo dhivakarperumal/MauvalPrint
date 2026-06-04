@@ -1,13 +1,36 @@
 import React, { useState, useContext, useEffect } from "react";
 import { IoClose } from "react-icons/io5";
+import { GoogleLogin } from "@react-oauth/google";
 import { AuthContext } from "../Context/AuthContext";
 import tshirtImg from "/Image/login.png";
 import { toast } from "react-toastify";
 
 export default function Login({ onClose, onSwitch }) {
-  const { loginWithEmail } = useContext(AuthContext);
+  const { loginWithEmail, loginWithGoogle } = useContext(AuthContext);
   const [form, setForm] = useState({ email: "", password: "" });
   const [rememberMe, setRememberMe] = useState(false);
+  const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+
+  const handleGoogleSuccess = async (credentialResponse) => {
+    try {
+      const idToken = credentialResponse?.credential;
+      if (!idToken) {
+        throw new Error("Google credential is missing.");
+      }
+      await loginWithGoogle(idToken);
+      toast.success("Google login successful!");
+      onClose();
+    } catch (err) {
+      console.error("Google login error:", err);
+      const errorMessage =
+        err?.response?.data?.message || err?.message || "Google login failed.";
+      toast.error(errorMessage);
+    }
+  };
+
+  const handleGoogleError = () => {
+    toast.error("Google login failed. Please try again.");
+  };
 
   useEffect(() => {
     const savedEmail = localStorage.getItem("rememberedEmail");
@@ -114,6 +137,19 @@ export default function Login({ onClose, onSwitch }) {
           </form>
 
           <div className="my-4 text-center text-gray-500">or</div>
+
+          <div className="flex justify-center mb-4">
+            {googleClientId ? (
+              <GoogleLogin
+                onSuccess={handleGoogleSuccess}
+                onError={handleGoogleError}
+              />
+            ) : (
+              <p className="text-sm text-red-500">
+                Google sign-in is not configured.
+              </p>
+            )}
+          </div>
 
           <p className="text-center mt-3 text-sm text-black">
             Don't have an account?{" "}
