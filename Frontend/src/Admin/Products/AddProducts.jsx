@@ -61,58 +61,57 @@ const AddProducts = () => {
       body: formData,
     });
 
-    const raw = await res.text();
+    const data = await res.json();
+    toast.dismiss(toastId);
 
-    // If non-OK, include server text in error
-    if (!res.ok) {
-      toast.dismiss(toastId);
-      console.error("Upload failed response:", res.status, raw);
+    if (!res.ok || !data) {
+      console.error("Upload failed response:", res.status, data);
       toast.error(`Upload failed: server responded ${res.status}`);
       return [];
     }
 
-    let data = null;
-    try {
-      try {
-        const uploadUrl = `${window.location.origin}/api/upload`;
-        const res = await fetch(uploadUrl, {
-          method: "POST",
-          body: formData,
-        });
-
-        const data = await res.json();
-        toast.dismiss(toastId);
-
-        if (!res.ok || !data) {
-          console.error("Upload failed response:", res.status, data);
-          toast.error(`Upload failed: server responded ${res.status}`);
-          return [];
-        }
-
-        if (data.success && Array.isArray(data.urls) && data.urls.length > 0) {
-          toast.success(`Uploaded ${data.urls.length} file(s) successfully`);
-          return data.urls;
-        }
-
-        console.error("Upload response (no urls):", data);
-        toast.error("Upload failed: no URLs returned from server");
-        return [];
-      } catch (err) {
-        toast.dismiss(toastId);
-        console.error("Upload error:", err);
-        toast.error(`Upload failed: ${err.message || "network error"}`);
-        return [];
-      }
-        setPreview(urls[0]);
-        toast.success("Size chart uploaded!");
-      } else {
-        toast.error("Size chart upload failed: no URL returned");
-      }
-    } catch (err) {
-      console.error("Size chart upload error:", err);
-      toast.error("Size chart upload error");
+    if (data.success && Array.isArray(data.urls) && data.urls.length > 0) {
+      toast.success(`Uploaded ${data.urls.length} file(s) successfully`);
+      return data.urls;
     }
-  };
+
+    console.error("Upload response (no urls):", data);
+    toast.error("Upload failed: no URLs returned from server");
+    return [];
+  } catch (err) {
+    toast.dismiss(toastId);
+    console.error("Upload error:", err);
+    toast.error(`Upload failed: ${err.message || "network error"}`);
+    return [];
+  }
+};
+
+const handleFileChange = async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  try {
+    const compressed = await imageCompression(file, {
+      maxSizeMB: 2 * 1024 * 1024,
+      maxWidthOrHeight: 1080,
+      useWebWorker: true,
+      initialQuality: 0.9,
+    });
+
+    const urls = await uploadToGoDaddy([compressed], "sizecharts");
+
+    if (urls.length > 0) {
+      setSizeChart(urls[0]);
+      setPreview(urls[0]);
+      toast.success("Size chart uploaded!");
+    } else {
+      toast.error("Size chart upload failed: no URL returned");
+    }
+  } catch (err) {
+    console.error("Size chart upload error:", err);
+    toast.error("Size chart upload error");
+  }
+};
 
   const handleUpload = async () => {
     if (!sizeChart) return toast.error("No size chart selected!");
