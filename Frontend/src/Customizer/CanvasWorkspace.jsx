@@ -67,7 +67,7 @@ const CanvasWorkspace = ({ onCanvasReady, product, imageSrc, selectedProductColo
       height: 350,
       preserveObjectStacking: true,
       selection: true,
-      backgroundColor: selectedProductColor || '#ffffff',
+      backgroundColor: '#ffffff', // keep workspace background white by default
     });
 
     const clipPath = new Rect({
@@ -94,11 +94,12 @@ const CanvasWorkspace = ({ onCanvasReady, product, imageSrc, selectedProductColo
     };
   }, []);
 
+  // Keep the canvas background white so designs remain visible
   useEffect(() => {
     if (!fabricCanvas) return;
-    fabricCanvas.set('backgroundColor', selectedProductColor || '#ffffff');
+    fabricCanvas.set('backgroundColor', '#ffffff');
     fabricCanvas.requestRenderAll();
-  }, [selectedProductColor, fabricCanvas]);
+  }, [fabricCanvas]);
 
   useEffect(() => {
     if (!fabricCanvas) return;
