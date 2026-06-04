@@ -9,20 +9,16 @@ const API_USER_KEY = "apiUser";
 export const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(() => {
+    const storedApiUser = localStorage.getItem(API_USER_KEY);
+    return storedApiUser ? JSON.parse(storedApiUser) : null;
+  });
   const [designs, setDesigns] = useState([]);
   const [products, setProducts] = useState([]);
   const [cart, setCart] = useState([]);
   const [wishlist, setWishlist] = useState([]);
   const [reviews, setReviews] = useState([]);
   const [isOrderSidebarOpen, setOrderSidebarOpen] = useState(false);
-
-  useEffect(() => {
-    const storedApiUser = localStorage.getItem(API_USER_KEY);
-    if (storedApiUser) {
-      setUser(JSON.parse(storedApiUser));
-    }
-  }, []);
 
   useEffect(() => {
     if (user?.uid) {

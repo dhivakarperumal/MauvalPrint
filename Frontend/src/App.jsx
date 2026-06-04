@@ -7,15 +7,17 @@ import { ToastContainer } from "react-toastify";
 import ScrollNavigator from "./Components/ScrollNavigator.jsx";
 
 const App = () => {
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(() => !sessionStorage.getItem("appLoaded"));
 
   useEffect(() => {
+    if (!loading) return;
     const timer = setTimeout(() => {
       setLoading(false);
+      sessionStorage.setItem("appLoaded", "true");
     }, 3000);
 
     return () => clearTimeout(timer);
-  }, []);
+  }, [loading]);
 
   if (loading) {
     return (
