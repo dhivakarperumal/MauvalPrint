@@ -10,7 +10,7 @@ export default defineConfig({
     proxy: {
       "/api": {
         // target: "http://localhost:5000",
-        target: "https://printmy.qtechx.com",
+        target: "https://product2.qtechx.com",
         changeOrigin: true,
         secure: false,
       },

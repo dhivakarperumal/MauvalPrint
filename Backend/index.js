@@ -27,6 +27,11 @@ const path = require('path');
 // serve uploaded files
 app.use('/uploads', express.static(path.join(__dirname, 'public', 'uploads')));
 
+// Favicon handler - prevents 500 errors
+app.get('/favicon.ico', (req, res) => {
+  res.status(204).end(); // No Content
+});
+
 // upload route
 const uploadRoutes = require('./src/routers/uploadRoutes');
 app.use('/api', uploadRoutes);
