@@ -244,8 +244,9 @@ const RecentDesigns = () => {
   }, [filteredDesigns]);
 
   return (
-    <PageContainer>
+    
       <div className="min-h-screen bg-[#fef4f3] py-10 px-4">
+        <PageContainer>
         {/* Filter Toggle Button for Mobile */}
       {!isDesktop && (
         <div className="mb-4 flex justify-center">
@@ -349,8 +350,9 @@ const RecentDesigns = () => {
           })}
         </>
       )}
+      </PageContainer>
     </div>
-    </PageContainer>
+   
   );
 };
 

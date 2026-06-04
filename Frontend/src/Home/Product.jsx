@@ -165,7 +165,7 @@ function Product() {
 
   return (
 
-    <section className="p-6 md:p-10 bg-white">
+    <section className="py-5 bg-white">
       <PageContainer>
         {Object.entries(groupedProducts).map(([category, items]) => (
           <div key={category} className="mb-14" data-aos="fade-up">
