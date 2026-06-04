@@ -6,23 +6,15 @@ const {
   deleteProduct,
   updateStock,
   reduceStock,
-  getCategories,
-  addCategory,
-  updateCategory,
-  deleteCategory,
 } = require("../controllers/productController");
 
 const router = express.Router();
 
-router.get("/products", getProducts);
-router.post("/products", addProduct);
-router.put("/products/:id", updateProduct);
-router.put("/products/:id/stock", updateStock);
-router.put("/products/:id/reduce-stock", reduceStock);
-router.delete("/products/:id", deleteProduct);
-router.get("/categories", getCategories);
-router.post("/categories", addCategory);
-router.put("/categories/:id", updateCategory);
-router.delete("/categories/:id", deleteCategory);
+router.get("/", getProducts);
+router.post("/", addProduct);
+router.put("/:id", updateProduct);
+router.put("/:id/stock", updateStock);
+router.put("/:id/reduce-stock", reduceStock);
+router.delete("/:id", deleteProduct);
 
 module.exports = router;

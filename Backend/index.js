@@ -3,6 +3,7 @@ const cors = require("cors");
 const { connectDB } = require("./src/config/db");
 const userRoutes = require("./src/routers/userRoutes");
 const productRoutes = require("./src/routers/productRoutes");
+const categoryRoutes = require("./src/routers/categoryRoutes");
 const orderRoutes = require("./src/routers/orderRoutes");
 const printOrderRoutes = require("./src/routers/printOrderRoutes");
 const reviewRoutes = require("./src/routers/reviewRoutes");
@@ -26,6 +27,11 @@ const path = require('path');
 // serve uploaded files
 app.use('/uploads', express.static(path.join(__dirname, 'public', 'uploads')));
 
+// Favicon handler - prevents 500 errors
+app.get('/favicon.ico', (req, res) => {
+  res.status(204).end(); // No Content
+});
+
 // upload route
 const uploadRoutes = require('./src/routers/uploadRoutes');
 app.use('/api', uploadRoutes);
@@ -37,10 +43,11 @@ app.use((req, res, next) => {
 });
 
 app.use("/api", userRoutes);
-app.use("/api", productRoutes);
+app.use("/api/products", productRoutes);
+app.use("/api/categories", categoryRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/print-orders", printOrderRoutes);
-app.use("/api", reviewRoutes);
+app.use("/api/reviews", reviewRoutes);
 app.use("/api/dealers", dealerRoutes);
 app.use("/api/invoices", invoiceRoutes);
 app.use("/api/keywords", keywordRoutes);

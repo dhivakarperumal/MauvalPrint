@@ -179,6 +179,7 @@ const CustomizerLayout = () => {
   const handleSave = () => {
     if (!canvas) return;
     try {
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
       const dataUrl = canvas.toDataURL({
         format: 'png',
         quality: 1,
@@ -186,7 +187,7 @@ const CustomizerLayout = () => {
       });
       const link = document.createElement('a');
       link.href = dataUrl;
-      link.download = `CustomDesign_${product?.name || productId}.png`;
+      link.download = `CustomDesign_${product?.name || productId}_${timestamp}.png`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);

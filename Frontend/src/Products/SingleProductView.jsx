@@ -464,7 +464,7 @@ const SingleProductView = () => {
                       {/* Images */}
                       <div className="md:flex gap-4 items-center justify-center">
                         <img
-                          src={optimizeImageUrl(product.sizeChartImage || product.sizeChartImag)}
+                          src={optimizeImageUrl(product.sizeChartImage || product.sizeChartImag || product.size_chart_image)}
                           alt="Size Chart"
                           className="w-full max-w-xs object-contain"
                           loading="lazy"
