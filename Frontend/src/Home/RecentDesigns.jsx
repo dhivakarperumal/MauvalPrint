@@ -2,10 +2,13 @@ import React, { useContext, useState, useMemo, useEffect, memo, useCallback } fr
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../Context/AuthContext";
 import { Swiper, SwiperSlide } from 'swiper/react';
-import { Autoplay, Navigation } from 'swiper/modules';
+import { Autoplay } from 'swiper/modules';
 import 'swiper/css';
-import 'swiper/css/navigation';
 import api from "../api";
+import PageContainer from "../Components/PageContainer";
+import Select from "react-select";
+import { FaFilter } from "react-icons/fa";
+import { IoClose } from "react-icons/io5";
 
 const toRoman = (num) => {
   const lookup = [
@@ -58,6 +61,7 @@ const OptimizedImage = memo(({ src, alt, ...props }) => {
 
 OptimizedImage.displayName = 'OptimizedImage';
 
+// Memoized Single Design Card Component
 const DesignCard = memo(({ id, name, rating, images, mrp, salePrice, size = [] }) => {
   const navigate = useNavigate();
   const [hovered, setHovered] = useState(false);
@@ -65,7 +69,7 @@ const DesignCard = memo(({ id, name, rating, images, mrp, salePrice, size = [] }
   const [mainImageLoaded, setMainImageLoaded] = useState(false);
 
   const sizeOrder = ['xs', 's', 'm', 'l', 'xl', 'xxl', 'xxxl'];
-  const sortedSizes = useMemo(() => 
+  const sortedSizes = useMemo(() =>
     [...size].sort((a, b) => sizeOrder.indexOf(a.toLowerCase()) - sizeOrder.indexOf(b.toLowerCase())),
     [size]
   );
@@ -103,18 +107,31 @@ const DesignCard = memo(({ id, name, rating, images, mrp, salePrice, size = [] }
           alt={name}
           onClick={() => navigate(`/designdetails/${id}`)}
           onLoad={() => setMainImageLoaded(true)}
-          className={`absolute inset-0 w-full h-full object-contain p-4 transition-opacity duration-200 opacity-100 ${hovered ? "opacity-0" : "opacity-100"}`}
+          className={`
+      absolute inset-0
+      w-full h-full
+      object-contain p-4
+      transition-opacity duration-300
+      z-10
+      ${hovered ? "opacity-0" : "opacity-100"}
+    `}
           width={400}
           height={350}
         />
+
         {hoverImageLoaded && (
           <OptimizedImage
             src={hoverImage}
             alt={`${name} hover`}
             onClick={() => navigate(`/designdetails/${id}`)}
-            className={`absolute inset-0 w-full h-full object-contain p-4 transition-all duration-300 ${
-              hovered ? "opacity-100 scale-110" : "opacity-0 scale-100"
-            }`}
+            className={`
+        absolute inset-0
+        w-full h-full
+        object-contain p-4
+        transition-opacity duration-300
+        z-20
+        ${hovered ? "opacity-100" : "opacity-0"}
+      `}
             width={400}
             height={350}
           />
@@ -136,20 +153,51 @@ const DesignCard = memo(({ id, name, rating, images, mrp, salePrice, size = [] }
       )}
 
       {/* Bottom Info Bar */}
-      <div className="bg-primary text-white flex flex-col items-center px-4 py-3 mt-auto sm:flex-row sm:justify-between">
-        <div className="text-center sm:text-left">
-          <h3 className="font-bold text-sm sm:text-lg truncate">{name}</h3>
-          <h4 className="font-bold text-sm sm:text-lg">
-            MRP : <del>{mrp}</del> {salePrice}
-          </h4>
-          <p className="text-xs sm:text-sm">⭐ {rating || "0.0"}</p>
+      <div className="bg-primary text-white px-4 py-6 mt-auto">
+        {/* Row 1 */}
+        <div className="flex justify-between items-start gap-2">
+          <h3 className="font-bold text-lg truncate flex-1">
+            {name}
+          </h3>
+
+          <p className="text-sm whitespace-nowrap">
+            ⭐ {rating || "0.0"}
+          </p>
         </div>
-        <button
-          onClick={handleBuyNow}
-          className="bg-white border border-white text-primary font-semibold text-xs px-4 py-2 rounded-full shadow hover:bg-primary hover:text-white transition mt-2 sm:mt-0"
-        >
-          Buy Now
-        </button>
+
+        {/* Row 2 */}
+        <div className="flex justify-between items-end mt-3">
+          <div>
+            <p className="text-sm">
+              MRP : <del>{mrp}</del>
+            </p>
+
+            <p className="text-xl font-bold">
+              {salePrice}
+            </p>
+          </div>
+
+          <button
+            onClick={handleBuyNow}
+            className="
+        bg-white
+        text-primary
+        font-semibold
+        text-xs
+        px-5
+        py-2
+        rounded-full
+        shadow
+        border
+        border-white
+        hover:bg-primary
+        hover:text-white
+        transition
+      "
+          >
+            Buy Now
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -243,114 +291,275 @@ const RecentDesigns = () => {
     return groups;
   }, [filteredDesigns]);
 
+
+  const fitOptions = fits.map((f) => ({
+    value: f,
+    label: f,
+  }));
+
+  const designOptions = [
+    { value: "All", label: "All Designs" },
+    ...homeKeywords.map((kw) => ({
+      value: kw.keyword_name,
+      label: kw.keyword_name,
+    })),
+  ];
+
+
+  const customSelectStyles = {
+    control: (base, state) => ({
+      ...base,
+      minHeight: "56px",
+      borderRadius: "18px",
+      border: "2px solid #f472b6",
+      background: "linear-gradient(135deg,#ffffff,#f8fafc,#f1f5f9)",
+      boxShadow: state.isFocused
+        ? "0 0 0 4px rgba(244,114,182,0.15)"
+        : "0 8px 25px rgba(0,0,0,0.08)",
+      cursor: "pointer",
+      transition: "all 0.3s ease",
+    }),
+
+    valueContainer: (base) => ({
+      ...base,
+      padding: "0 14px",
+    }),
+
+    placeholder: (base) => ({
+      ...base,
+      color: "#374151",
+      fontWeight: 600,
+    }),
+
+    singleValue: (base) => ({
+      ...base,
+      color: "#1f2937",
+      fontWeight: 600,
+    }),
+
+    indicatorSeparator: () => ({
+      display: "none",
+    }),
+
+    dropdownIndicator: (base) => ({
+      ...base,
+      color: "#374151",
+    }),
+
+    menuPortal: (base) => ({
+      ...base,
+      zIndex: 99999,
+    }),
+
+    menu: (base) => ({
+      ...base,
+      zIndex: 99999,
+      borderRadius: "18px",
+      overflow: "hidden",
+      boxShadow: "0 15px 40px rgba(0,0,0,0.18)",
+      border: "1px solid #e5e7eb",
+    }),
+
+    menuList: (base) => ({
+      ...base,
+      padding: "6px",
+    }),
+
+    option: (base, state) => ({
+      ...base,
+      borderRadius: "12px",
+      marginBottom: "4px",
+      padding: "14px 16px",
+      backgroundColor: state.isSelected
+        ? "#243B55"
+        : state.isFocused
+          ? "#f3f4f6"
+          : "#ffffff",
+      color: state.isSelected ? "#ffffff" : "#374151",
+      cursor: "pointer",
+      fontWeight: 500,
+    }),
+  };
+
   return (
+
     <div className="min-h-screen bg-[#fef4f3] py-10 px-4">
-      {/* Filter Toggle Button for Mobile */}
-      {!isDesktop && (
-        <div className="mb-4 flex justify-center">
-          <button
-            onClick={() => setShowFilters(!showFilters)}
-            className="px-4 py-2 bg-primary text-white rounded-full font-medium shadow hover:bg-primary/90 transition flex items-center gap-2"
-          >
-            <i className="fa-solid fa-filter"></i> Filters
-          </button>
-        </div>
-      )}
+      <PageContainer>
+        {/* Filter Toggle Button for Mobile */}
+        {!isDesktop && (
+          <div className="mb-4 flex justify-center">
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className="px-4 py-2 bg-primary text-white rounded-full font-medium shadow hover:bg-primary/90 transition flex items-center gap-2"
+            >
+              <i className="fa-solid fa-filter"></i> Filters
+            </button>
+          </div>
+        )}
 
-      {/* Filters */}
-      {shouldShowFilters && (
-        <div className="mb-8 flex flex-row flex-wrap justify-center items-center gap-6">
-        <div className="flex flex-col items-center">
-          <label className="text-sm font-semibold text-primary mb-2 uppercase tracking-wide">Size</label>
-          <select
-            value={fit}
-            onChange={(e) => setFit(e.target.value)}
-            className="px-6 py-3 border-2 border-primary/20 rounded-full bg-gradient-to-r from-primary/10 to-primary/5 text-gray-800 font-medium focus:outline-none focus:ring-4 focus:ring-primary/30 focus:border-primary transition-all duration-300 shadow-lg hover:shadow-xl"
-          >
-            {fits.map((f) => (
-              <option key={f} value={f} className="bg-white text-gray-800">
-                {f}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="flex flex-col items-center">
-          <label className="text-sm font-semibold text-primary mb-2 uppercase tracking-wide">Design</label>
-          <select
-            value={selectedSubcategory}
-            onChange={(e) => setSelectedSubcategory(e.target.value)}
-            className="px-6 py-3 border-2 border-primary/20 rounded-full bg-gradient-to-r from-primary/10 to-primary/5 text-gray-800 font-medium focus:outline-none focus:ring-4 focus:ring-primary/30 focus:border-primary transition-all duration-300 shadow-lg hover:shadow-xl"
-          >
-            <option value="All" className="bg-white text-gray-800">All Keywords</option>
-            {homeKeywords.map((kw, index) => (
-              <option key={kw.keyword_id} value={kw.keyword_name} className="bg-white text-gray-800">
-                {toRoman(index + 1)}. {kw.keyword_name}
-              </option>
-            ))}
-          </select>
-        </div>
-    </div>
-      )}
-
-      {/* Sections */}
-      {!keywordsLoaded ? (
-        <Spinner />
-      ) : (
-        <>
-          {homeKeywords.length === 0 && (
-            <div className="text-center text-gray-500 py-10">
-              No categories configured for the home page. Please enable keywords to show on home from the Admin Panel.
-            </div>
+        <div className="flex justify-end mb-4">
+          {!showFilters && (
+            <button
+              onClick={() => setShowFilters(true)}
+              className="
+        flex
+        items-center
+        gap-2
+        px-3
+        py-2
+        rounded-xl
+        bg-white
+        shadow-md
+        border
+        border-gray-200
+        hover:shadow-lg
+        transition-all
+        duration-300
+      "
+            >
+              <FaFilter className="text-lg text-primary" />
+              <span className="text-sm font-medium text-gray-700">
+                Filters
+              </span>
+            </button>
           )}
-          {homeKeywords.map((kw, index) => {
-            const items = (groupedByKeyword[kw.keyword_name] || []).slice(0, 6); // Show only 6 items per category for speed
-            if (selectedSubcategory !== "All" && selectedSubcategory !== kw.keyword_name) return null;
-            if (items.length === 0) return null;
-            return (
-              <div key={kw.keyword_id} className="mb-14">
-                <div className="text-left mb-8">
-                  <h2 className="text-2xl font-bold text-primary inline-block relative pb-2 after:content-[''] after:absolute after:left-1/2 after:-bottom-1 after:-translate-x-1/2 after:w-20 after:h-[3px] after:bg-primary">
-                    {toRoman(index + 1)}. {kw.keyword_name}
-                  </h2>
+        </div>
+        {/* Filters */}
+        {showFilters && (
+          <div className="w-full mb-12">
+            <div className="bg-gradient-to-r from-pink-50 via-white to-pink-50 border border-pink-100 rounded-3xl px-6 md:px-10 py-6 shadow-md">
+
+              <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-6">
+
+                {/* Left Side Hide Button */}
+                <button
+                  onClick={() => setShowFilters(false)}
+                  className="
+            flex
+            items-center
+            gap-2
+            px-4
+            py-3
+            rounded-xl
+            bg-white
+            shadow-md
+            border
+            border-gray-200
+            hover:shadow-lg
+            transition-all
+            duration-300
+            w-fit
+          "
+                >
+                  <IoClose className="text-primary text-lg" />
+                  <span className="font-medium text-gray-700">
+                    Hide Filters
+                  </span>
+                </button>
+
+                {/* Right Side Filters */}
+                <div className="flex flex-col md:flex-row items-center gap-5">
+
+                  {/* Size Filter */}
+                  <div>
+
+
+                    <Select
+                      className="w-[240px]"
+                      styles={customSelectStyles}
+                      menuPortalTarget={document.body}
+                      menuPosition="fixed"
+                      options={fitOptions}
+                      value={fitOptions.find((o) => o.value === fit)}
+                      onChange={(selected) => setFit(selected.value)}
+                    />
+                  </div>
+
+                  {/* Design Filter */}
+                  <div>
+
+                    <Select
+                      className="w-[320px]"
+                      styles={customSelectStyles}
+                      menuPortalTarget={document.body}
+                      menuPosition="fixed"
+                      options={designOptions}
+                      value={designOptions.find(
+                        (o) => o.value === selectedSubcategory
+                      )}
+                      onChange={(selected) =>
+                        setSelectedSubcategory(selected.value)
+                      }
+                    />
+                  </div>
+
                 </div>
 
-              <Swiper
-                spaceBetween={16}
-                slidesPerView={1}
-                breakpoints={{
-                  640: { slidesPerView: 2 },
-                  1024: { slidesPerView: 4 },
-                  1280: { slidesPerView: 5 },
-                }}
-                modules={[Autoplay, Navigation]}
-                navigation
-                autoplay={{
-                  delay: 2800,
-                  disableOnInteraction: true,
-                }}
-                loop={true}
-                className="w-full"
-              >
-                {items.map((design) => (
-                  <SwiperSlide key={design.id}>
-                    <DesignCard
-                      id={design.product_id}
-                      name={design.name}
-                      rating={design.rating}
-                      images={design.images || [design.image]}
-                      mrp={design.mrp}
-                      salePrice={design.salePrice}
-                      size={design.size || []}
-                    />
-                  </SwiperSlide>
-                ))}
-              </Swiper>
+              </div>
+
             </div>
-            );
-          })}
-        </>
-      )}
+          </div>
+        )}
+
+        {/* Sections */}
+        {!keywordsLoaded ? (
+          <Spinner />
+        ) : (
+          <>
+            {homeKeywords.length === 0 && (
+              <div className="text-center text-gray-500 py-10">
+                No categories configured for the home page. Please enable keywords to show on home from the Admin Panel.
+              </div>
+            )}
+            {homeKeywords.map((kw, index) => {
+              const items = (groupedByKeyword[kw.keyword_name] || []).slice(0, 6); // Show only 6 items per category for speed
+              if (selectedSubcategory !== "All" && selectedSubcategory !== kw.keyword_name) return null;
+              if (items.length === 0) return null;
+              return (
+                <div key={kw.keyword_id} className="mb-14">
+                  <div className="text-left mb-8">
+                    <h2 className="text-2xl font-bold text-primary inline-block relative pb-2 after:content-[''] after:absolute after:left-1/2 after:-bottom-1 after:-translate-x-1/2 after:w-20 after:h-[3px] after:bg-primary">
+                      {toRoman(index + 1)}. {kw.keyword_name}
+                    </h2>
+                  </div>
+
+                  <Swiper
+                    spaceBetween={20}
+                    slidesPerView={2}
+                    breakpoints={{
+                      640: { slidesPerView: 2 },
+                      1024: { slidesPerView: 5 },
+                    }}
+                    modules={[Autoplay]}
+                    autoplay={{
+                      delay: 3000,
+                      disableOnInteraction: false,
+                    }}
+                    loop={true}
+                    className="w-full"
+                  >
+                    {items.map((design) => (
+                      <SwiperSlide key={design.id}>
+                        <DesignCard
+                          id={design.product_id}
+                          name={design.name}
+                          rating={design.rating}
+                          images={design.images || [design.image]}
+                          mrp={design.mrp}
+                          salePrice={design.salePrice}
+                          size={design.size || []}
+                        />
+                      </SwiperSlide>
+                    ))}
+                  </Swiper>
+                </div>
+              );
+            })}
+          </>
+        )}
+      </PageContainer>
     </div>
+
   );
 };
 
