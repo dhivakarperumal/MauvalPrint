@@ -9,6 +9,7 @@ import "aos/dist/aos.css";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import api from "../api";
+import { pickPrimaryImage, flattenVariantImages, isValidImageSrc } from "../Products/helpers";
 
 function Product() {
   const { addToCart, addToWishlist } = useContext(AuthContext);
@@ -30,46 +31,68 @@ function Product() {
         const { data } = await api.get("/products");
 
         if (data?.success && Array.isArray(data.products)) {
-          const normalized = data.products.map((product) => ({
-            ...product,
-            id:
-              product.product_id ||
-              product.id ||
-              product.productId,
+          const normalized = data.products.map((product) => {
+            let parsedImagesByVariant = product.images_by_variant;
+            if (typeof parsedImagesByVariant === "string") {
+              try {
+                parsedImagesByVariant = JSON.parse(parsedImagesByVariant);
+              } catch (e) {
+                parsedImagesByVariant = {};
+              }
+            }
+            if (typeof parsedImagesByVariant !== "object" || !parsedImagesByVariant) {
+              parsedImagesByVariant = {};
+            }
 
-            productId:
-              product.product_id ||
-              product.productId ||
-              product.id,
-
-            salePrice: Number(
-              product.sale_price ??
-              product.salePrice ??
-              0
-            ),
-
-            mrp: Number(product.mrp ?? 0),
-
-            color:
-              typeof product.color === "string"
-                ? JSON.parse(product.color || "[]")
-                : product.color || [],
-
-            size:
-              typeof product.size === "string"
-                ? JSON.parse(product.size || "[]")
-                : product.size || [],
-
-            images:
+            const images =
               typeof product.images === "string"
                 ? JSON.parse(product.images || "[]")
-                : product.images || [],
+                : product.images || [];
 
-            stockByVariant:
-              typeof product.stock_by_variant === "string"
-                ? JSON.parse(product.stock_by_variant || "{}")
-                : product.stock_by_variant || {},
-          }));
+            const finalImages =
+              Array.isArray(images) && images.length > 0
+                ? images
+                : flattenVariantImages(parsedImagesByVariant);
+
+            return {
+              ...product,
+              id:
+                product.product_id ||
+                product.id ||
+                product.productId,
+
+              productId:
+                product.product_id ||
+                product.productId ||
+                product.id,
+
+              salePrice: Number(
+                product.sale_price ??
+                product.salePrice ??
+                0
+              ),
+
+              mrp: Number(product.mrp ?? 0),
+
+              color:
+                typeof product.color === "string"
+                  ? JSON.parse(product.color || "[]")
+                  : product.color || [],
+
+              size:
+                typeof product.size === "string"
+                  ? JSON.parse(product.size || "[]")
+                  : product.size || [],
+
+              images: finalImages,
+              images_by_variant: parsedImagesByVariant,
+
+              stockByVariant:
+                typeof product.stock_by_variant === "string"
+                  ? JSON.parse(product.stock_by_variant || "{}")
+                  : product.stock_by_variant || {},
+            };
+          });
 
           setProducts(normalized);
           console.log("Total Products:", normalized.length);
@@ -252,6 +275,7 @@ function Product() {
                     {/* Product Image */}
                     <img
                       src={
+                        pickPrimaryImage(product) ||
                         product?.images?.[0] ||
                         product?.image?.[0] ||
                         "/placeholder.jpg"
