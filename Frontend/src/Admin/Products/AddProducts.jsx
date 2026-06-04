@@ -394,15 +394,19 @@ const handleRemoveVariantImage = (variantKey, index) => {
         // Update existing product
         await api.put(`/products/${selectedProduct.product_id}`, payload);
         toast.success("Product updated!");
-        setSelectedProduct(null);
+        if (typeof setSelectedProduct === "function") setSelectedProduct(null);
       } else {
         // Add new product
         const { data } = await api.post("/products", payload);
         toast.success("Product added!");
-        setSelectedProduct({ ...payload, product_id: data.product_id });
+        if (typeof setSelectedProduct === "function") setSelectedProduct({ ...payload, product_id: data.product_id });
       }
 
-      setActiveTab("allProducts");
+      if (typeof setActiveTab === "function") {
+        setActiveTab("allProducts");
+      } else {
+        navigate("/admin/products");
+      }
     } catch (err) {
       console.error("Error saving product:", err);
       toast.error("Error saving product: " + (err.response?.data?.message || err.message));
