@@ -15,9 +15,21 @@ const getProducts = async (req, res) => {
       "SELECT * FROM products ORDER BY created_at DESC"
     );
 
+    const parsed = products.map((p) => ({
+      ...p,
+      images: parseJSON(p.images, []),
+      images_by_variant: parseJSON(p.images_by_variant, {}),
+      stock_by_variant: parseJSON(p.stock_by_variant, {}),
+      fabric_gsm: parseJSON(p.fabric_gsm, []),
+      keywords: parseJSON(p.keywords, []),
+      washing_details: parseJSON(p.washing_details, []),
+      color: parseJSON(p.color, []),
+      size: parseJSON(p.size, []),
+    }));
+
     res.status(200).json({
       success: true,
-      products,
+      products: parsed,
     });
   } catch (error) {
     console.error("Fetch products error:", error);
@@ -46,6 +58,7 @@ const addProduct = async (req, res) => {
     fabric_details,
     fabric_gsm,
     images,
+    images_by_variant,
     our_design,
     customizable,
     keyword,
@@ -68,42 +81,72 @@ const addProduct = async (req, res) => {
     const productId = await generateNextProductId(pool);
     const timestamp = new Date().toISOString().slice(0, 19).replace("T", " ");
 
-    await pool.query(
-      `INSERT INTO products (
-        product_id, title, name, category, subcategory, color, size, 
-        offer, rating, mrp, sale_price, stock, description, fabric_details, 
-        fabric_gsm, images, our_design, customizable, keyword, keywords, washing_details, notes, 
-        stock_by_variant, size_chart_image, created_at, updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [
-        productId,
-        title,
-        name,
-        category,
-        subcategory || null,
-        JSON.stringify(color || []),
-        JSON.stringify(size || []),
-        offer || 0,
-        rating || 0,
-        mrp || 0,
-        sale_price || 0,
-        stock || 0,
-        description || null,
-        fabric_details || null,
-        JSON.stringify(fabric_gsm || []),
-        JSON.stringify(images || []),
-        our_design ? 1 : 0,
-        customizable ? 1 : 0,
-        keyword || null,
-        JSON.stringify(keywords || []),
-        JSON.stringify(washing_details || []),
-        notes || null,
-        JSON.stringify(stock_by_variant || {}),
-        size_chart_image || null,
-        timestamp,
-        timestamp,
-      ]
-    );
+    // Build INSERT dynamically to avoid mismatch between columns and values
+    const cols = [
+      'product_id',
+      'title',
+      'name',
+      'category',
+      'subcategory',
+      'color',
+      'size',
+      'offer',
+      'rating',
+      'mrp',
+      'sale_price',
+      'stock',
+      'description',
+      'fabric_details',
+      'fabric_gsm',
+      'images',
+      'images_by_variant',
+      'our_design',
+      'customizable',
+      'keyword',
+      'keywords',
+      'washing_details',
+      'notes',
+      'stock_by_variant',
+      'size_chart_image',
+      'created_at',
+      'updated_at',
+    ];
+
+    const insertValues = [
+      productId,
+      title,
+      name,
+      category,
+      subcategory || null,
+      JSON.stringify(color || []),
+      JSON.stringify(size || []),
+      offer || 0,
+      rating || 0,
+      mrp || 0,
+      sale_price || 0,
+      stock || 0,
+      description || null,
+      fabric_details || null,
+      JSON.stringify(fabric_gsm || []),
+      JSON.stringify(images || []),
+      JSON.stringify(images_by_variant || {}),
+      our_design ? 1 : 0,
+      customizable ? 1 : 0,
+      keyword || null,
+      JSON.stringify(keywords || []),
+      JSON.stringify(washing_details || []),
+      notes || null,
+      JSON.stringify(stock_by_variant || {}),
+      size_chart_image || null,
+      timestamp,
+      timestamp,
+    ];
+
+    const placeholders = cols.map(() => '?').join(', ');
+    const insertQuery = `INSERT INTO products (${cols.join(', ')}) VALUES (${placeholders})`;
+
+    console.log('DEBUG: cols.length =', cols.length, 'insertValues.length =', insertValues.length);
+    await pool.query(insertQuery, insertValues);
 
     res.status(201).json({
       success: true,
@@ -137,6 +180,7 @@ const updateProduct = async (req, res) => {
     fabric_details,
     fabric_gsm,
     images,
+    images_by_variant,
     our_design,
     customizable,
     keyword,
@@ -253,6 +297,10 @@ const updateProduct = async (req, res) => {
       fields.push("size_chart_image = ?");
       values.push(size_chart_image);
     }
+      if (images_by_variant !== undefined) {
+        fields.push("images_by_variant = ?");
+        values.push(JSON.stringify(images_by_variant));
+      }
 
     if (fields.length === 0) {
       return res.status(400).json({
