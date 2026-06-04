@@ -135,6 +135,67 @@ const SingleProductView = () => {
     return colorMap[key] || c; // fallback to the original value if not in the map
   }, [colorMap]);
 
+  const normalizeVariantKey = useCallback((value) => {
+    if (!value && value !== 0) return "";
+    return value
+      .toString()
+      .trim()
+      .toLowerCase()
+      .replace(/\s+/g, "")
+      .replace(/[_-]+/g, "");
+  }, []);
+
+  const getVariantImages = useCallback((variantKey) => {
+    if (!product || !product.images_by_variant) return [];
+    const images = product.images_by_variant[variantKey];
+    if (!images) return [];
+    if (Array.isArray(images)) return images.filter(isValidImageSrc);
+    if (typeof images === "string") {
+      try {
+        const parsed = JSON.parse(images);
+        return Array.isArray(parsed) ? parsed.filter(isValidImageSrc) : [images].filter(isValidImageSrc);
+      } catch {
+        return [images].filter(isValidImageSrc);
+      }
+    }
+    return [];
+  }, [product]);
+
+  const getVariantImagesByNormalizedKey = useCallback((normalizedKey) => {
+    if (!product || !product.images_by_variant) return [];
+    const entry = Object.entries(product.images_by_variant).find(
+      ([key]) => normalizeVariantKey(key) === normalizedKey
+    );
+    return entry ? getVariantImages(entry[0]) : [];
+  }, [product, normalizeVariantKey, getVariantImages]);
+
+  const findColorVariantImages = useCallback(() => {
+    if (!product || !product.images_by_variant) return [];
+    const normalizedVariantEntries = Object.entries(product.images_by_variant || {}).map(([key, value]) => ({
+      normalizedKey: normalizeVariantKey(key),
+      originalKey: key,
+      images: value,
+    }));
+
+    const exactKey = normalizeVariantKey(`${selectedColor}-${selectedSize}`);
+    const exactMatch = normalizedVariantEntries.find((entry) => entry.normalizedKey === exactKey);
+    if (exactMatch) {
+      return getVariantImages(exactMatch.originalKey);
+    }
+
+    const colorQuery = normalizeVariantKey(selectedColor);
+    const sameColorMatch = normalizedVariantEntries.find((entry) =>
+      entry.normalizedKey.startsWith(`${colorQuery}-`) ||
+      entry.normalizedKey.endsWith(`-${colorQuery}`) ||
+      entry.normalizedKey.includes(colorQuery)
+    );
+    if (sameColorMatch) {
+      return getVariantImages(sameColorMatch.originalKey);
+    }
+
+    return flattenVariantImages(product.images_by_variant || {});
+  }, [product, selectedColor, selectedSize, normalizeVariantKey, getVariantImages]);
+
   const handleAddToCart = useCallback(() => {
     if (!selectedSize || !selectedColor)
       return toast.warn("Please select size and color");
@@ -351,19 +412,18 @@ const SingleProductView = () => {
   if (!product) return <div className="p-6 text-center">Loading...</div>;
   const isWishlisted = wishlist.some((p) => p.id === product.id);
 
-  // prepare images: ALWAYS filter by variant if color & size are selected
+  // prepare images: ALWAYS filter by selected color/size variant if available
   let displayImages = [];
-  
-  if (selectedColor && selectedSize && product.images_by_variant) {
-    // Primary: Show only images for the selected color-size combination
-    const variantKey = `${selectedColor}-${selectedSize}`;
-    const variantImages = product.images_by_variant[variantKey];
-    displayImages = (Array.isArray(variantImages) ? variantImages : []).filter(isValidImageSrc);
-  } else if (Array.isArray(product.images) && product.images.filter(isValidImageSrc).length > 0) {
-    // Fallback: Use general product images if variant images don't exist
+
+  if (product?.images_by_variant) {
+    displayImages = findColorVariantImages();
+  }
+
+  if (displayImages.length === 0 && Array.isArray(product.images) && product.images.filter(isValidImageSrc).length > 0) {
     displayImages = product.images.filter(isValidImageSrc);
-  } else if (product.images_by_variant) {
-    // Last resort: show first available variant's images
+  }
+
+  if (displayImages.length === 0 && product?.images_by_variant) {
     displayImages = flattenVariantImages(product.images_by_variant || {});
   }
 
