@@ -806,20 +806,43 @@ const ProductList = () => {
               </div>
               <div>
                 <strong>Images:</strong>
-                <div className="grid grid-cols-2 gap-2 mt-2">
-                  {/* Show images array if valid, else try images_by_variant first variant */}
-                  {Array.isArray(selectedProductLocal.images) && selectedProductLocal.images.length > 0 &&
-                    selectedProductLocal.images.filter(isValidImageSrc).map((img, idx) => (
-                      <img key={idx} src={img} alt={`product-${idx}`} className="w-full h-32 object-cover rounded border" />
-                    ))}
-
-                  {((!Array.isArray(selectedProductLocal.images) || selectedProductLocal.images.filter(isValidImageSrc).length === 0) && selectedProductLocal.images_by_variant) && (
-                    Object.values(selectedProductLocal.images_by_variant).flat().filter(isValidImageSrc).slice(0, 4).map((img, idx) => (
-                      <img key={`v-${idx}`} src={img} alt={`variant-${idx}`} className="w-full h-32 object-cover rounded border" />
-                    ))
+                <div className="mt-2 space-y-3">
+                  {/* General images */}
+                  {Array.isArray(selectedProductLocal.images) && selectedProductLocal.images.filter(isValidImageSrc).length > 0 && (
+                    <div>
+                      <div className="text-sm font-semibold mb-2">General</div>
+                      <div className="grid grid-cols-2 gap-2">
+                        {selectedProductLocal.images.filter(isValidImageSrc).map((img, idx) => (
+                          <img key={`g-${idx}`} src={img} alt={`general-${idx}`} className="w-full h-32 object-cover rounded border" />
+                        ))}
+                      </div>
+                    </div>
                   )}
 
-                  {/* If still nothing, show a placeholder */}
+                  {/* Variant images grouped by variant key */}
+                  {selectedProductLocal.images_by_variant && Object.keys(selectedProductLocal.images_by_variant).length > 0 && (
+                    <div>
+                      <div className="text-sm font-semibold mb-2">Variant Images</div>
+                      <div className="space-y-4">
+                        {Object.entries(selectedProductLocal.images_by_variant).map(([variantKey, imgs]) => {
+                          const valid = Array.isArray(imgs) ? imgs.filter(isValidImageSrc) : [];
+                          if (valid.length === 0) return null;
+                          return (
+                            <div key={variantKey}>
+                              <div className="text-xs text-gray-600 mb-1">{variantKey}</div>
+                              <div className="grid grid-cols-2 gap-2">
+                                {valid.map((img, idx) => (
+                                  <img key={`${variantKey}-${idx}`} src={img} alt={`${variantKey}-${idx}`} className="w-full h-32 object-cover rounded border" />
+                                ))}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Placeholder when no images at all */}
                   {((!Array.isArray(selectedProductLocal.images) || selectedProductLocal.images.filter(isValidImageSrc).length === 0) && (!selectedProductLocal.images_by_variant || Object.values(selectedProductLocal.images_by_variant).flat().filter(isValidImageSrc).length === 0)) && (
                     <img src="https://via.placeholder.com/300x200?text=No+Image" alt="no-image" className="w-full h-32 object-cover rounded border" />
                   )}
