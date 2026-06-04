@@ -13,6 +13,7 @@
     "cliui": "^9.0.1",
     "emoji-regex": "^10.6.0",
     "escalade": "^3.2.0",
+    "fabric": "^7.4.0",
     "get-caller-file": "^2.0.5",
     "get-east-asian-width": "^1.6.0",
     "rxjs": "^7.8.2",
