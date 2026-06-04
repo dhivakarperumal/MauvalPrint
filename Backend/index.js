@@ -37,10 +37,10 @@ app.use((req, res, next) => {
 });
 
 app.use("/api", userRoutes);
-app.use("/api", productRoutes);
+app.use("/api/products", productRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/print-orders", printOrderRoutes);
-app.use("/api", reviewRoutes);
+app.use("/api/reviews", reviewRoutes);
 app.use("/api/dealers", dealerRoutes);
 app.use("/api/invoices", invoiceRoutes);
 app.use("/api/keywords", keywordRoutes);
