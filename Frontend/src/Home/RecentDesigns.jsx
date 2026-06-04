@@ -2,9 +2,8 @@ import React, { useContext, useState, useMemo, useEffect, memo, useCallback } fr
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../Context/AuthContext";
 import { Swiper, SwiperSlide } from 'swiper/react';
-import { Autoplay, Navigation } from 'swiper/modules';
+import { Autoplay } from 'swiper/modules';
 import 'swiper/css';
-import 'swiper/css/navigation';
 import api from "../api";
 import PageContainer from "../Components/PageContainer";
 import Select from "react-select";
@@ -493,42 +492,41 @@ const RecentDesigns = () => {
                     </h2>
                   </div>
 
-              <Swiper
-                spaceBetween={16}
-                slidesPerView={1}
-                breakpoints={{
-                  640: { slidesPerView: 2 },
-                  1024: { slidesPerView: 4 },
-                  1280: { slidesPerView: 5 },
-                }}
-                modules={[Autoplay, Navigation]}
-                navigation
-                autoplay={{
-                  delay: 2800,
-                  disableOnInteraction: true,
-                }}
-                loop={true}
-                className="w-full"
-              >
-                {items.map((design) => (
-                  <SwiperSlide key={design.id}>
-                    <DesignCard
-                      id={design.product_id}
-                      name={design.name}
-                      rating={design.rating}
-                      images={design.images || [design.image]}
-                      mrp={design.mrp}
-                      salePrice={design.salePrice}
-                      size={design.size || []}
-                    />
-                  </SwiperSlide>
-                ))}
-              </Swiper>
-            </div>
-            );
-          })}
-        </>
-      )}
+                  <Swiper
+                    spaceBetween={20}
+                    slidesPerView={2}
+                    breakpoints={{
+                      640: { slidesPerView: 2 },
+                      1024: { slidesPerView: 5 },
+                    }}
+                    modules={[Autoplay]}
+                    autoplay={{
+                      delay: 3000,
+                      disableOnInteraction: false,
+                    }}
+                    loop={true}
+                    className="w-full"
+                  >
+                    {items.map((design) => (
+                      <SwiperSlide key={design.id}>
+                        <DesignCard
+                          id={design.product_id}
+                          name={design.name}
+                          rating={design.rating}
+                          images={design.images || [design.image]}
+                          mrp={design.mrp}
+                          salePrice={design.salePrice}
+                          size={design.size || []}
+                        />
+                      </SwiperSlide>
+                    ))}
+                  </Swiper>
+                </div>
+              );
+            })}
+          </>
+        )}
+      </PageContainer>
     </div>
 
   );
