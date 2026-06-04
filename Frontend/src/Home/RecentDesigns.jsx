@@ -351,61 +351,74 @@ const RecentDesigns = () => {
             </button>
           </div>
         )}
-        <div className="flex items-center mb-4">
-          <button
-            onClick={() => setShowFilters(!showFilters)}
-            className="
-      flex
-      items-center
-      gap-2
-      px-3
-      py-2
-      rounded-xl
-      bg-white
-      shadow-md
-      border
-      border-gray-200
-      hover:shadow-lg
-      transition-all
-      duration-300
-    "
-          >
-            {showFilters ? (
-              <IoClose className="text-lg text-primary" />
-            ) : (
+
+        <div className="flex justify-end mb-4">
+          {!showFilters && (
+            <button
+              onClick={() => setShowFilters(true)}
+              className="
+        flex
+        items-center
+        gap-2
+        px-3
+        py-2
+        rounded-xl
+        bg-white
+        shadow-md
+        border
+        border-gray-200
+        hover:shadow-lg
+        transition-all
+        duration-300
+      "
+            >
               <FaFilter className="text-lg text-primary" />
-            )}
-
-            <span className="text-sm font-medium text-gray-700">
-              {showFilters ? "Hide" : "Filters"}
-            </span>
-          </button>
+              <span className="text-sm font-medium text-gray-700">
+                Filters
+              </span>
+            </button>
+          )}
         </div>
-
         {/* Filters */}
         {showFilters && (
           <div className="w-full mb-12">
-            <div className="bg-gradient-to-r from-pink-50 via-white to-pink-50 border border-pink-100 rounded-3xl px-6 md:px-10 py-8 shadow-md">
+            <div className="bg-gradient-to-r from-pink-50 via-white to-pink-50 border border-pink-100 rounded-3xl px-6 md:px-10 py-6 shadow-md">
 
-              {/* Heading */}
-              <div className="text-center mb-6">
-                <h2 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-primary to-pink-500 bg-clip-text text-transparent">
-                  Discover Your Style
-                </h2>
+              <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-6">
+
+                {/* Left Side Hide Button */}
+                <button
+                  onClick={() => setShowFilters(false)}
+                  className="
+            flex
+            items-center
+            gap-2
+            px-4
+            py-3
+            rounded-xl
+            bg-white
+            shadow-md
+            border
+            border-gray-200
+            hover:shadow-lg
+            transition-all
+            duration-300
+            w-fit
+          "
+                >
+                  <IoClose className="text-primary text-lg" />
+                  <span className="font-medium text-gray-700">
+                    Hide Filters
+                  </span>
+                </button>
+
+                {/* Right Side Filters */}
+                <div className="flex flex-col md:flex-row items-center gap-5">
+
+                  {/* Size Filter */}
+                  <div>
 
 
-              </div>
-
-              {/* Filters */}
-              <div className="flex flex-col md:flex-row justify-center items-center gap-6">
-
-                {/* Size Filter */}
-                <div className="w-full md:w-auto">
-                  <label className="block text-sm font-semibold text-primary mb-2">
-                    SIZE
-                  </label>
-
-                  <div className="p-[2px] rounded-2xl bg-gradient-to-r from-pink-400 via-orange-300 to-pink-400 shadow-lg">
                     <Select
                       className="w-[240px]"
                       styles={customSelectStyles}
@@ -416,15 +429,10 @@ const RecentDesigns = () => {
                       onChange={(selected) => setFit(selected.value)}
                     />
                   </div>
-                </div>
 
-                {/* Design Filter */}
-                <div className="w-full md:w-auto">
-                  <label className="block text-sm font-semibold text-primary mb-2">
-                    DESIGN
-                  </label>
+                  {/* Design Filter */}
+                  <div>
 
-                  <div className="p-[2px] rounded-2xl bg-gradient-to-r from-pink-400 via-orange-300 to-pink-400 shadow-lg">
                     <Select
                       className="w-[320px]"
                       styles={customSelectStyles}
@@ -439,9 +447,11 @@ const RecentDesigns = () => {
                       }
                     />
                   </div>
+
                 </div>
 
               </div>
+
             </div>
           </div>
         )}
