@@ -119,7 +119,9 @@ export function AuthProvider({ children }) {
               color: parsedColor,
               keywords: parsedKeywords,
               keyword: p.keyword || "Other",
-              stockByVariant: parsedStockByVariant
+              stockByVariant: parsedStockByVariant,
+              sizeChartImage: p.sizeChartImage || p.size_chart_image || p.sizeChartImag || "",
+              sizeChartImag: p.sizeChartImag || p.size_chart_image || p.sizeChartImage || "",
             };
           });
 
