@@ -374,10 +374,10 @@ const SingleProductView = () => {
     mrp > 0 ? Math.round(((mrp - salePrice) / mrp) * 100) : 0;
 
   return (
-    <PageContainer>
+    
       <div className="mt-20">
         <Head title={product.name} subtitle={product.name} />
-
+        <PageContainer>
         <div className="grid lg:grid-cols-2 gap-10 border-b border-primary py-10">
           <div className="z-10">
             {/* ✅ Zoom Image Component */}
@@ -589,6 +589,8 @@ const SingleProductView = () => {
             </p>
           </div>
         </div>
+        </PageContainer>
+        
         {category && (
           <div className="mt-10">
             <h3 className="text-xl font-semibold mb-4">Related Products</h3>
@@ -675,7 +677,6 @@ const SingleProductView = () => {
           }}
         />
       )}
-    </PageContainer>
   );
 };
 

@@ -233,7 +233,7 @@ function Products() {
 
             mrp: Number(product.mrp ?? 0),
             // normalize images to images_final
-            images: (product.images_final && product.images_final.length>0) ? product.images_final : (Array.isArray(product.images)?product.images:[]),
+            images: (product.images_final && product.images_final.length > 0) ? product.images_final : (Array.isArray(product.images) ? product.images : []),
             images_by_variant: (product.images_by_variant && typeof product.images_by_variant === 'object') ? product.images_by_variant : {},
 
             color:
@@ -261,9 +261,9 @@ function Products() {
                   : [],
 
             // if images empty, flatten variant images
-            images_final: (function(){
+            images_final: (function () {
               const imgs = (typeof product.images === 'string')
-                ? (product.images.startsWith('[') ? JSON.parse(product.images) : product.images.split(',').map(s=>s.trim()).filter(Boolean))
+                ? (product.images.startsWith('[') ? JSON.parse(product.images) : product.images.split(',').map(s => s.trim()).filter(Boolean))
                 : (Array.isArray(product.images) ? product.images : []);
               if (imgs.length > 0) return imgs;
               const byVar = (typeof product.images_by_variant === 'string')
@@ -381,263 +381,270 @@ function Products() {
 
   if (loading) {
     return (
-      <PageContainer>
-        <div className="mt-18">
+
+      <div className="mt-18">
+        <PageContainer>
           <Head title="Our Products" subtitle="Products" />
           <section className="p-4 md:p-8 bg-white">
-          <div className="flex justify-center items-center mt-20">
-            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-          </div>
-        </section>
+            <div className="flex justify-center items-center mt-20">
+              <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+            </div>
+          </section>
+        </PageContainer>
       </div>
-      </PageContainer>
+
     );
   }
 
   if (!products || products.length === 0) {
     return (
-      <PageContainer>
-        <div className="mt-18">
-          <Head title="Our Products" subtitle="Products" />
+
+      <div className="mt-18">
+
+        <Head title="Our Products" subtitle="Products" />
+        <PageContainer>
           <section className="p-4 md:p-8 bg-white">
             <p className="text-center text-gray-500 py-20">No products found.</p>
           </section>
-        </div>
-      </PageContainer>
+        </PageContainer>
+      </div >
+
     );
   }
 
   return (
-    <PageContainer>
-      <div className="mt-18">
+
+    <div className="mt-18">
+
       <Head title="Our Products" subtitle="Products" />
+      <PageContainer>
+        {/* Mobile Filter Dropdown */}
+        <div className="md:hidden p-4 bg-white border-b border-gray-200">
+          <button
+            onClick={() => setShowFilters((prev) => !prev)}
+            className="w-full flex items-center justify-between px-4 py-2 bg-primary text-white rounded-md"
+          >
+            Customize Filters
+            <IoIosArrowDown className={`transition-transform duration-300 ${showFilters ? "rotate-180" : ""}`} />
+          </button>
+        </div>
 
-      {/* Mobile Filter Dropdown */}
-      <div className="md:hidden p-4 bg-white border-b border-gray-200">
-        <button
-          onClick={() => setShowFilters((prev) => !prev)}
-          className="w-full flex items-center justify-between px-4 py-2 bg-primary text-white rounded-md"
-        >
-          Customize Filters
-          <IoIosArrowDown className={`transition-transform duration-300 ${showFilters ? "rotate-180" : ""}`} />
-        </button>
-      </div>
+        <section className="py-4 md:py-8 bg-white">
+          <div className="flex flex-col md:flex-row gap-6">
+            {/* Filters */}
+            {(showFilters || window.innerWidth >= 768) && (
+              <div className="w-full md:w-1/4 h-full border border-gray-200 rounded-xl p-4 shadow-sm bg-primary/5">
+                <h3 className="text-lg font-semibold mb-4">Filter By</h3>
 
-      <section className="p-4 md:p-8 bg-white">
-        <div className="flex flex-col md:flex-row gap-6">
-          {/* Filters */}
-          {(showFilters || window.innerWidth >= 768) && (
-            <div className="w-full md:w-1/4 h-full border border-gray-200 rounded-xl p-4 shadow-sm bg-primary/5">
-              <h3 className="text-lg font-semibold mb-4">Filter By</h3>
-
-              {/* Category */}
-              <div className="mb-4">
-                <p className="font-medium mb-2">Category</p>
-                <div className="flex flex-wrap gap-2">
-                  {categories.map((cat, idx) => (
-                    <button
-                      key={idx}
-                      onClick={() => {
-                        setCategory(cat);
-                        setCurrentPage(1);
-                      }}
-                      className={`px-3 py-1 rounded-full border text-sm cursor-pointer ${category === cat ? "bg-primary text-white border-primary" : "bg-white text-gray-700"
-                        }`}
-                    >
-                      {cat.charAt(0).toUpperCase() + cat.slice(1)}
-                    </button>
-                  ))}
+                {/* Category */}
+                <div className="mb-4">
+                  <p className="font-medium mb-2">Category</p>
+                  <div className="flex flex-wrap gap-2">
+                    {categories.map((cat, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => {
+                          setCategory(cat);
+                          setCurrentPage(1);
+                        }}
+                        className={`px-3 py-1 rounded-full border text-sm cursor-pointer ${category === cat ? "bg-primary text-white border-primary" : "bg-white text-gray-700"
+                          }`}
+                      >
+                        {cat.charAt(0).toUpperCase() + cat.slice(1)}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
 
-              {/* Price */}
-              <div className="mb-4">
-                <p className="font-medium mb-2">Price Under: ₹{priceRange}</p>
-                <input
-                  type="range"
-                  min={priceRangeMin}
-                  max={priceRangeMax}
-                  value={priceRange}
-                  onChange={(e) => handlePriceChange(Number(e.target.value))}
-                  className="w-full accent-primary cursor-pointer"
-                />
-              </div>
-
-              {/* Size */}
-              <div className="mb-4">
-                <p className="font-medium mb-2">Size</p>
-                <div className="flex gap-2 flex-wrap">
-                  {sizes.map((size, i) => (
-                    <button
-                      key={i}
-                      onClick={() => {
-                        setSelectedSize(size);
-                        setCurrentPage(1);
-                      }}
-                      className={`w-9 h-9 border rounded-full text-sm cursor-pointer ${selectedSize === size ? "bg-primary text-white border-primary" : "bg-white text-gray-700"
-                        }`}
-                    >
-                      {size.charAt(0).toUpperCase() + size.slice(1)}
-                    </button>
-                  ))}
+                {/* Price */}
+                <div className="mb-4">
+                  <p className="font-medium mb-2">Price Under: ₹{priceRange}</p>
+                  <input
+                    type="range"
+                    min={priceRangeMin}
+                    max={priceRangeMax}
+                    value={priceRange}
+                    onChange={(e) => handlePriceChange(Number(e.target.value))}
+                    className="w-full accent-primary cursor-pointer"
+                  />
                 </div>
-              </div>
 
-              {/* Color */}
-              <div className="mb-4">
-                <p className="font-medium mb-2">Color</p>
-                <div className="flex gap-2 flex-wrap">
-                  {["Navy", "Red", "Black", "White"]
-                    .filter((clr) => colors.includes(clr))
-                    .map((clr, i) => (
+                {/* Size */}
+                <div className="mb-4">
+                  <p className="font-medium mb-2">Size</p>
+                  <div className="flex gap-2 flex-wrap">
+                    {sizes.map((size, i) => (
                       <button
                         key={i}
                         onClick={() => {
-                          setSelectedColor(clr);
+                          setSelectedSize(size);
                           setCurrentPage(1);
                         }}
-                        className={`w-7 h-7 rounded-full border-2 transition-all duration-300 cursor-pointer ${selectedColor === clr ? "ring-2 ring-primary border-primary" : "border-gray-300"
-                          }`}
-                        style={{
-                          backgroundColor:
-                            clr.toLowerCase() === "white"
-                              ? "#ffffff"
-                              : clr.toLowerCase() === "navy"
-                                ? "#000080"
-                                : clr.toLowerCase(),
-                        }}
-                        title={clr}
-                      />
-                    ))}
-                </div>
-              </div>
-
-              {/* Rating */}
-              <div className="mb-4">
-                <p className="font-medium mb-2">Minimum Rating</p>
-                <div className="flex flex-col gap-1">
-                  {[0, 1, 2, 3, 4, 5].map((r) => (
-                    <label key={r} className="flex items-center gap-2 text-sm cursor-pointer">
-                      <input
-                        type="radio"
-                        name="rating"
-                        checked={minRating === r}
-                        onChange={() => {
-                          setMinRating(r);
-                          setCurrentPage(1);
-                        }}
-                        className="accent-primary"
-                      />
-                      <span>{r} & UP</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              {/* Clear Filters */}
-              <div className="mt-6">
-                <button
-                  onClick={() => {
-                    setCategory("all");
-                    setPriceRange(priceRangeMax);
-                    setSelectedSize("all");
-                    setSelectedColor("all");
-                    setMinRating(0);
-                    setCurrentPage(1);
-                  }}
-                  className="w-full py-2 text-sm bg-primary text-white border transition-all duration-500 border-primary hover:bg-white hover:text-primary"
-                >
-                  Clear Filters
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Products Grid */}
-          <div className="w-full md:w-3/4">
-            {paginatedProducts.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {paginatedProducts.map((product, index) => (
-                  <ProductCard
-                    key={product.id || index}
-                    product={product}
-                    index={index}
-                    addToCart={addToCart}
-                    addToWishlist={addToWishlist}
-                    cardSize={cardSize}
-                    setCardSize={setCardSize}
-                  />
-                ))}
-              </div>
-            ) : (
-              <p className="text-center text-gray-500 py-10">No products found for selected filters.</p>
-            )}
-
-            {/* Pagination */}
-            {totalPages > 1 && (
-              <div className="mt-10 flex flex-col items-center gap-3">
-                <div className="flex flex-wrap items-center gap-2 text-sm text-gray-700">
-                  <button
-                    onClick={() => handlePageChange(currentPage - 1)}
-                    disabled={currentPage === 1}
-                    className="rounded-full px-3 py-1 border bg-white text-gray-700 disabled:cursor-not-allowed disabled:opacity-50"
-                  >
-                    Prev
-                  </button>
-
-                  {[...Array(totalPages)].map((_, i) => {
-                    const page = i + 1;
-                    const shouldShow =
-                      page === 1 ||
-                      page === totalPages ||
-                      Math.abs(page - currentPage) <= 2;
-
-                    if (!shouldShow) {
-                      if (
-                        page === 2 && currentPage > 4 ||
-                        page === totalPages - 1 && currentPage < totalPages - 3
-                      ) {
-                        return (
-                          <span key={page} className="px-2 text-gray-400">
-                            ...
-                          </span>
-                        );
-                      }
-                      return null;
-                    }
-
-                    return (
-                      <button
-                        key={page}
-                        onClick={() => handlePageChange(page)}
-                        className={`h-9 min-w-[2.25rem] rounded-full border text-sm ${currentPage === page
-                          ? "bg-primary text-white border-primary"
-                          : "bg-white text-gray-700 border-gray-300"
+                        className={`w-9 h-9 border rounded-full text-sm cursor-pointer ${selectedSize === size ? "bg-primary text-white border-primary" : "bg-white text-gray-700"
                           }`}
                       >
-                        {page}
+                        {size.charAt(0).toUpperCase() + size.slice(1)}
                       </button>
-                    );
-                  })}
+                    ))}
+                  </div>
+                </div>
 
+                {/* Color */}
+                <div className="mb-4">
+                  <p className="font-medium mb-2">Color</p>
+                  <div className="flex gap-2 flex-wrap">
+                    {["Navy", "Red", "Black", "White"]
+                      .filter((clr) => colors.includes(clr))
+                      .map((clr, i) => (
+                        <button
+                          key={i}
+                          onClick={() => {
+                            setSelectedColor(clr);
+                            setCurrentPage(1);
+                          }}
+                          className={`w-7 h-7 rounded-full border-2 transition-all duration-300 cursor-pointer ${selectedColor === clr ? "ring-2 ring-primary border-primary" : "border-gray-300"
+                            }`}
+                          style={{
+                            backgroundColor:
+                              clr.toLowerCase() === "white"
+                                ? "#ffffff"
+                                : clr.toLowerCase() === "navy"
+                                  ? "#000080"
+                                  : clr.toLowerCase(),
+                          }}
+                          title={clr}
+                        />
+                      ))}
+                  </div>
+                </div>
+
+                {/* Rating */}
+                <div className="mb-4">
+                  <p className="font-medium mb-2">Minimum Rating</p>
+                  <div className="flex flex-col gap-1">
+                    {[0, 1, 2, 3, 4, 5].map((r) => (
+                      <label key={r} className="flex items-center gap-2 text-sm cursor-pointer">
+                        <input
+                          type="radio"
+                          name="rating"
+                          checked={minRating === r}
+                          onChange={() => {
+                            setMinRating(r);
+                            setCurrentPage(1);
+                          }}
+                          className="accent-primary"
+                        />
+                        <span>{r} & UP</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Clear Filters */}
+                <div className="mt-6">
                   <button
-                    onClick={() => handlePageChange(currentPage + 1)}
-                    disabled={currentPage === totalPages}
-                    className="rounded-full px-3 py-1 border bg-white text-gray-700 disabled:cursor-not-allowed disabled:opacity-50"
+                    onClick={() => {
+                      setCategory("all");
+                      setPriceRange(priceRangeMax);
+                      setSelectedSize("all");
+                      setSelectedColor("all");
+                      setMinRating(0);
+                      setCurrentPage(1);
+                    }}
+                    className="w-full py-2 text-sm bg-primary text-white border transition-all duration-500 border-primary hover:bg-white hover:text-primary"
                   >
-                    Next
+                    Clear Filters
                   </button>
                 </div>
-                <span className="text-sm text-gray-500">
-                  Showing page {currentPage} of {totalPages}
-                </span>
               </div>
             )}
+
+            {/* Products Grid */}
+            <div className="w-full md:w-3/4">
+              {paginatedProducts.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {paginatedProducts.map((product, index) => (
+                    <ProductCard
+                      key={product.id || index}
+                      product={product}
+                      index={index}
+                      addToCart={addToCart}
+                      addToWishlist={addToWishlist}
+                      cardSize={cardSize}
+                      setCardSize={setCardSize}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <p className="text-center text-gray-500 py-10">No products found for selected filters.</p>
+              )}
+
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <div className="mt-10 flex flex-col items-center gap-3">
+                  <div className="flex flex-wrap items-center gap-2 text-sm text-gray-700">
+                    <button
+                      onClick={() => handlePageChange(currentPage - 1)}
+                      disabled={currentPage === 1}
+                      className="rounded-full px-3 py-1 border bg-white text-gray-700 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      Prev
+                    </button>
+
+                    {[...Array(totalPages)].map((_, i) => {
+                      const page = i + 1;
+                      const shouldShow =
+                        page === 1 ||
+                        page === totalPages ||
+                        Math.abs(page - currentPage) <= 2;
+
+                      if (!shouldShow) {
+                        if (
+                          page === 2 && currentPage > 4 ||
+                          page === totalPages - 1 && currentPage < totalPages - 3
+                        ) {
+                          return (
+                            <span key={page} className="px-2 text-gray-400">
+                              ...
+                            </span>
+                          );
+                        }
+                        return null;
+                      }
+
+                      return (
+                        <button
+                          key={page}
+                          onClick={() => handlePageChange(page)}
+                          className={`h-9 min-w-[2.25rem] rounded-full border text-sm ${currentPage === page
+                            ? "bg-primary text-white border-primary"
+                            : "bg-white text-gray-700 border-gray-300"
+                            }`}
+                        >
+                          {page}
+                        </button>
+                      );
+                    })}
+
+                    <button
+                      onClick={() => handlePageChange(currentPage + 1)}
+                      disabled={currentPage === totalPages}
+                      className="rounded-full px-3 py-1 border bg-white text-gray-700 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      Next
+                    </button>
+                  </div>
+                  <span className="text-sm text-gray-500">
+                    Showing page {currentPage} of {totalPages}
+                  </span>
+                </div>
+              )}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      </PageContainer>
     </div>
-    </PageContainer>
+
   );
 }
 

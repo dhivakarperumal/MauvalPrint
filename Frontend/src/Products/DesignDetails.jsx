@@ -205,10 +205,10 @@ const DesignDetails = () => {
   };
 
   return (
-    <PageContainer>
+    
       <div className="mt-18">
         <Head title="Design Details" subtitle={name} />
-
+    <PageContainer>
         <div className="bg-white py-6 px-4 sm:px-8 lg:px-20">
         <div className="grid lg:grid-cols-2 gap-10 mt-8">
           {/* Left Image Section */}
@@ -493,8 +493,9 @@ const DesignDetails = () => {
           />
         </div>
       </div>
+      </PageContainer>
       </div>
-    </PageContainer>
+    
   );
 };
 

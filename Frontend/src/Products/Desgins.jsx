@@ -28,79 +28,83 @@ const Designs = () => {
   // Loading state when designs haven't loaded yet
   if (!designs || designs.length === 0) {
     return (
-      <PageContainer>
-        <div className="mt-17">
+
+      <div className="mt-17">
+        
           <Head title="Designs" subtitle="Designs" />
+          <PageContainer>
           <div className="min-h-screen bg-[#fef4f3] py-10 px-4">
-          <h1 className="text-3xl font-bold text-center mb-6 text-primary">
-            Our Designs
-          </h1>
-          <div className="flex justify-center items-center mt-20">
-            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+            <h1 className="text-3xl font-bold text-center mb-6 text-primary">
+              Our Designs
+            </h1>
+            <div className="flex justify-center items-center mt-20">
+              <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+            </div>
           </div>
-        </div>
+        </PageContainer>
       </div>
-      </PageContainer>
+
     );
   }
 
   return (
-    <PageContainer>
+    
       <div className="mt-17">
-      <Head title="Designs" subtitle="Designs" />
+        
+        <Head title="Designs" subtitle="Designs" />
+        
+        <div className="min-h-screen bg-[#fef4f3] py-10 px-4">
+          <PageContainer> 
+          <h1 className="text-3xl font-bold text-center mb-6 text-primary">
+            Our Designs
+          </h1>
 
-      <div className="min-h-screen bg-[#fef4f3] py-10 px-4">
-        <h1 className="text-3xl font-bold text-center mb-6 text-primary">
-          Our Designs
-        </h1>
-
-        {/* Theme Filter */}
-        <div className="flex flex-wrap justify-center gap-3 mb-10">
-          {themeOptions.map((t, idx) => (
-            <button
-              key={idx}
-              onClick={() => setTheme(t)}
-              className={`px-4 py-1 rounded-full border transition font-medium ${
-                theme === t
-                  ? "bg-primary text-white border-primary"
-                  : "bg-white text-primary border"
-              }`}
-            >
-              {t}
-            </button>
-          ))}
-        </div>
-
-        {/* Product Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mx-5 justify-items-center">
-          {paginatedDesigns.map((design) => (
-            <DesignCard
-              key={design.id}
-              product={design}
-              images={design.images || [design.image]}
-            />
-          ))}
-        </div>
-
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="flex justify-center mt-10 gap-2">
-            {Array.from({ length: totalPages }, (_, i) => (
+          {/* Theme Filter */}
+          <div className="flex flex-wrap justify-center gap-3 mb-10">
+            {themeOptions.map((t, idx) => (
               <button
-                key={i}
-                onClick={() => setCurrentPage(i + 1)}
-                className={`px-3 py-1 border rounded-full ${
-                  i + 1 === currentPage ? "bg-primary text-white" : ""
-                }`}
+                key={idx}
+                onClick={() => setTheme(t)}
+                className={`px-4 py-1 rounded-full border transition font-medium ${theme === t
+                    ? "bg-primary text-white border-primary"
+                    : "bg-white text-primary border"
+                  }`}
               >
-                {i + 1}
+                {t}
               </button>
             ))}
           </div>
-        )}
+
+          {/* Product Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 justify-items-center">
+            {paginatedDesigns.map((design) => (
+              <DesignCard
+                key={design.id}
+                product={design}
+                images={design.images || [design.image]}
+              />
+            ))}
+          </div>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex justify-center mt-10 gap-2">
+              {Array.from({ length: totalPages }, (_, i) => (
+                <button
+                  key={i}
+                  onClick={() => setCurrentPage(i + 1)}
+                  className={`px-3 py-1 border rounded-full ${i + 1 === currentPage ? "bg-primary text-white" : ""
+                    }`}
+                >
+                  {i + 1}
+                </button>
+              ))}
+            </div>
+          )}
+          </PageContainer>
+        </div>
+        
       </div>
-    </div>
-    </PageContainer>
   );
 };
 
@@ -135,8 +139,7 @@ const DesignCard = ({ product, images }) => {
     });
 
     toast.success(
-      `${product.name} (${selectedColor || "Default"}, ${
-        selectedSize || "Free Size"
+      `${product.name} (${selectedColor || "Default"}, ${selectedSize || "Free Size"
       }) added to cart`
     );
   };
@@ -151,9 +154,8 @@ const DesignCard = ({ product, images }) => {
       <div className="w-full h-[300px] relative overflow-hidden bg-primary/10">
         {/* Wishlist Bubble */}
         <div
-          className={`absolute w-[50%] h-[50%] transition-all duration-700 ease-in-out z-10 rounded-[10%_13%_42%_0%/10%_12%_75%_0%] bg-primary/30 ${
-            hovered ? "bottom-0 left-0" : "bottom-[-70%] left-[-70%]"
-          }`}
+          className={`absolute w-[50%] h-[50%] transition-all duration-700 ease-in-out z-10 rounded-[10%_13%_42%_0%/10%_12%_75%_0%] bg-primary/30 ${hovered ? "bottom-0 left-0" : "bottom-[-70%] left-[-70%]"
+            }`}
           style={{ borderTop: "2px solid white", borderRight: "1px solid white", backdropFilter: "blur(2px)" }}
         >
           <div className="absolute top-2 right-2">
@@ -169,9 +171,8 @@ const DesignCard = ({ product, images }) => {
 
         {/* View Details Bubble */}
         <div
-          className={`absolute w-[32%] h-[32%] transition-all duration-1000 ease-in-out z-10 rounded-[10%_13%_42%_0%/10%_12%_75%_0%] bg-primary/30 ${
-            hovered ? "bottom-0 left-0" : "bottom-[-70%] left-[-70%]"
-          }`}
+          className={`absolute w-[32%] h-[32%] transition-all duration-1000 ease-in-out z-10 rounded-[10%_13%_42%_0%/10%_12%_75%_0%] bg-primary/30 ${hovered ? "bottom-0 left-0" : "bottom-[-70%] left-[-70%]"
+            }`}
           style={{ borderTop: "2px solid white", borderRight: "1px solid white", backdropFilter: "blur(2px)" }}
         >
           <div className="absolute top-2 right-2">
@@ -190,18 +191,16 @@ const DesignCard = ({ product, images }) => {
         <img
           src={images?.[0]}
           alt={product.name}
-          className={`absolute inset-0 w-full h-full object-contain p-4 transition-opacity duration-500 ${
-            hovered ? "opacity-0" : "opacity-100"
-          }`}
+          className={`absolute inset-0 w-full h-full object-contain p-4 transition-opacity duration-500 ${hovered ? "opacity-0" : "opacity-100"
+            }`}
           loading="lazy"
           decoding="async"
         />
         <img
           src={images?.[1] || images?.[0]}
           alt={product.name}
-          className={`absolute inset-0 w-full h-full object-contain p-4 transform transition-all duration-700 ${
-            hovered ? "scale-110 opacity-100" : "scale-100 opacity-0"
-          }`}
+          className={`absolute inset-0 w-full h-full object-contain p-4 transform transition-all duration-700 ${hovered ? "scale-110 opacity-100" : "scale-100 opacity-0"
+            }`}
           loading="lazy"
           decoding="async"
         />
@@ -217,9 +216,8 @@ const DesignCard = ({ product, images }) => {
                 e.stopPropagation();
                 setSelectedColor(clr);
               }}
-              className={`w-7 h-7 rounded-full border-2 transition-all duration-300 ${
-                selectedColor === clr ? "border-primary scale-110" : "border-gray-300"
-              }`}
+              className={`w-7 h-7 rounded-full border-2 transition-all duration-300 ${selectedColor === clr ? "border-primary scale-110" : "border-gray-300"
+                }`}
               style={{ backgroundColor: clr }}
             ></button>
           ))}
@@ -236,11 +234,10 @@ const DesignCard = ({ product, images }) => {
                 e.stopPropagation();
                 setSelectedSize(sz);
               }}
-              className={`px-3 py-1 rounded-full text-xs border transition ${
-                selectedSize === sz
+              className={`px-3 py-1 rounded-full text-xs border transition ${selectedSize === sz
                   ? "bg-primary text-white border-primary"
                   : "bg-white text-gray-700 border-gray-300 hover:bg-primary/10"
-              }`}
+                }`}
             >
               {sz}
             </button>
