@@ -167,6 +167,26 @@ export function AuthProvider({ children }) {
     return normalizedUser;
   };
 
+  const loginWithGoogle = async (idToken) => {
+    if (!idToken) {
+      throw new Error("Google login credential is missing.");
+    }
+
+    const response = await api.post("/google-login", { idToken });
+    const apiUser = response.data?.data;
+    if (!apiUser) {
+      throw new Error("Google login failed.");
+    }
+
+    const normalizedUser = {
+      ...apiUser,
+      uid: apiUser.user_id || apiUser.uid,
+    };
+    setLoggedIn(normalizedUser);
+    localStorage.setItem(API_USER_KEY, JSON.stringify(normalizedUser));
+    return normalizedUser;
+  };
+
   const logout = async () => {
     localStorage.removeItem(API_USER_KEY);
     setLoggedIn(null);
@@ -329,6 +349,7 @@ export function AuthProvider({ children }) {
         setUser,
         registerUser: () => { },
         loginWithEmail,
+        loginWithGoogle,
         logout,
         updateUserProfile,
         designs,

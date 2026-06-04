@@ -49,6 +49,7 @@ import CustomizerLayout from "./Customizer/CustomizerLayout.jsx";
 
 // Import Hot Toast
 import { Toaster } from "react-hot-toast";
+import { GoogleOAuthProvider } from "@react-oauth/google";
 
 const router = createBrowserRouter([
   {
@@ -151,7 +152,9 @@ const router = createBrowserRouter([
   },
 ]);
 
-createRoot(document.getElementById("root")).render(
+const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+
+const appRoot = (
   <React.StrictMode>
     <AuthProvider>
       {/* Add Toaster at the top level */}
@@ -159,4 +162,14 @@ createRoot(document.getElementById("root")).render(
       <RouterProvider router={router} />
     </AuthProvider>
   </React.StrictMode>
+);
+
+createRoot(document.getElementById("root")).render(
+  googleClientId ? (
+    <GoogleOAuthProvider clientId={googleClientId}>
+      {appRoot}
+    </GoogleOAuthProvider>
+  ) : (
+    appRoot
+  )
 );

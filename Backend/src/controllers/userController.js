@@ -168,6 +168,93 @@ const login = async (req, res) => {
   }
 };
 
+const googleLogin = async (req, res) => {
+  const { idToken } = req.body;
+  if (!idToken) {
+    return res.status(400).json({
+      success: false,
+      message: "Google id token is required.",
+    });
+  }
+
+  try {
+    const verifyUrl = `https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(
+      idToken
+    )}`;
+    const googleRes = await fetch(verifyUrl);
+    const googleData = await googleRes.json();
+
+    if (!googleRes.ok || !googleData.email) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid Google token.",
+      });
+    }
+
+    const { email, name, email_verified } = googleData;
+    if (email_verified !== "true" && email_verified !== true) {
+      return res.status(403).json({
+        success: false,
+        message: "Google email is not verified.",
+      });
+    }
+
+    const pool = req.app.locals.pool;
+    const [existingUsers] = await pool.query(
+      "SELECT id, user_id, username, email, role, status FROM users WHERE email = ?",
+      [email]
+    );
+
+    let user;
+    if (existingUsers.length > 0) {
+      user = existingUsers[0];
+      if (user.status !== "active") {
+        return res.status(403).json({
+          success: false,
+          message: "Your account is not active.",
+        });
+      }
+    } else {
+      const userId = randomUUID();
+      const role = "user";
+      const status = "active";
+      const timestamp = new Date().toISOString().slice(0, 19).replace("T", " ");
+      const passwordHash = "";
+
+      await pool.query(
+        "INSERT INTO users (user_id, username, email, phone, password_hash, role, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        [userId, name || email, email, "", passwordHash, role, status, timestamp, timestamp]
+      );
+
+      user = {
+        user_id: userId,
+        username: name || email,
+        email,
+        role,
+        status,
+      };
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Login successful.",
+      data: {
+        user_id: user.user_id,
+        username: user.username,
+        email: user.email,
+        role: user.role,
+        status: user.status,
+      },
+    });
+  } catch (error) {
+    console.error("Google login error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Google login failed. Please try again.",
+    });
+  }
+};
+
 const getUsers = async (req, res) => {
   try {
     const pool = req.app.locals.pool;
@@ -401,4 +488,14 @@ const addUserAddress = async (req, res) => {
   }
 };
 
-module.exports = { register, login, getUsers, updateUser, updateUserStatus, deleteUser, getUserAddresses, addUserAddress };
+module.exports = {
+  register,
+  login,
+  googleLogin,
+  getUsers,
+  updateUser,
+  updateUserStatus,
+  deleteUser,
+  getUserAddresses,
+  addUserAddress,
+};
