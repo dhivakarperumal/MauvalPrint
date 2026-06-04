@@ -716,7 +716,7 @@ const handleRemoveVariantImage = (variantKey, index) => {
                             onChange={(e) =>
                               handleVariantStockChange(c, s, e.target.value)
                             }
-                            className="w-13 px-2 py-1 border-2 border-b border-gray-300 rounded"
+                            className="w-1/4 px-2 py-1 border-2 border-b border-gray-300 rounded"
                           />
                           <div className="mt-2">
                             <input
@@ -724,7 +724,7 @@ const handleRemoveVariantImage = (variantKey, index) => {
                               accept="image/*"
                               multiple
                               onChange={(e) => handleVariantImageUpload(e, c, s)}
-                              className="w-full text-xs mt-1"
+                              className="w-1/4 text-xs mt-1 p-2 border border-gray-200"
                             />
 
                             <div className="flex gap-2 mt-2 flex-wrap">
