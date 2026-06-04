@@ -107,17 +107,31 @@ const DesignCard = memo(({ id, name, rating, images, mrp, salePrice, size = [] }
           alt={name}
           onClick={() => navigate(`/designdetails/${id}`)}
           onLoad={() => setMainImageLoaded(true)}
-          className={`absolute inset-0 w-full h-full object-contain p-4 transition-opacity duration-200 opacity-100 ${hovered ? "opacity-0" : "opacity-100"}`}
+          className={`
+      absolute inset-0
+      w-full h-full
+      object-contain p-4
+      transition-opacity duration-300
+      z-10
+      ${hovered ? "opacity-0" : "opacity-100"}
+    `}
           width={400}
           height={350}
         />
+
         {hoverImageLoaded && (
           <OptimizedImage
             src={hoverImage}
             alt={`${name} hover`}
             onClick={() => navigate(`/designdetails/${id}`)}
-            className={`absolute inset-0 w-full h-full object-contain p-4 transition-all duration-300 ${hovered ? "opacity-100 scale-110" : "opacity-0 scale-100"
-              }`}
+            className={`
+        absolute inset-0
+        w-full h-full
+        object-contain p-4
+        transition-opacity duration-300
+        z-20
+        ${hovered ? "opacity-100" : "opacity-0"}
+      `}
             width={400}
             height={350}
           />
