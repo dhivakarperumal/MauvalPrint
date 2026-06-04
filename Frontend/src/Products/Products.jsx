@@ -260,27 +260,6 @@ function Products() {
                   ? product.size
                   : [],
 
-            images:
-              typeof product.images === "string"
-                ? product.images.startsWith("[")
-                  ? JSON.parse(product.images)
-                  : product.images
-                    .split(",")
-                    .map((x) => x.trim())
-                    .filter(Boolean)
-                : Array.isArray(product.images)
-                  ? product.images
-                  : [],
-
-            images_by_variant:
-              typeof product.images_by_variant === "string"
-                ? product.images_by_variant.startsWith("{")
-                  ? JSON.parse(product.images_by_variant)
-                  : {}
-                : typeof product.images_by_variant === 'object'
-                  ? product.images_by_variant
-                  : {},
-
             // if images empty, flatten variant images
             images_final: (function(){
               const imgs = (typeof product.images === 'string')

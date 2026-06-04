@@ -100,6 +100,7 @@ const Designs = () => {
         )}
       </div>
     </div>
+    </PageContainer>
   );
 };
 
