@@ -407,21 +407,23 @@ const CustomizerLayout = () => {
             )}
           </div>
           
-          {/* Bottom Zoom/View Controls */}
-          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-gray-900/80 backdrop-blur border border-gray-700 rounded-full px-2 md:px-4 py-1 md:py-2 flex items-center gap-2 md:gap-4 shadow-lg scale-90 md:scale-100 whitespace-nowrap z-20 overflow-x-auto max-w-[90vw] custom-scrollbar">
-             <button onClick={handleZoomOut} className="text-gray-300 hover:text-white px-2 py-1 rounded-full bg-gray-800/80 hover:bg-gray-700 transition">-</button>
-             <span className="text-sm font-medium w-16 text-center">{Math.round(zoomLevel * 100)}%</span>
-             <button onClick={handleZoomIn} className="text-gray-300 hover:text-white px-2 py-1 rounded-full bg-gray-800/80 hover:bg-gray-700 transition">+</button>
-             <div className="w-px h-4 bg-gray-700 shrink-0"></div>
+          <div className="absolute top-68 right-4 md:top-50 md:right-6 bg-gray-900/90 backdrop-blur border border-gray-700 rounded-3xl px-3 py-3 flex flex-col items-start gap-3 shadow-2xl z-20 w-[220px]">
+            <div className="w-full flex items-center justify-between gap-2">
+              <button onClick={handleZoomOut} className="text-gray-200 hover:text-white px-3 py-2 rounded-full bg-gray-800/80 hover:bg-gray-700 transition">-</button>
+              <span className="text-sm font-medium text-center text-white">{Math.round(zoomLevel * 100)}%</span>
+              <button onClick={handleZoomIn} className="text-gray-200 hover:text-white px-3 py-2 rounded-full bg-gray-800/80 hover:bg-gray-700 transition">+</button>
+            </div>
+            <div className="w-full flex flex-col gap-2">
               {views.map((viewName, idx) => (
                 <button 
                   key={idx}
                   onClick={() => handleViewChange(idx)}
-                  className={`text-sm whitespace-nowrap ${currentViewIndex === idx ? 'text-white font-medium' : 'text-gray-500 hover:text-gray-300'}`}
+                  className={`w-full text-xs text-left px-3 py-2 rounded-2xl transition ${currentViewIndex === idx ? 'bg-indigo-600 text-white' : 'bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white'}`}
                 >
                   {viewName}
                 </button>
-             ))}
+              ))}
+            </div>
           </div>
         </div>
       </main>
