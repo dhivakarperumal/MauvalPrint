@@ -112,6 +112,11 @@ const SingleProductView = () => {
     setSelectedImageIndex(0);
   }, [product?.images, product?.images_by_variant]);
 
+  // reset selected image index when color or size changes
+  useEffect(() => {
+    setSelectedImageIndex(0);
+  }, [selectedColor, selectedSize]);
+
   // Map known color names/variants to exact color codes.
   // This ensures values like "navyblue" or "Navy" render as the intended hex.
   const colorMap = useMemo(() => ({
@@ -345,10 +350,21 @@ const SingleProductView = () => {
   if (!product) return <div className="p-6 text-center">Loading...</div>;
   const isWishlisted = wishlist.some((p) => p.id === product.id);
 
-  // prepare images: prefer product.images, else flatten images_by_variant
-  const displayImages = (Array.isArray(product.images) && product.images.filter(isValidImageSrc).length>0)
-    ? product.images.filter(isValidImageSrc)
-    : flattenVariantImages(product.images_by_variant || {});
+  // prepare images: filter based on selected color and size combination
+  let displayImages = [];
+  
+  if (Array.isArray(product.images) && product.images.filter(isValidImageSrc).length > 0) {
+    // Use general product images if available
+    displayImages = product.images.filter(isValidImageSrc);
+  } else if (product.images_by_variant && selectedColor && selectedSize) {
+    // Filter images by selected color and size combination
+    const variantKey = `${selectedColor}-${selectedSize}`;
+    const variantImages = product.images_by_variant[variantKey];
+    displayImages = (Array.isArray(variantImages) ? variantImages : []).filter(isValidImageSrc);
+  } else if (product.images_by_variant) {
+    // Fallback: if no color/size selected yet, show first available variant's images
+    displayImages = flattenVariantImages(product.images_by_variant || {});
+  }
 
   // Ensure numeric values
   const salePrice = Number(product.salePrice) || 0;
