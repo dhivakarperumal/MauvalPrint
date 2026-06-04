@@ -25,7 +25,7 @@ const ProductList = ({ setSelectedProduct, setActiveTab }) => {
   const [productTypeFilter, setProductTypeFilter] = useState("All"); // All, Normal, Customise
   const [currentPage, setCurrentPage] = useState(1);
   const [viewMode, setViewMode] = useState("table");
-  const productsPerPage = 40;
+  const [productsPerPage, setProductsPerPage] = useState(10);
 
   useEffect(() => {
     const savedPage = localStorage.getItem("productsCurrentPage");
@@ -676,9 +676,29 @@ const ProductList = ({ setSelectedProduct, setActiveTab }) => {
       </div>
 
       {/* Pagination */}
-      {totalPages > 1 && (
+      {totalPages > 0 && (
         <div className="flex flex-col items-center gap-3 mt-8 py-6 bg-white rounded-lg border border-gray-200 shadow-sm">
-          <div className="flex flex-wrap items-center gap-2 justify-center px-4">
+          <div className="flex flex-col sm:flex-row items-center gap-4 justify-between w-full px-6">
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-500 font-medium">Rows per page:</span>
+              <select
+                value={productsPerPage}
+                onChange={(e) => {
+                  setProductsPerPage(Number(e.target.value));
+                  setCurrentPage(1);
+                }}
+                className="border border-gray-300 rounded-md text-sm py-1 px-2 text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value={10}>10</option>
+                <option value={20}>20</option>
+                <option value={40}>40</option>
+                <option value={50}>50</option>
+                <option value={100}>100</option>
+              </select>
+            </div>
+          
+            {totalPages > 1 && (
+              <div className="flex flex-wrap items-center gap-2 justify-center">
             <button
               onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
               disabled={currentPage === 1}
@@ -728,8 +748,10 @@ const ProductList = ({ setSelectedProduct, setActiveTab }) => {
               disabled={currentPage === totalPages}
               className="rounded-full px-4 py-2 border border-gray-300 bg-white text-gray-700 font-medium disabled:cursor-not-allowed disabled:opacity-50 hover:bg-gray-100 transition-colors"
             >
-              Next →
-            </button>
+                Next →
+              </button>
+            </div>
+            )}
           </div>
           <p className="text-sm text-gray-500 font-medium">
             Page <span className="font-bold text-gray-700">{currentPage}</span> of <span className="font-bold text-gray-700">{totalPages}</span> • Showing {currentProducts.length} of {filteredProducts.length} products
