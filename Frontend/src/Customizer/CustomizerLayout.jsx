@@ -18,6 +18,7 @@ const CustomizerLayout = () => {
   const [activeTab, setActiveTab] = useState('text');
   const [canvas, setCanvas] = useState(null);
   const [activeObject, setActiveObject] = useState(null);
+  const [zoomLevel, setZoomLevel] = useState(1);
   const [currentViewIndex, setCurrentViewIndex] = useState(0);
   const [viewStates, setViewStates] = useState({});
   const [selectedProductColor, setSelectedProductColor] = useState('#ffffff');
@@ -87,6 +88,20 @@ const CustomizerLayout = () => {
       canvas.off('selection:cleared', handleSelection);
     };
   }, [canvas]);
+
+  useEffect(() => {
+    if (!canvas) return;
+    canvas.setZoom(zoomLevel);
+    canvas.requestRenderAll();
+  }, [canvas, zoomLevel]);
+
+  const handleZoomIn = () => {
+    setZoomLevel((prev) => Math.min(prev + 0.1, 2));
+  };
+
+  const handleZoomOut = () => {
+    setZoomLevel((prev) => Math.max(prev - 0.1, 0.4));
+  };
 
   if (!product) {
     return <div className="h-screen w-full bg-gray-900 text-white flex items-center justify-center">Loading product...</div>;
@@ -394,9 +409,9 @@ const CustomizerLayout = () => {
           
           {/* Bottom Zoom/View Controls */}
           <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-gray-900/80 backdrop-blur border border-gray-700 rounded-full px-2 md:px-4 py-1 md:py-2 flex items-center gap-2 md:gap-4 shadow-lg scale-90 md:scale-100 whitespace-nowrap z-20 overflow-x-auto max-w-[90vw] custom-scrollbar">
-             <button className="text-gray-300 hover:text-white">-</button>
-             <span className="text-sm font-medium w-12 text-center">100%</span>
-             <button className="text-gray-300 hover:text-white">+</button>
+             <button onClick={handleZoomOut} className="text-gray-300 hover:text-white px-2 py-1 rounded-full bg-gray-800/80 hover:bg-gray-700 transition">-</button>
+             <span className="text-sm font-medium w-16 text-center">{Math.round(zoomLevel * 100)}%</span>
+             <button onClick={handleZoomIn} className="text-gray-300 hover:text-white px-2 py-1 rounded-full bg-gray-800/80 hover:bg-gray-700 transition">+</button>
              <div className="w-px h-4 bg-gray-700 shrink-0"></div>
               {views.map((viewName, idx) => (
                 <button 

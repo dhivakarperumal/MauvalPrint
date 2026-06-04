@@ -31,15 +31,26 @@ const CanvasWorkspace = ({ onCanvasReady, product, imageSrc, selectedProductColo
         originY: 'top',
         left: 0,
         top: 0,
-        selectable: false,
-        evented: false,
+        selectable: true,
+        evented: true,
+        hasControls: true,
+        hasBorders: true,
+        lockRotation: true,
+        cornerStyle: 'circle',
+        cornerStrokeColor: '#4f46e5',
+        borderColor: '#818cf8',
+        cornerSize: 10,
+        transparentCorners: false,
         opacity: 0.95,
         id: 'product-image',
       });
-      img.scaleToWidth(250);
-      img.scaleToHeight(350);
+      const scale = Math.min(250 / img.width, 350 / img.height, 1);
+      img.scale(scale);
+      img.left = (250 - img.getScaledWidth()) / 2;
+      img.top = (350 - img.getScaledHeight()) / 2;
       canvas.add(img);
       img.sendToBack();
+      canvas.setActiveObject(img);
       canvas.requestRenderAll();
     };
     imgEl.onerror = () => {
