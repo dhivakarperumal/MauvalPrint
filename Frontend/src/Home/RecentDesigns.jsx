@@ -96,12 +96,12 @@ const DesignCard = memo(({ id, name, rating, images, mrp, salePrice, size = [] }
 
   return (
     <div
-      className="w-full max-w-sm rounded-2xl overflow-hidden shadow-lg group relative bg-white cursor-pointer h-[420px] flex flex-col"
+      className="w-full max-w-sm rounded-2xl overflow-hidden shadow-lg group relative bg-white cursor-pointer min-h-[430px] md:h-[420px] flex flex-col"
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
       {/* Image Container */}
-      <div className="w-full h-[300px] relative overflow-hidden bg-primary/10 flex items-center justify-center">
+      <div className="w-full h-[220px] sm:h-[260px] md:h-[300px] relative overflow-hidden bg-primary/10 flex items-center justify-center">
         <OptimizedImage
           src={mainImage}
           alt={name}
@@ -140,11 +140,11 @@ const DesignCard = memo(({ id, name, rating, images, mrp, salePrice, size = [] }
 
       {/* Sizes */}
       {sortedSizes && sortedSizes.length > 0 && (
-        <div className="mt-3 mb-2 text-sm text-gray-600 flex flex-wrap items-center justify-center gap-2">
+        <div className="mt-2 mb-2 px-2 text-sm text-gray-600 flex flex-wrap items-center justify-center gap-1 md:gap-2">
           {sortedSizes.map((sz, i) => (
             <span
               key={i}
-              className="px-3 py-1 rounded-full text-xs border bg-white text-gray-700 border-gray-300"
+              className="px-2 md:px-3 py-1 rounded-full text-[10px] md:text-xs border bg-white text-gray-700 border-gray-300"
             >
               {sz}
             </span>
@@ -153,26 +153,26 @@ const DesignCard = memo(({ id, name, rating, images, mrp, salePrice, size = [] }
       )}
 
       {/* Bottom Info Bar */}
-      <div className="bg-primary text-white px-4 py-6 mt-auto">
+      <div className="bg-primary text-white px-3 md:px-4 py-4 md:py-6 mt-auto">
         {/* Row 1 */}
-        <div className="flex justify-between items-start gap-2">
-          <h3 className="font-bold text-lg truncate flex-1">
+        <div className="flex justify-between items-center gap-2">
+          <h3 className="font-bold text-sm md:text-lg truncate flex-1">
             {name}
           </h3>
 
-          <p className="text-sm whitespace-nowrap">
+          <p className="text-xs md:text-sm whitespace-nowrap">
             ⭐ {rating || "0.0"}
           </p>
         </div>
 
         {/* Row 2 */}
-        <div className="flex justify-between items-end mt-3">
+        <div className="flex justify-between items-end mt-2 md:mt-3 gap-2">
           <div>
-            <p className="text-sm">
+            <p className="text-xs md:text-sm">
               MRP : <del>{mrp}</del>
             </p>
 
-            <p className="text-xl font-bold">
+            <p className="text-lg md:text-xl font-bold">
               {salePrice}
             </p>
           </div>
@@ -180,20 +180,21 @@ const DesignCard = memo(({ id, name, rating, images, mrp, salePrice, size = [] }
           <button
             onClick={handleBuyNow}
             className="
-        bg-white
-        text-primary
-        font-semibold
-        text-xs
-        px-5
-        py-2
-        rounded-full
-        shadow
-        border
-        border-white
-        hover:bg-primary
-        hover:text-white
-        transition
-      "
+      bg-white
+      text-primary
+      font-semibold
+      text-[10px]
+      md:text-xs
+      px-3
+      md:px-5
+      py-2
+      rounded-full
+      shadow
+      border
+      border-white
+      whitespace-nowrap
+      transition
+    "
           >
             Buy Now
           </button>
@@ -309,7 +310,7 @@ const RecentDesigns = () => {
   const customSelectStyles = {
     control: (base, state) => ({
       ...base,
-      minHeight: "56px",
+      minHeight: "40px",
       borderRadius: "18px",
       border: "2px solid #f472b6",
       background: "linear-gradient(135deg,#ffffff,#f8fafc,#f1f5f9)",
@@ -335,6 +336,7 @@ const RecentDesigns = () => {
       ...base,
       color: "#1f2937",
       fontWeight: 600,
+      fontSize: "12px",
     }),
 
     indicatorSeparator: () => ({
@@ -369,7 +371,7 @@ const RecentDesigns = () => {
       ...base,
       borderRadius: "12px",
       marginBottom: "4px",
-      padding: "14px 16px",
+      padding: "8px 12px",
       backgroundColor: state.isSelected
         ? "#243B55"
         : state.isFocused
@@ -378,6 +380,7 @@ const RecentDesigns = () => {
       color: state.isSelected ? "#ffffff" : "#374151",
       cursor: "pointer",
       fontWeight: 500,
+      fontSize: "12px",
     }),
   };
 
@@ -385,17 +388,7 @@ const RecentDesigns = () => {
 
     <div className="min-h-screen bg-[#fef4f3] py-10 px-4">
       <PageContainer>
-        {/* Filter Toggle Button for Mobile */}
-        {!isDesktop && (
-          <div className="mb-4 flex justify-center">
-            <button
-              onClick={() => setShowFilters(!showFilters)}
-              className="px-4 py-2 bg-primary text-white rounded-full font-medium shadow hover:bg-primary/90 transition flex items-center gap-2"
-            >
-              <i className="fa-solid fa-filter"></i> Filters
-            </button>
-          </div>
-        )}
+
 
         <div className="flex justify-end mb-4">
           {!showFilters && (
@@ -432,27 +425,27 @@ const RecentDesigns = () => {
               <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-6">
 
                 {/* Left Side Hide Button */}
-                <button
-                  onClick={() => setShowFilters(false)}
-                  className="
-            flex
-            items-center
-            gap-2
-            px-4
-            py-3
-            rounded-xl
-            bg-white
-            shadow-md
-            border
-            border-gray-200
-            hover:shadow-lg
-            transition-all
-            duration-300
-            w-fit
-          "
-                >
-                  <IoClose className="text-primary text-lg" />
-                  <span className="font-medium text-gray-700">
+          <button
+  onClick={() => setShowFilters(false)}
+  className="
+    flex
+    items-center
+    gap-2
+    px-3
+    py-2
+    rounded-lg
+    bg-white
+    shadow-sm
+    border
+    border-gray-200
+    hover:shadow-md
+    transition-all
+    duration-300
+    w-fit
+  "
+>
+                  <IoClose className="text-primary text-xs" />
+                  <span className="font-medium text-xs text-gray-700">
                     Hide Filters
                   </span>
                 </button>
@@ -465,7 +458,7 @@ const RecentDesigns = () => {
 
 
                     <Select
-                      className="w-[240px]"
+                      className="w-[175px] sm:w-[190px] md:w-[200px]"
                       styles={customSelectStyles}
                       menuPortalTarget={document.body}
                       menuPosition="fixed"
@@ -479,7 +472,7 @@ const RecentDesigns = () => {
                   <div>
 
                     <Select
-                      className="w-[320px]"
+                      className="w-[175px] sm:w-[190px] md:w-[200px]"
                       styles={customSelectStyles}
                       menuPortalTarget={document.body}
                       menuPosition="fixed"
