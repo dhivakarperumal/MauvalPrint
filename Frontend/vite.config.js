@@ -10,12 +10,12 @@ export default defineConfig({
     proxy: {
       "/api": {
         // target: "http://localhost:5000",
-        target: "https://printmy.qtechx.com",
+        target: "https://product2.qtechx.com",
         changeOrigin: true,
         secure: false,
       },
       '/proxy-uploads': {
-        target: 'https://mauvalprint.in/uploads',
+        target: 'https://product2.qtechx.com/uploads',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/proxy-uploads/, '')
       }
