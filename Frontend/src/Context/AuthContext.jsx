@@ -302,15 +302,25 @@ export function AuthProvider({ children }) {
   const addToWishlist = async (product) => {
     if (!user) return toast.error("Login required");
 
+    const productId = product?.id || product?.product_id || product?.productId;
+    const alreadyWishlisted = wishlist.some((item) => {
+      const itemId = item?.id || item?.product_id || item?.productId;
+      return itemId === productId;
+    });
+
+    if (alreadyWishlisted) {
+      return toast.info("Product already in wishlist");
+    }
+
     try {
       const { data } = await api.post("/wishlist/add", {
         user_id: user.uid,
-        product_id: product.id,
+        product_id: productId,
         item_data: product,
       });
 
       if (data.success) {
-        setWishlist((prev) => [...prev, product]);
+        setWishlist((prev) => [...prev, { ...product, id: productId }]);
         toast.success("Added to wishlist");
       }
     } catch (error) {
