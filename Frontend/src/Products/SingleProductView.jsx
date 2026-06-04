@@ -350,19 +350,19 @@ const SingleProductView = () => {
   if (!product) return <div className="p-6 text-center">Loading...</div>;
   const isWishlisted = wishlist.some((p) => p.id === product.id);
 
-  // prepare images: filter based on selected color and size combination
+  // prepare images: ALWAYS filter by variant if color & size are selected
   let displayImages = [];
   
-  if (Array.isArray(product.images) && product.images.filter(isValidImageSrc).length > 0) {
-    // Use general product images if available
-    displayImages = product.images.filter(isValidImageSrc);
-  } else if (product.images_by_variant && selectedColor && selectedSize) {
-    // Filter images by selected color and size combination
+  if (selectedColor && selectedSize && product.images_by_variant) {
+    // Primary: Show only images for the selected color-size combination
     const variantKey = `${selectedColor}-${selectedSize}`;
     const variantImages = product.images_by_variant[variantKey];
     displayImages = (Array.isArray(variantImages) ? variantImages : []).filter(isValidImageSrc);
+  } else if (Array.isArray(product.images) && product.images.filter(isValidImageSrc).length > 0) {
+    // Fallback: Use general product images if variant images don't exist
+    displayImages = product.images.filter(isValidImageSrc);
   } else if (product.images_by_variant) {
-    // Fallback: if no color/size selected yet, show first available variant's images
+    // Last resort: show first available variant's images
     displayImages = flattenVariantImages(product.images_by_variant || {});
   }
 
