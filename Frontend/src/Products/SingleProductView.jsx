@@ -374,7 +374,7 @@ const SingleProductView = () => {
     mrp > 0 ? Math.round(((mrp - salePrice) / mrp) * 100) : 0;
 
   return (
-    
+      <>
       <div className="mt-20">
         <Head title={product.name} subtitle={product.name} />
         <PageContainer>
@@ -659,7 +659,7 @@ const SingleProductView = () => {
         )}
       </div>
 
-      {showLogin && (
+      {showLogin ? (
         <Login
           onClose={() => setShowLogin(false)}
           onSwitch={() => {
@@ -667,7 +667,7 @@ const SingleProductView = () => {
             setShowRegister(true);
           }}
         />
-      )}
+      ) : null}
       {showRegister && (
         <RegisterPage
           onClose={() => setShowRegister(false)}
@@ -677,6 +677,7 @@ const SingleProductView = () => {
           }}
         />
       )}
+      </>
   );
 };
 

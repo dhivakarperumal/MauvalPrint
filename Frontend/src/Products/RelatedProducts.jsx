@@ -8,6 +8,7 @@ import { toast } from "react-toastify";
 
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
+import PageContainer from "../Components/PageContainer";
 
 // Image optimization utility
 const optimizeImageUrl = (url) => {
@@ -37,6 +38,7 @@ const ProductCard = memo(({ product, index, addToCart, addToWishlist }) => {
       data-aos-delay={index * 100}
       className="group relative bg-white border border-gray-200 rounded-2xl shadow-md hover:shadow-xl transition-all duration-500 p-4"
     >
+        
       <div className="relative w-full h-52 bg-primary/5 rounded-[30px] overflow-hidden shadow-lg transition-transform duration-700 ease-in-out hover:scale-105">
         {/* Cart button */}
         <div
@@ -264,7 +266,8 @@ const RelatedProducts = ({ category, subcategory, currentId, addToCart, addToWis
 
   // 🔹 Display related products
   return (
-    <section className="my-10 px-4 sm:px-5 mt-15 mb-18">
+    <section className="my-10 mt-15 mb-18">
+      <PageContainer>
       <div className="max-w-9xl mx-auto w-full">
         {/* Header */}
         <div className="text-center mb-6">
@@ -290,6 +293,7 @@ const RelatedProducts = ({ category, subcategory, currentId, addToCart, addToWis
           ))}
         </Slider>
       </div>
+      </PageContainer>
     </section>
   );
 };
