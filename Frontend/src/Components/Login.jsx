@@ -1,5 +1,6 @@
 import React, { useState, useContext, useEffect } from "react";
 import { IoClose } from "react-icons/io5";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { GoogleLogin } from "@react-oauth/google";
 import { AuthContext } from "../Context/AuthContext";
 import tshirtImg from "/Image/login.png";
@@ -9,6 +10,7 @@ export default function Login({ onClose, onSwitch }) {
   const { loginWithEmail, loginWithGoogle } = useContext(AuthContext);
   const [form, setForm] = useState({ email: "", password: "" });
   const [rememberMe, setRememberMe] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
   const handleGoogleSuccess = async (credentialResponse) => {
@@ -106,15 +108,25 @@ export default function Login({ onClose, onSwitch }) {
               className="w-full border-b px-4 py-2 border-primary mb-5 placeholder-primary text-primary"
               required
             />
-            <input
-              type="password"
-              name="password"
-              placeholder="Password"
-              value={form.password}
-              onChange={(e) => setForm({ ...form, password: e.target.value })}
-              className="w-full border-b px-4 py-2 mb-2 border-primary placeholder-primary text-primary"
-              required
-            />
+            <div className="relative mb-2">
+              <input
+                type={showPassword ? "text" : "password"}
+                name="password"
+                placeholder="Password"
+                value={form.password}
+                onChange={(e) => setForm({ ...form, password: e.target.value })}
+                className="w-full border-b px-4 py-2 pr-10 border-primary placeholder-primary text-primary"
+                required
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((prev) => !prev)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600"
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? <FaEyeSlash /> : <FaEye />}
+              </button>
+            </div>
 
             <div className="flex items-center justify-between mb-4">
               <label className="flex items-center text-sm text-primary cursor-pointer">

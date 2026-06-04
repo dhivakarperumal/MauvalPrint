@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { IoClose } from "react-icons/io5";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 import api from "../api";
 import { toast } from "react-toastify";
 import tshirtImg from "/Image/register.png";
@@ -13,6 +14,8 @@ export default function Register({ onClose, onSwitch }) {
     confirmPassword: "",
   });
   const [error, setError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const handleRegister = async (e) => {
     e.preventDefault();
@@ -67,11 +70,11 @@ export default function Register({ onClose, onSwitch }) {
 
         {/* Left side image */}
         <div className="hidden md:flex w-1/2 bg-white/60 items-center justify-center">
-          <img src={tshirtImg} alt="Register" className="w-full h-[90vh]" />
+          <img src={tshirtImg} alt="Register" className="w-full h-auto max-h-[80vh]" />
         </div>
 
         {/* Form section */}
-        <div className="w-full h-[95vh] bg-white md:w-1/2 p-4 md:p-8">
+        <div className="w-full h-auto bg-white md:w-1/2 p-4 md:p-8">
           <div className="flex items-center justify-center mb-4">
             <img
               src="/Image/logo.png"
@@ -113,26 +116,46 @@ export default function Register({ onClose, onSwitch }) {
               className="w-full border-b mb-5 px-2 py-2 border-primary placeholder-primary text-primary"
               required
             />
-            <input
-              type="password"
-              name="password"
-              placeholder="Password"
-              value={form.password}
-              onChange={(e) => setForm({ ...form, password: e.target.value })}
-              className="w-full border-b mb-5 px-2 py-2 border-primary placeholder-primary text-primary"
-              required
-            />
-            <input
-              type="password"
-              name="confirmPassword"
-              placeholder="Confirm Password"
-              value={form.confirmPassword}
-              onChange={(e) =>
-                setForm({ ...form, confirmPassword: e.target.value })
-              }
-              className="w-full border-b mb-6 px-2 py-2 border-primary placeholder-primary text-primary"
-              required
-            />
+            <div className="relative mb-5">
+              <input
+                type={showPassword ? "text" : "password"}
+                name="password"
+                placeholder="Password"
+                value={form.password}
+                onChange={(e) => setForm({ ...form, password: e.target.value })}
+                className="w-full border-b px-2 py-2 pr-10 border-primary placeholder-primary text-primary"
+                required
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((prev) => !prev)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600"
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? <FaEyeSlash /> : <FaEye />}
+              </button>
+            </div>
+            <div className="relative mb-6">
+              <input
+                type={showConfirmPassword ? "text" : "password"}
+                name="confirmPassword"
+                placeholder="Confirm Password"
+                value={form.confirmPassword}
+                onChange={(e) =>
+                  setForm({ ...form, confirmPassword: e.target.value })
+                }
+                className="w-full border-b px-2 py-2 pr-10 border-primary placeholder-primary text-primary"
+                required
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword((prev) => !prev)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600"
+                aria-label={showConfirmPassword ? "Hide confirm password" : "Show confirm password"}
+              >
+                {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
+              </button>
+            </div>
             <button
               type="submit"
               className="w-full bg-[#283b53] text-white py-2 rounded cursor-pointer"
