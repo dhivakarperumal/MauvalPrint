@@ -48,6 +48,7 @@ const ProductList = () => {
       const list = (data.products || []).map((p) => ({
         ...p,
         images: parseJSON(p.images, []),
+        images_by_variant: parseJSON(p.images_by_variant, {}),
         color: parseJSON(p.color, []),
         size: parseJSON(p.size, []),
         fabric_gsm: parseJSON(p.fabric_gsm, []),
@@ -197,6 +198,21 @@ const ProductList = () => {
   }, [filteredProducts, currentPage, totalPages]);
 
   // ─── UI ───────────────────────────────────────────────────────────────────
+  const isValidImageSrc = (src) => {
+    if (!src || typeof src !== 'string') return false;
+    return src.startsWith('http') || src.startsWith('/') || src.startsWith('data:');
+  };
+
+  const pickPrimaryImage = (p) => {
+    // prefer first image from images[], then try images_by_variant (first entry), else null
+    if (Array.isArray(p.images) && p.images.length > 0 && isValidImageSrc(p.images[0])) return p.images[0];
+    if (p.images_by_variant && typeof p.images_by_variant === 'object') {
+      const firstVariantKey = Object.keys(p.images_by_variant)[0];
+      const arr = p.images_by_variant[firstVariantKey];
+      if (Array.isArray(arr) && arr.length > 0 && isValidImageSrc(arr[0])) return arr[0];
+    }
+    return null;
+  };
   return (
     <div className="p-8 bg-gray-50 min-h-screen relative">
 
@@ -515,7 +531,7 @@ const ProductList = () => {
                   {/* Image Section */}
                   <div className="relative h-56 w-full overflow-hidden bg-gray-50 flex-shrink-0">
                     <img
-                      src={p.images?.[0] || "https://via.placeholder.com/150"}
+                      src={pickPrimaryImage(p) || "https://via.placeholder.com/150"}
                       alt={p.name}
                       className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                     />
@@ -612,7 +628,7 @@ const ProductList = () => {
                       </td>
                       <td className="p-4">
                         <img
-                          src={p.images?.[0] || "https://via.placeholder.com/150"}
+                          src={pickPrimaryImage(p) || "https://via.placeholder.com/150"}
                           alt={p.name}
                           className="w-16 h-16 object-cover rounded-md border border-gray-200"
                         />
@@ -791,14 +807,22 @@ const ProductList = () => {
               <div>
                 <strong>Images:</strong>
                 <div className="grid grid-cols-2 gap-2 mt-2">
-                  {(selectedProductLocal.images || []).map((img, idx) => (
-                    <img
-                      key={idx}
-                      src={img}
-                      alt={`product-${idx}`}
-                      className="w-full h-32 object-cover rounded border"
-                    />
-                  ))}
+                  {/* Show images array if valid, else try images_by_variant first variant */}
+                  {Array.isArray(selectedProductLocal.images) && selectedProductLocal.images.length > 0 &&
+                    selectedProductLocal.images.filter(isValidImageSrc).map((img, idx) => (
+                      <img key={idx} src={img} alt={`product-${idx}`} className="w-full h-32 object-cover rounded border" />
+                    ))}
+
+                  {((!Array.isArray(selectedProductLocal.images) || selectedProductLocal.images.filter(isValidImageSrc).length === 0) && selectedProductLocal.images_by_variant) && (
+                    Object.values(selectedProductLocal.images_by_variant).flat().filter(isValidImageSrc).slice(0, 4).map((img, idx) => (
+                      <img key={`v-${idx}`} src={img} alt={`variant-${idx}`} className="w-full h-32 object-cover rounded border" />
+                    ))
+                  )}
+
+                  {/* If still nothing, show a placeholder */}
+                  {((!Array.isArray(selectedProductLocal.images) || selectedProductLocal.images.filter(isValidImageSrc).length === 0) && (!selectedProductLocal.images_by_variant || Object.values(selectedProductLocal.images_by_variant).flat().filter(isValidImageSrc).length === 0)) && (
+                    <img src="https://via.placeholder.com/300x200?text=No+Image" alt="no-image" className="w-full h-32 object-cover rounded border" />
+                  )}
                 </div>
               </div>
             </div>
