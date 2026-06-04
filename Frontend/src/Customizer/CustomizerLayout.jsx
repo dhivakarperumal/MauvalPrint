@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext, useMemo } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { IoArrowBack, IoDownloadOutline, IoCartOutline } from 'react-icons/io5';
+import { IoArrowBack, IoDownloadOutline, IoCartOutline, IoMenu, IoClose } from 'react-icons/io5';
 import { IText, Rect, Circle, Triangle, FabricImage } from 'fabric';
 import { AuthContext } from '../Context/AuthContext';
 import SidebarTools from './SidebarTools';
@@ -23,6 +23,7 @@ const CustomizerLayout = () => {
   const [viewStates, setViewStates] = useState({});
   const [selectedProductColor, setSelectedProductColor] = useState('#ffffff');
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const [showRightPanelMobile, setShowRightPanelMobile] = useState(false);
 
   const productImages = useMemo(() => {
     if (!product) return [];
@@ -327,6 +328,10 @@ const CustomizerLayout = () => {
           <button onClick={handlePlaceOrder} className="px-3 md:px-4 py-1.5 text-xs md:text-sm font-medium bg-indigo-600 hover:bg-indigo-700 text-white rounded transition flex items-center gap-1 md:gap-2 cursor-pointer">
             <IoCartOutline size={16} /> <span className="hidden sm:inline">Place Order</span><span className="sm:hidden">Order</span>
           </button>
+          {/* Mobile: open right-side panel */}
+          <button onClick={() => setShowRightPanelMobile(true)} className="ml-2 md:hidden p-2 bg-gray-800 rounded-md">
+            <IoMenu size={18} />
+          </button>
         </div>
       </header>
 
@@ -428,8 +433,18 @@ const CustomizerLayout = () => {
           </div>
         </div>
 
-        {/* Right Side Control Panel */}
-        <aside className="order-4 md:order-4 shrink-0 w-full md:w-96 bg-gray-950 border-t border-gray-800 md:border-t-0 md:border-l p-5 overflow-y-auto">
+        {/* Right Side Control Panel (desktop static, mobile slide-up) */}
+        {/* Overlay for mobile */}
+        {showRightPanelMobile && (
+          <div onClick={() => setShowRightPanelMobile(false)} className="fixed inset-0 bg-black/50 z-40 md:hidden" />
+        )}
+
+        <aside className={`order-4 md:order-4 shrink-0 w-full md:w-96 bg-gray-950 border-t border-gray-800 md:border-t-0 md:border-l p-5 overflow-y-auto transition-transform duration-300 z-50 ${showRightPanelMobile ? 'translate-y-0 fixed bottom-0 left-0 right-0 h-[60vh] rounded-t-xl md:static md:translate-y-0 md:h-auto md:rounded-none' : 'translate-y-full fixed bottom-0 left-0 right-0 h-[60vh] rounded-t-xl md:static md:translate-y-0 md:h-auto md:rounded-none'}`}>
+          {/* close handle for mobile */}
+          <div className="md:hidden flex items-center justify-between mb-3">
+            <h2 className="text-lg font-semibold tracking-wide">Customizer</h2>
+            <button onClick={() => setShowRightPanelMobile(false)} className="p-2 bg-gray-800 rounded-md"><IoClose /></button>
+          </div>
           <div className="flex flex-col gap-5">
             <div>
               <h2 className="text-lg font-semibold tracking-wide">Customizer</h2>
