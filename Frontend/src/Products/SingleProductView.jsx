@@ -10,6 +10,7 @@ import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 import ZoomImage from "./ZoomImage";
+import { pickPrimaryImage, flattenVariantImages, isValidImageSrc } from "./helpers";
 import Login from "../Components/Login";
 import RegisterPage from "../Components/Register";
 import ProductCustomizer from "./ProductCustomizer";
@@ -105,6 +106,16 @@ const SingleProductView = () => {
 
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [id, memoizedProducts]);
+
+  // reset selected image index when product images change
+  useEffect(() => {
+    setSelectedImageIndex(0);
+  }, [product?.images, product?.images_by_variant]);
+
+  // reset selected image index when color or size changes
+  useEffect(() => {
+    setSelectedImageIndex(0);
+  }, [selectedColor, selectedSize]);
 
   // Map known color names/variants to exact color codes.
   // This ensures values like "navyblue" or "Navy" render as the intended hex.
@@ -339,6 +350,22 @@ const SingleProductView = () => {
   if (!product) return <div className="p-6 text-center">Loading...</div>;
   const isWishlisted = wishlist.some((p) => p.id === product.id);
 
+  // prepare images: ALWAYS filter by variant if color & size are selected
+  let displayImages = [];
+  
+  if (selectedColor && selectedSize && product.images_by_variant) {
+    // Primary: Show only images for the selected color-size combination
+    const variantKey = `${selectedColor}-${selectedSize}`;
+    const variantImages = product.images_by_variant[variantKey];
+    displayImages = (Array.isArray(variantImages) ? variantImages : []).filter(isValidImageSrc);
+  } else if (Array.isArray(product.images) && product.images.filter(isValidImageSrc).length > 0) {
+    // Fallback: Use general product images if variant images don't exist
+    displayImages = product.images.filter(isValidImageSrc);
+  } else if (product.images_by_variant) {
+    // Last resort: show first available variant's images
+    displayImages = flattenVariantImages(product.images_by_variant || {});
+  }
+
   // Ensure numeric values
   const salePrice = Number(product.salePrice) || 0;
   const mrp = Number(product.mrp) || 0;
@@ -354,10 +381,10 @@ const SingleProductView = () => {
           <div className="z-10">
             {/* ✅ Zoom Image Component */}
             <ZoomImage
-              imageSrc={product.images[selectedImageIndex]}
-              thumbnails={product.images}
+              imageSrc={displayImages[selectedImageIndex] || displayImages[0] || ''}
+              thumbnails={displayImages}
               selectedImageIndex={selectedImageIndex}
-              onImageSelect={setSelectedImageIndex}
+              onImageSelect={(idx) => { setSelectedImageIndex(idx); }}
             />
           </div>
           {/* Info */}

@@ -8,6 +8,7 @@ import "aos/dist/aos.css";
 import { toast } from "react-toastify";
 import Head from "../Components/Head";
 import api from "../api";
+import { isValidImageSrc, pickPrimaryImage, flattenVariantImages } from "./helpers";
 
 function ProductCard({ product, index, addToCart, addToWishlist, cardSize, setCardSize }) {
   const [clickedProductId, setClickedProductId] = useState(null);
@@ -99,7 +100,7 @@ function ProductCard({ product, index, addToCart, addToWishlist, cardSize, setCa
         </div>
 
         <img
-          src={product?.images?.[0] || product?.image?.[0] || "/placeholder.jpg"}
+          src={pickPrimaryImage(product) || (product?.images_final?.[0]) || product?.image?.[0] || "/placeholder.jpg"}
           alt={product.name}
           className="relative z-5 w-full h-full object-contain transition-transform duration-500 group-hover:scale-105"
           loading="lazy"
@@ -230,6 +231,9 @@ function Products() {
             ),
 
             mrp: Number(product.mrp ?? 0),
+            // normalize images to images_final
+            images: (product.images_final && product.images_final.length>0) ? product.images_final : (Array.isArray(product.images)?product.images:[]),
+            images_by_variant: (product.images_by_variant && typeof product.images_by_variant === 'object') ? product.images_by_variant : {},
 
             color:
               typeof product.color === "string"
@@ -266,6 +270,27 @@ function Products() {
                 : Array.isArray(product.images)
                   ? product.images
                   : [],
+
+            images_by_variant:
+              typeof product.images_by_variant === "string"
+                ? product.images_by_variant.startsWith("{")
+                  ? JSON.parse(product.images_by_variant)
+                  : {}
+                : typeof product.images_by_variant === 'object'
+                  ? product.images_by_variant
+                  : {},
+
+            // if images empty, flatten variant images
+            images_final: (function(){
+              const imgs = (typeof product.images === 'string')
+                ? (product.images.startsWith('[') ? JSON.parse(product.images) : product.images.split(',').map(s=>s.trim()).filter(Boolean))
+                : (Array.isArray(product.images) ? product.images : []);
+              if (imgs.length > 0) return imgs;
+              const byVar = (typeof product.images_by_variant === 'string')
+                ? (product.images_by_variant.startsWith('{') ? JSON.parse(product.images_by_variant) : {})
+                : (typeof product.images_by_variant === 'object' ? product.images_by_variant : {});
+              return Object.values(byVar).flat().filter(Boolean);
+            })(),
 
             stockByVariant:
               typeof product.stock_by_variant === "string"
