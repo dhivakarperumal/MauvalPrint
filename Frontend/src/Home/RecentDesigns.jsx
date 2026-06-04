@@ -6,6 +6,8 @@ import { Autoplay } from 'swiper/modules';
 import 'swiper/css';
 import api from "../api";
 import PageContainer from "../Components/PageContainer";
+import Select from "react-select";
+
 const toRoman = (num) => {
   const lookup = [
     [1000, "M"], [900, "CM"], [500, "D"], [400, "CD"],
@@ -65,7 +67,7 @@ const DesignCard = memo(({ id, name, rating, images, mrp, salePrice, size = [] }
   const [mainImageLoaded, setMainImageLoaded] = useState(false);
 
   const sizeOrder = ['xs', 's', 'm', 'l', 'xl', 'xxl', 'xxxl'];
-  const sortedSizes = useMemo(() => 
+  const sortedSizes = useMemo(() =>
     [...size].sort((a, b) => sizeOrder.indexOf(a.toLowerCase()) - sizeOrder.indexOf(b.toLowerCase())),
     [size]
   );
@@ -90,6 +92,17 @@ const DesignCard = memo(({ id, name, rating, images, mrp, salePrice, size = [] }
   const mainImage = useMemo(() => optimizeImageUrl(images?.[0]), [images]);
   const hoverImage = useMemo(() => optimizeImageUrl(images?.[1] || images?.[0]), [images]);
 
+
+const designOptions = [
+  { value: "All", label: "All Designs" },
+  ...homeKeywords.map((kw) => ({
+    value: kw.keyword_name,
+    label: kw.keyword_name,
+  })),
+];
+
+
+
   return (
     <div
       className="w-full max-w-sm rounded-2xl overflow-hidden shadow-lg group relative bg-white cursor-pointer h-[420px] flex flex-col"
@@ -112,9 +125,8 @@ const DesignCard = memo(({ id, name, rating, images, mrp, salePrice, size = [] }
             src={hoverImage}
             alt={`${name} hover`}
             onClick={() => navigate(`/designdetails/${id}`)}
-            className={`absolute inset-0 w-full h-full object-contain p-4 transition-all duration-300 ${
-              hovered ? "opacity-100 scale-110" : "opacity-0 scale-100"
-            }`}
+            className={`absolute inset-0 w-full h-full object-contain p-4 transition-all duration-300 ${hovered ? "opacity-100 scale-110" : "opacity-0 scale-100"
+              }`}
             width={400}
             height={350}
           />
@@ -244,115 +256,158 @@ const RecentDesigns = () => {
   }, [filteredDesigns]);
 
   return (
-    
-      <div className="min-h-screen bg-[#fef4f3] py-10 px-4">
-        <PageContainer>
+
+    <div className="min-h-screen bg-[#fef4f3] py-10 px-4">
+      <PageContainer>
         {/* Filter Toggle Button for Mobile */}
-      {!isDesktop && (
-        <div className="mb-4 flex justify-center">
-          <button
-            onClick={() => setShowFilters(!showFilters)}
-            className="px-4 py-2 bg-primary text-white rounded-full font-medium shadow hover:bg-primary/90 transition flex items-center gap-2"
-          >
-            <i className="fa-solid fa-filter"></i> Filters
-          </button>
-        </div>
-      )}
+        {!isDesktop && (
+          <div className="mb-4 flex justify-center">
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className="px-4 py-2 bg-primary text-white rounded-full font-medium shadow hover:bg-primary/90 transition flex items-center gap-2"
+            >
+              <i className="fa-solid fa-filter"></i> Filters
+            </button>
+          </div>
+        )}
 
-      {/* Filters */}
-      {shouldShowFilters && (
-        <div className="mb-8 flex flex-row flex-wrap justify-center items-center gap-6">
-        <div className="flex flex-col items-center">
-          <label className="text-sm font-semibold text-primary mb-2 uppercase tracking-wide">Size</label>
-          <select
-            value={fit}
-            onChange={(e) => setFit(e.target.value)}
-            className="px-6 py-3 border-2 border-primary/20 rounded-full bg-gradient-to-r from-primary/10 to-primary/5 text-gray-800 font-medium focus:outline-none focus:ring-4 focus:ring-primary/30 focus:border-primary transition-all duration-300 shadow-lg hover:shadow-xl"
-          >
-            {fits.map((f) => (
-              <option key={f} value={f} className="bg-white text-gray-800">
-                {f}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="flex flex-col items-center">
-          <label className="text-sm font-semibold text-primary mb-2 uppercase tracking-wide">Design</label>
-          <select
-            value={selectedSubcategory}
-            onChange={(e) => setSelectedSubcategory(e.target.value)}
-            className="px-6 py-3 border-2 border-primary/20 rounded-full bg-gradient-to-r from-primary/10 to-primary/5 text-gray-800 font-medium focus:outline-none focus:ring-4 focus:ring-primary/30 focus:border-primary transition-all duration-300 shadow-lg hover:shadow-xl"
-          >
-            <option value="All" className="bg-white text-gray-800">All Keywords</option>
-            {homeKeywords.map((kw, index) => (
-              <option key={kw.keyword_id} value={kw.keyword_name} className="bg-white text-gray-800">
-                {toRoman(index + 1)}. {kw.keyword_name}
-              </option>
-            ))}
-          </select>
-        </div>
+        {/* Filters */}
+        {shouldShowFilters && (
+          <div className="w-full mb-12">
+            <div className="bg-gradient-to-r from-pink-50 via-white to-pink-50 border border-pink-100 rounded-3xl px-6 md:px-10 py-8 shadow-md">
+
+              {/* Heading */}
+              <div className="text-center mb-6">
+                <h2 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-primary to-pink-500 bg-clip-text text-transparent">
+                  Discover Your Style
+                </h2>
+
+                
+              </div>
+
+              {/* Filters */}
+            <div className="flex flex-col md:flex-row justify-center items-center gap-6">
+
+  {/* Size Filter */}
+  <div className="w-full md:w-auto">
+    <label className="block text-sm font-semibold text-primary mb-2">
+      SIZE
+    </label>
+
+    <div className="p-[2px] rounded-2xl bg-gradient-to-r from-pink-400 via-orange-300 to-pink-400 shadow-lg">
+     <Select
+  styles={customSelectStyles}
+  options={fitOptions}
+  value={fitOptions.find((o) => o.value === fit)}
+  onChange={(selected) => setFit(selected.value)}
+/>
     </div>
-      )}
+  </div>
 
-      {/* Sections */}
-      {!keywordsLoaded ? (
-        <Spinner />
-      ) : (
-        <>
-          {homeKeywords.length === 0 && (
-            <div className="text-center text-gray-500 py-10">
-              No categories configured for the home page. Please enable keywords to show on home from the Admin Panel.
+  {/* Design Filter */}
+  <div className="w-full md:w-auto">
+    <label className="block text-sm font-semibold text-primary mb-2">
+      DESIGN
+    </label>
+
+    <div className="p-[2px] rounded-2xl bg-gradient-to-r from-pink-400 via-orange-300 to-pink-400 shadow-lg">
+      <select
+        value={selectedSubcategory}
+        onChange={(e) => setSelectedSubcategory(e.target.value)}
+        className="
+          w-full md:w-[280px]
+          h-14
+          px-5
+          rounded-2xl
+          bg-gradient-to-r
+          from-pink-50
+          via-white
+          to-orange-50
+          text-gray-700
+          font-semibold
+          cursor-pointer
+          outline-none
+          border-none
+        "
+      >
+        <option value="All">All Designs</option>
+
+        {homeKeywords.map((kw) => (
+          <option
+            key={kw.keyword_id}
+            value={kw.keyword_name}
+          >
+            {kw.keyword_name}
+          </option>
+        ))}
+      </select>
+    </div>
+  </div>
+
+</div>
             </div>
-          )}
-          {homeKeywords.map((kw, index) => {
-            const items = (groupedByKeyword[kw.keyword_name] || []).slice(0, 6); // Show only 6 items per category for speed
-            if (selectedSubcategory !== "All" && selectedSubcategory !== kw.keyword_name) return null;
-            if (items.length === 0) return null;
-            return (
-              <div key={kw.keyword_id} className="mb-14">
-                <div className="text-left mb-8">
-                  <h2 className="text-2xl font-bold text-primary inline-block relative pb-2 after:content-[''] after:absolute after:left-1/2 after:-bottom-1 after:-translate-x-1/2 after:w-20 after:h-[3px] after:bg-primary">
-                    {toRoman(index + 1)}. {kw.keyword_name}
-                  </h2>
+          </div>
+        )}
+
+        {/* Sections */}
+        {!keywordsLoaded ? (
+          <Spinner />
+        ) : (
+          <>
+            {homeKeywords.length === 0 && (
+              <div className="text-center text-gray-500 py-10">
+                No categories configured for the home page. Please enable keywords to show on home from the Admin Panel.
+              </div>
+            )}
+            {homeKeywords.map((kw, index) => {
+              const items = (groupedByKeyword[kw.keyword_name] || []).slice(0, 6); // Show only 6 items per category for speed
+              if (selectedSubcategory !== "All" && selectedSubcategory !== kw.keyword_name) return null;
+              if (items.length === 0) return null;
+              return (
+                <div key={kw.keyword_id} className="mb-14">
+                  <div className="text-left mb-8">
+                    <h2 className="text-2xl font-bold text-primary inline-block relative pb-2 after:content-[''] after:absolute after:left-1/2 after:-bottom-1 after:-translate-x-1/2 after:w-20 after:h-[3px] after:bg-primary">
+                      {toRoman(index + 1)}. {kw.keyword_name}
+                    </h2>
+                  </div>
+
+                  <Swiper
+                    spaceBetween={20}
+                    slidesPerView={2}
+                    breakpoints={{
+                      640: { slidesPerView: 2 },
+                      1024: { slidesPerView: 5 },
+                    }}
+                    modules={[Autoplay]}
+                    autoplay={{
+                      delay: 3000,
+                      disableOnInteraction: false,
+                    }}
+                    loop={true}
+                    className="w-full"
+                  >
+                    {items.map((design) => (
+                      <SwiperSlide key={design.id}>
+                        <DesignCard
+                          id={design.product_id}
+                          name={design.name}
+                          rating={design.rating}
+                          images={design.images || [design.image]}
+                          mrp={design.mrp}
+                          salePrice={design.salePrice}
+                          size={design.size || []}
+                        />
+                      </SwiperSlide>
+                    ))}
+                  </Swiper>
                 </div>
-
-              <Swiper
-                spaceBetween={10}
-                slidesPerView={2}
-                breakpoints={{
-                  640: { slidesPerView: 2 },
-                  1024: { slidesPerView: 5 },
-                }}
-                modules={[Autoplay]}
-                autoplay={{
-                  delay: 3000,
-                  disableOnInteraction: false,
-                }}
-                loop={true}
-                className="w-full"
-              >
-                {items.map((design) => (
-                  <SwiperSlide key={design.id}>
-                    <DesignCard
-                      id={design.product_id}
-                      name={design.name}
-                      rating={design.rating}
-                      images={design.images || [design.image]}
-                      mrp={design.mrp}
-                      salePrice={design.salePrice}
-                      size={design.size || []}
-                    />
-                  </SwiperSlide>
-                ))}
-              </Swiper>
-            </div>
-            );
-          })}
-        </>
-      )}
+              );
+            })}
+          </>
+        )}
       </PageContainer>
     </div>
-   
+
   );
 };
 
