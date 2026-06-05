@@ -1,6 +1,7 @@
 import React, { useContext, useEffect, useRef, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { IoIosArrowForward } from "react-icons/io";
+import { FiSearch } from "react-icons/fi";
 import emailjs from "@emailjs/browser";
 
 import logoimg from '/Image/lo.png'
@@ -393,19 +394,22 @@ const Checkout = () => {
 
               <div className="flex items-start gap-3 mb-4">
                 <div className="relative w-full" ref={searchWrapperRef}>
+                  <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                    <FiSearch />
+                  </div>
                   <input
                     placeholder="Search saved addresses..."
                     value={searchTerm}
                     onChange={(e) => { setSearchTerm(e.target.value); setShowSuggestions(true); }}
                     onFocus={() => setShowSuggestions(true)}
-                    className="border p-2 rounded w-full"
+                    className="border rounded-lg px-12 py-3 w-full placeholder-gray-400 bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-800"
                   />
 
                   {showSuggestions && (
-                    <div className="absolute left-0 right-0 mt-2 bg-white border rounded shadow-lg z-50 max-h-64 overflow-y-auto">
-                      <div className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase bg-gray-50">Saved Addresses</div>
+                    <div className="absolute left-0 right-0 mt-2 bg-white border rounded-md shadow-lg z-50 max-h-64 overflow-y-auto">
+                      <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase bg-gray-50 border-b">Saved Addresses</div>
                       {filteredAddresses.length === 0 ? (
-                        <div className="px-3 py-2 text-sm text-gray-600">No saved addresses</div>
+                        <div className="px-4 py-3 text-sm text-gray-600">No saved addresses</div>
                       ) : (
                         filteredAddresses.map((addr, sidx) => {
                           const origIndex = savedAddresses.findIndex((sa) =>
@@ -420,10 +424,10 @@ const Checkout = () => {
                             <div
                               key={sidx}
                               onClick={onSelectSuggestion}
-                              className="px-3 py-3 hover:bg-slate-100 cursor-pointer flex items-start"
+                              className="px-4 py-3 hover:bg-slate-50 cursor-pointer flex items-start border-b last:border-b-0"
                             >
                               <div className="flex-1">
-                                <div className="font-medium">{addr.fullname} <span className="text-gray-500">– {addr.contact}</span></div>
+                                <div className="font-medium text-sm">{addr.fullname} <span className="text-gray-500">– {addr.contact}</span></div>
                                 <div className="text-sm text-gray-600">{addr.street}{addr.street ? ', ' : ''}{addr.city} {addr.state} – {addr.zip}</div>
                               </div>
                             </div>
@@ -434,19 +438,13 @@ const Checkout = () => {
                   )}
                 </div>
 
-                <div className="flex flex-col gap-2">
-                  <button
-                    type="button"
-                    onClick={() => { setSearchTerm(""); setShowSuggestions(true); }}
-                    className="px-3 py-2 bg-gray-100 border rounded whitespace-nowrap"
-                  >
-                    Show all
-                  </button>
+                <div className="flex flex-col items-end gap-3">
+              
                   <button
                     type="button"
                     onClick={handleUseMyLocation}
                     disabled={isLocating}
-                    className="px-3 py-2 bg-slate-800 text-white rounded whitespace-nowrap"
+                    className="px-5 py-3 bg-slate-900 text-white rounded-lg shadow-md hover:bg-slate-800"
                   >
                     {isLocating ? "Locating..." : "Use my location"}
                   </button>
