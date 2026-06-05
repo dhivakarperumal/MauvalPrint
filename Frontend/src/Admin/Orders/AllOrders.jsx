@@ -30,11 +30,11 @@ const getStatusBadge = (status) => {
 const getAvailableStatuses = (currentStatus) => {
   const statusHierarchy = {
     "Place Order": [" Place Order", "Packed", "Shipped", "Delivered", "Cancelled"],
-    "Packed": [ "Packed", "Shipped", "Delivered", "Cancelled"],
+    "Packed": ["Packed", "Shipped", "Delivered", "Cancelled"],
     "Shipped": ["Shipped", "Delivered", "Cancelled"],
     "Delivered": ["Delivered"],
     "Cancelled": ["Cancelled"],
-    
+
   };
   return statusHierarchy[currentStatus] || ["Place Order"];
 };
@@ -48,7 +48,10 @@ const AllOrders = () => {
   const [filterType, setFilterType] = useState("All");
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
-  const [viewMode, setViewMode] = useState("table");
+  const [viewMode, setViewMode] = useState(
+    window.innerWidth < 768 ? "card" : "table"
+  );
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [statusFilter, setStatusFilter] = useState("All");
   const [showAddBillModal, setShowAddBillModal] = useState(false);
   const [previewImage, setPreviewImage] = useState(null);
@@ -118,6 +121,23 @@ const AllOrders = () => {
     };
     fetchOrders();
     setCurrentPage(1);
+  }, []);
+
+  useEffect(() => {
+    const handleResize = () => {
+      const mobile = window.innerWidth < 768;
+
+      setIsMobile(mobile);
+
+      if (mobile) {
+        setViewMode("card");
+      }
+    };
+
+    handleResize();
+    window.addEventListener("resize", handleResize);
+
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   // Pagination handler
@@ -261,9 +281,8 @@ const AllOrders = () => {
 
         <p><strong>Delivery Address:</strong><br />
           ${order.checkout?.street},<br />
-          ${order.checkout?.city}, ${order.checkout?.state} - ${
-      order.checkout?.zip
-    },<br />
+          ${order.checkout?.city}, ${order.checkout?.state} - ${order.checkout?.zip
+      },<br />
           ${order.checkout?.country}
         </p>
 
@@ -287,22 +306,18 @@ const AllOrders = () => {
           (item) => `
         <tr>
           <td style="border: 1px solid #ccc; padding: 8px; text-align: center;">
-            <img src="${
-              item.image || item.customizedImage || "/placeholder.jpg"
+            <img src="${item.image || item.customizedImage || "/placeholder.jpg"
             }"
                  alt="${item.name}"
                  style="width: 40px; height: 40px; object-fit: cover;" />
           </td>
           <td style="border: 1px solid #ccc; padding: 8px;">${item.name}</td>
-          <td style="border: 1px solid #ccc; padding: 8px;">${
-            item.quantity
-          }</td>
-          <td style="border: 1px solid #ccc; padding: 8px;">${
-            item.size || "-"
-          }</td>
-          <td style="border: 1px solid #ccc; padding: 8px;">${
-            item.color || "-"
-          }</td>
+          <td style="border: 1px solid #ccc; padding: 8px;">${item.quantity
+            }</td>
+          <td style="border: 1px solid #ccc; padding: 8px;">${item.size || "-"
+            }</td>
+          <td style="border: 1px solid #ccc; padding: 8px;">${item.color || "-"
+            }</td>
           <td style="border: 1px solid #ccc; padding: 8px;">₹${item.price}</td>
         </tr>`
         )
@@ -404,7 +419,7 @@ const AllOrders = () => {
           <h2 className="text-2xl font-bold text-blue-900">All Orders</h2>
           <p className="text-sm text-gray-500 mt-0.5">Track and manage all customer orders</p>
         </div>
-       
+
       </div>
 
       {/* ── Status Count Cards ── */}
@@ -423,11 +438,10 @@ const AllOrders = () => {
             <button
               key={key}
               onClick={() => setStatusFilter(key === "Total" ? "All" : key)}
-              className={`relative overflow-hidden rounded-2xl p-4 text-left transition-all duration-300 cursor-pointer group ${
-                isActive
-                  ? `bg-gradient-to-br ${gradient} text-white shadow-lg scale-[1.02]`
-                  : `${lightBg} ${border} border hover:shadow-md hover:-translate-y-0.5`
-              }`}
+              className={`relative overflow-hidden rounded-2xl p-4 text-left transition-all duration-300 cursor-pointer group ${isActive
+                ? `bg-gradient-to-br ${gradient} text-white shadow-lg scale-[1.02]`
+                : `${lightBg} ${border} border hover:shadow-md hover:-translate-y-0.5`
+                }`}
             >
               {/* Background decoration */}
               {isActive && (
@@ -498,7 +512,7 @@ const AllOrders = () => {
             <option value="FromTo">From - To</option>
           </select>
 
-          <div className="flex bg-gray-100 p-1 rounded-lg border border-gray-200 shrink-0">
+          <div className="hidden md:flex bg-gray-100 p-1 rounded-lg border border-gray-200 shrink-0">
             <button
               onClick={() => setViewMode("table")}
               className={`px-3 py-1.5 rounded-md text-sm font-medium flex items-center justify-center gap-2 transition-all ${viewMode === "table" ? "bg-white text-blue-900 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}
@@ -523,167 +537,167 @@ const AllOrders = () => {
         </div>
       ) : (
         <>
-          {viewMode === "table" ? (
-          <div className="overflow-x-auto shadow-sm rounded-xl border border-gray-200 bg-white">
-            <table className="w-full text-sm text-left">
-              <thead className="bg-gray-800 text-white">
-                <tr>
-                  <th className="px-4 py-4">Order ID</th>
-                  <th className="px-4 py-4">Customer</th>
-                  <th className="px-4 py-4">Amount</th>
-                  <th className="px-4 py-4">Payment</th>
-                  <th className="px-4 py-4">Date</th>
-                  <th className="px-4 py-4">Status</th>
-                  <th className="px-4 py-4">Action</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y">
-                {paginatedOrders.map((order) => (
-                  <React.Fragment key={order.orderID}>
-                    <tr className="border-gray-300 hover:bg-gray-50">
-                      <td
-                        className="px-4 py-4 text-blue-700 cursor-pointer hover:underline"
-                        onClick={() => toggleExpand(order.orderID)}
-                      >
-                        {order.orderID}
-                      </td>
-                      <td className="px-4 py-4">
-                        {order.checkout?.fullname || order.checkout?.customerName || order.customerName || "Unknown"}
-                      </td>
-                      <td className="px-4 py-4">₹{order.total}</td>
-                      <td className="px-4 py-4">
-                        {order.paymentID ? "Online" : "Cash on Delivery"}
-                      </td>
-                      <td className="px-4 py-4">
-                        {order.createdAt?.toDate().toLocaleDateString("en-IN", {
-                          day: "2-digit",
-                          month: "short",
-                          year: "numeric",
-                        })}
-                      </td>
-                      <td className="px-4 py-4">
-                        <select
-                          value={order.status}
-                          onChange={(e) =>
-                            handleStatusChange(order.orderID, e.target.value)
-                          }
-                          className={`${getStatusBadge(
-                            order.status
-                          )} w-full  max-w-[150px]`}
+          {!isMobile && viewMode === "table" ? (
+            <div className="overflow-x-auto shadow-sm rounded-xl border border-gray-200 bg-white">
+              <table className="w-full text-sm text-left">
+                <thead className="bg-gray-800 text-white">
+                  <tr>
+                    <th className="px-4 py-4">Order ID</th>
+                    <th className="px-4 py-4">Customer</th>
+                    <th className="px-4 py-4">Amount</th>
+                    <th className="px-4 py-4">Payment</th>
+                    <th className="px-4 py-4">Date</th>
+                    <th className="px-4 py-4">Status</th>
+                    <th className="px-4 py-4">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y">
+                  {paginatedOrders.map((order) => (
+                    <React.Fragment key={order.orderID}>
+                      <tr className="border-gray-300 hover:bg-gray-50">
+                        <td
+                          className="px-4 py-4 text-blue-700 cursor-pointer hover:underline"
+                          onClick={() => toggleExpand(order.orderID)}
                         >
-                          {getAvailableStatuses(order.status).map((status) => (
-                            <option key={status} value={status}>
-                              {status}
-                            </option>
-                          ))}
-                        </select>
-                      </td>
-                      <td className="px-4 py-4 flex gap-2">
-                        <button
-                          data-ignore-outside
-                          onClick={() => {
-                            handlePrint(order);
-                          }}
-                          className="bg-blue-500 hover:bg-blue-600 cursor-pointer text-white px-3 py-1 rounded text-xs"
-                        >
-                          Print
-                        </button>
-                        <button
+                          {order.orderID}
+                        </td>
+                        <td className="px-4 py-4">
+                          {order.checkout?.fullname || order.checkout?.customerName || order.customerName || "Unknown"}
+                        </td>
+                        <td className="px-4 py-4">₹{order.total}</td>
+                        <td className="px-4 py-4">
+                          {order.paymentID ? "Online" : "Cash on Delivery"}
+                        </td>
+                        <td className="px-4 py-4">
+                          {order.createdAt?.toDate().toLocaleDateString("en-IN", {
+                            day: "2-digit",
+                            month: "short",
+                            year: "numeric",
+                          })}
+                        </td>
+                        <td className="px-4 py-4">
+                          <select
+                            value={order.status}
+                            onChange={(e) =>
+                              handleStatusChange(order.orderID, e.target.value)
+                            }
+                            className={`${getStatusBadge(
+                              order.status
+                            )} w-full  max-w-[150px]`}
+                          >
+                            {getAvailableStatuses(order.status).map((status) => (
+                              <option key={status} value={status}>
+                                {status}
+                              </option>
+                            ))}
+                          </select>
+                        </td>
+                        <td className="px-4 py-4 flex gap-2">
+                          <button
+                            data-ignore-outside
+                            onClick={() => {
+                              handlePrint(order);
+                            }}
+                            className="bg-blue-500 hover:bg-blue-600 cursor-pointer text-white px-3 py-1 rounded text-xs"
+                          >
+                            Print
+                          </button>
+                          <button
                             onClick={() => AddressPrint(order)}
                             className="bg-blue-500 hover:bg-blue-600 cursor-pointer text-white px-3 py-1 rounded text-xs"
                           >
                             Address
                           </button>
-                      </td>
-                    </tr>
-
-                    {/* Cancellation Input */}
-                    {cancellationInput[order.orderID] && (
-                      <tr>
-                        <td colSpan="7" className="px-4 py-2 bg-red-50">
-                          <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
-                            <input
-                              type="text"
-                              placeholder="Reason for cancellation"
-                              className="border border-gray-300 px-3 py-1 rounded w-full sm:w-1/2"
-                              onChange={(e) =>
-                                setCancellationInput((prev) => ({
-                                  ...prev,
-                                  [order.orderID]: {
-                                    ...(typeof prev[order.orderID] === "object"
-                                      ? prev[order.orderID]
-                                      : {}),
-                                    reason: e.target.value,
-                                  },
-                                }))
-                              }
-                            />
-                            <button
-                              onClick={() =>
-                                handleCancelSubmit(
-                                  order.orderID,
-                                  cancellationInput[order.orderID]?.reason || ""
-                                )
-                              }
-                              className="bg-red-600 text-white px-4 py-1.5 rounded text-sm"
-                            >
-                              Submit Cancellation
-                            </button>
-                          </div>
                         </td>
                       </tr>
-                    )}
 
-                    {/* Expanded row */}
-                    {expandedRows.includes(order.orderID) && (
-                      <tr className="bg-gray-50 border-t">
-                        <td colSpan="7" className="px-4 py-3 text-sm text-gray-700">
-                          <p>
-                            <strong>Email:</strong> {order.checkout?.email}
-                          </p>
-                          <p>
-                            <strong>Contact:</strong> {order.checkout?.contact}
-                          </p>
-                          <p>
-                            <strong>Address:</strong> {order.checkout?.street},{" "}
-                            {order.checkout?.city}, {order.checkout?.state} -{" "}
-                            {order.checkout?.zip}, {order.checkout?.country}
-                          </p>
-                          <p className="mt-2 font-medium">Cart Items:</p>
-                          <ul className="space-y-2 mt-1">
-                            {order.cart?.map((item, idx) => (
-                              <li key={idx} className="flex gap-2 items-start">
-                                <img
-                                  src={item.image || item.customizedImage}
-                                  alt={item.name}
-                                  onClick={() => openImagePreview(item.customizedImage || item.image, item.name)}
-                                  className="w-10 h-10 object-cover border rounded cursor-pointer hover:ring-2 hover:ring-blue-500 transition-all"
-                                />
-                                <div>
-                                  <p className="font-medium">{item.name}</p>
-                                  <p>Qty: {item.quantity}</p>
-                                  <p>Color: {item.color}</p>
-                                  <p>Size: {item.size}</p>
-                                  <p>
-                                    ₹{item.price} × {item.quantity} = ₹
-                                    {item.price * item.quantity}
-                                  </p>
-                                </div>
-                              </li>
-                            ))}
-                          </ul>
-                        </td>
-                      </tr>
-                    )}
-                  </React.Fragment>
-                ))}
-              </tbody>
-                       </table>
-          </div>
+                      {/* Cancellation Input */}
+                      {cancellationInput[order.orderID] && (
+                        <tr>
+                          <td colSpan="7" className="px-4 py-2 bg-red-50">
+                            <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+                              <input
+                                type="text"
+                                placeholder="Reason for cancellation"
+                                className="border border-gray-300 px-3 py-1 rounded w-full sm:w-1/2"
+                                onChange={(e) =>
+                                  setCancellationInput((prev) => ({
+                                    ...prev,
+                                    [order.orderID]: {
+                                      ...(typeof prev[order.orderID] === "object"
+                                        ? prev[order.orderID]
+                                        : {}),
+                                      reason: e.target.value,
+                                    },
+                                  }))
+                                }
+                              />
+                              <button
+                                onClick={() =>
+                                  handleCancelSubmit(
+                                    order.orderID,
+                                    cancellationInput[order.orderID]?.reason || ""
+                                  )
+                                }
+                                className="bg-red-600 text-white px-4 py-1.5 rounded text-sm"
+                              >
+                                Submit Cancellation
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+
+                      {/* Expanded row */}
+                      {expandedRows.includes(order.orderID) && (
+                        <tr className="bg-gray-50 border-t">
+                          <td colSpan="7" className="px-4 py-3 text-sm text-gray-700">
+                            <p>
+                              <strong>Email:</strong> {order.checkout?.email}
+                            </p>
+                            <p>
+                              <strong>Contact:</strong> {order.checkout?.contact}
+                            </p>
+                            <p>
+                              <strong>Address:</strong> {order.checkout?.street},{" "}
+                              {order.checkout?.city}, {order.checkout?.state} -{" "}
+                              {order.checkout?.zip}, {order.checkout?.country}
+                            </p>
+                            <p className="mt-2 font-medium">Cart Items:</p>
+                            <ul className="space-y-2 mt-1">
+                              {order.cart?.map((item, idx) => (
+                                <li key={idx} className="flex gap-2 items-start">
+                                  <img
+                                    src={item.image || item.customizedImage}
+                                    alt={item.name}
+                                    onClick={() => openImagePreview(item.customizedImage || item.image, item.name)}
+                                    className="w-10 h-10 object-cover border rounded cursor-pointer hover:ring-2 hover:ring-blue-500 transition-all"
+                                  />
+                                  <div>
+                                    <p className="font-medium">{item.name}</p>
+                                    <p>Qty: {item.quantity}</p>
+                                    <p>Color: {item.color}</p>
+                                    <p>Size: {item.size}</p>
+                                    <p>
+                                      ₹{item.price} × {item.quantity} = ₹
+                                      {item.price * item.quantity}
+                                    </p>
+                                  </div>
+                                </li>
+                              ))}
+                            </ul>
+                          </td>
+                        </tr>
+                      )}
+                    </React.Fragment>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {paginatedOrders.map((order) => (
-                <div key={order.orderID} className="bg-white rounded-2xl shadow-sm border border-gray-100 flex flex-col hover:shadow-xl transition-all duration-300 overflow-hidden group">
+                <div key={order.orderID} className="bg-white rounded-xl shadow-sm border border-gray-100 flex flex-col hover:shadow-xl transition-all duration-300 overflow-hidden group">
                   {/* Card Header */}
                   <div className="bg-gradient-to-r from-gray-50 to-white p-5 border-b border-gray-100 flex justify-between items-start">
                     <div className="flex flex-col gap-1">
@@ -692,7 +706,7 @@ const AllOrders = () => {
                     </div>
                     <span className={`${getStatusBadge(order.status)} shrink-0 shadow-sm border border-black/5`}>{order.status}</span>
                   </div>
-                  
+
                   {/* Card Body */}
                   <div className="p-5 flex-1 flex flex-col gap-5">
                     {/* Customer Info */}
@@ -721,7 +735,7 @@ const AllOrders = () => {
                         </p>
                       </div>
                     </div>
-    
+
                     {/* Status Select */}
                     <div className="mt-auto">
                       <label className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1 block">Update Status</label>
@@ -742,7 +756,7 @@ const AllOrders = () => {
                         </div>
                       </div>
                     </div>
-                    
+
                     {/* Cancellation Input */}
                     {cancellationInput[order.orderID] && (
                       <div className="flex flex-col gap-2 bg-red-50 p-4 rounded-xl border border-red-100 shadow-inner mt-2">
@@ -769,7 +783,7 @@ const AllOrders = () => {
                       </div>
                     )}
                   </div>
-    
+
                   {/* Actions Footer */}
                   <div className="bg-gray-50 p-4 border-t border-gray-100 flex gap-2">
                     <button onClick={() => handlePrint(order)} className="flex-1 bg-white hover:bg-blue-50 text-blue-700 py-2.5 rounded-xl text-xs font-bold transition-colors cursor-pointer border border-gray-200 shadow-sm flex items-center justify-center gap-1.5">
@@ -782,7 +796,7 @@ const AllOrders = () => {
                       {expandedRows.includes(order.orderID) ? <FaChevronUp size={12} /> : <FaChevronDown size={12} />}
                     </button>
                   </div>
-    
+
                   {/* Expanded Section */}
                   {expandedRows.includes(order.orderID) && (
                     <div className="bg-gray-50/50 p-5 border-t border-gray-100">
@@ -872,39 +886,38 @@ const AllOrders = () => {
                   Showing {filteredOrders.length === 0 ? 0 : startIndex + 1} to {Math.min(endIndex, filteredOrders.length)} of {filteredOrders.length} orders
                 </p>
               </div>
-              
+
               {totalPages > 1 && (
-              <div className="flex justify-center items-center gap-2 flex-wrap">
-                <button
-                  onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                  disabled={currentPage === 1}
-                  className="px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 text-sm font-medium transition-colors"
-                >
-                  Prev
-                </button>
-                <div className="flex items-center gap-1">
-                  {[...Array(totalPages)].map((_, idx) => (
-                    <button
-                      key={idx}
-                      onClick={() => setCurrentPage(idx + 1)}
-                      className={`w-8 h-8 flex items-center justify-center rounded-md text-sm font-medium transition-colors ${
-                        currentPage === idx + 1
+                <div className="flex justify-center items-center gap-2 flex-wrap">
+                  <button
+                    onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                    disabled={currentPage === 1}
+                    className="px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 text-sm font-medium transition-colors"
+                  >
+                    Prev
+                  </button>
+                  <div className="flex items-center gap-1">
+                    {[...Array(totalPages)].map((_, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => setCurrentPage(idx + 1)}
+                        className={`w-8 h-8 flex items-center justify-center rounded-md text-sm font-medium transition-colors ${currentPage === idx + 1
                           ? "bg-blue-600 text-white shadow-sm"
                           : "bg-gray-50 border border-gray-200 hover:bg-gray-100 text-gray-700"
-                      }`}
-                    >
-                      {idx + 1}
-                    </button>
-                  ))}
+                          }`}
+                      >
+                        {idx + 1}
+                      </button>
+                    ))}
+                  </div>
+                  <button
+                    onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                    disabled={currentPage === totalPages}
+                    className="px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 text-sm font-medium transition-colors"
+                  >
+                    Next
+                  </button>
                 </div>
-                <button
-                  onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-                  disabled={currentPage === totalPages}
-                  className="px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 text-sm font-medium transition-colors"
-                >
-                  Next
-                </button>
-              </div>
               )}
             </div>
           )}
@@ -920,7 +933,7 @@ const AllOrders = () => {
                 <h3 className="text-xl font-bold">Add New Bill</h3>
                 <p className="text-blue-200 text-sm mt-1">Create a new invoice and order</p>
               </div>
-              <button 
+              <button
                 onClick={() => {
                   setShowAddBillModal(false);
                   // Refresh orders if needed
@@ -940,7 +953,7 @@ const AllOrders = () => {
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
               </button>
             </div>
-            
+
             <div className="flex-1 overflow-y-auto bg-gray-50">
               <div className="add-bill-modal-wrapper">
                 <Billing setActiveTab={() => {

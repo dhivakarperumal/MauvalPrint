@@ -63,7 +63,13 @@ const NewOrders = () => {
   const [filterType, setFilterType] = useState("Today");
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
-  const [viewMode, setViewMode] = useState("table");
+  const [viewMode, setViewMode] = useState(
+    window.innerWidth < 768 ? "card" : "table"
+  );
+
+  const [isMobile, setIsMobile] = useState(
+    window.innerWidth < 768
+  );
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
@@ -72,6 +78,23 @@ const NewOrders = () => {
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const paginatedOrders = filteredOrders.slice(startIndex, endIndex);
+
+  useEffect(() => {
+    const handleResize = () => {
+      const mobile = window.innerWidth < 768;
+
+      setIsMobile(mobile);
+
+      if (mobile) {
+        setViewMode("card");
+      }
+    };
+
+    handleResize();
+    window.addEventListener("resize", handleResize);
+
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   // Fetch today's orders initially
   useEffect(() => {
@@ -169,10 +192,10 @@ const NewOrders = () => {
         )
       );
       setCancellationInput((prev) => {
-      const updated = { ...prev };
-      delete updated[orderID];
-      return updated;
-    });
+        const updated = { ...prev };
+        delete updated[orderID];
+        return updated;
+      });
 
       toast.success(`Status updated to ${newStatus}`);
     } catch (error) {
@@ -226,9 +249,8 @@ const NewOrders = () => {
 
         <p><strong>Delivery Address:</strong><br />
           ${order.checkout?.street},<br />
-          ${order.checkout?.city}, ${order.checkout?.state} - ${
-      order.checkout?.zip
-    },<br />
+          ${order.checkout?.city}, ${order.checkout?.state} - ${order.checkout?.zip
+      },<br />
           ${order.checkout?.country}
         </p>
 
@@ -252,22 +274,18 @@ const NewOrders = () => {
           (item) => `
         <tr>
           <td style="border: 1px solid #ccc; padding: 8px; text-align: center;">
-            <img src="${
-              item.image || item.customizedImage || "/placeholder.jpg"
+            <img src="${item.image || item.customizedImage || "/placeholder.jpg"
             }"
                  alt="${item.name}"
                  style="width: 40px; height: 40px; object-fit: cover;" />
           </td>
           <td style="border: 1px solid #ccc; padding: 8px;">${item.name}</td>
-          <td style="border: 1px solid #ccc; padding: 8px;">${
-            item.quantity
-          }</td>
-          <td style="border: 1px solid #ccc; padding: 8px;">${
-            item.size || "-"
-          }</td>
-          <td style="border: 1px solid #ccc; padding: 8px;">${
-            item.color || "-"
-          }</td>
+          <td style="border: 1px solid #ccc; padding: 8px;">${item.quantity
+            }</td>
+          <td style="border: 1px solid #ccc; padding: 8px;">${item.size || "-"
+            }</td>
+          <td style="border: 1px solid #ccc; padding: 8px;">${item.color || "-"
+            }</td>
           <td style="border: 1px solid #ccc; padding: 8px;">₹${item.price}</td>
         </tr>`
         )
@@ -411,7 +429,7 @@ const NewOrders = () => {
             <option value="FromTo">From - To</option>
           </select>
 
-          <div className="flex bg-gray-100 p-1 rounded-lg border border-gray-200 shrink-0">
+          <div className="hidden md:flex bg-gray-100 p-1 rounded-lg border border-gray-200 shrink-0">
             <button
               onClick={() => setViewMode("table")}
               className={`px-3 py-1.5 rounded-md text-sm font-medium flex items-center justify-center gap-2 transition-all ${viewMode === "table" ? "bg-white text-blue-900 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}
@@ -430,202 +448,201 @@ const NewOrders = () => {
         </div>
       </div>
 
-      {viewMode === "table" ? (
-      <div className="overflow-x-auto shadow-sm rounded-xl border border-gray-200">
-        <table className="w-full text-sm text-left">
-          <thead className="bg-gray-800 text-white">
-            <tr>
-              <th className="px-4 py-4">Order ID</th>
-              <th className="px-4 py-4">Customer</th>
-              <th className="px-4 py-4">Amount</th>
-              <th className="px-4 py-4">Payment</th>
-              <th className="px-4 py-4">Date</th>
-              <th className="px-4 py-4">Status</th>
-              <th className="px-4 py-4">Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredOrders.length === 0 ? (
+      {!isMobile && viewMode === "table" ? (
+        <div className="overflow-x-auto shadow-sm rounded-xl border border-gray-200">
+          <table className="w-full text-sm text-left">
+            <thead className="bg-gray-800 text-white">
               <tr>
-                <td colSpan="7" className="text-center py-6 text-gray-500">
-                  No new orders today.
-                </td>
+                <th className="px-4 py-4">Order ID</th>
+                <th className="px-4 py-4">Customer</th>
+                <th className="px-4 py-4">Amount</th>
+                <th className="px-4 py-4">Payment</th>
+                <th className="px-4 py-4">Date</th>
+                <th className="px-4 py-4">Status</th>
+                <th className="px-4 py-4">Action</th>
               </tr>
-            ) : (
-              paginatedOrders.map((order) => (
-                <React.Fragment key={order.order_id || order.orderID}>
-                  <tr className="border border-gray-300 rounded px-4 py-2 w-full md:w-1/3">
-                    <td
-                      className="px-4 py-4 text-blue-700 cursor-pointer hover:underline"
-                      onClick={() => toggleExpand(order.order_id || order.orderID)}
-                    >
-                      {order.order_id || order.orderID}
-                    </td>
-                    <td className="px-4 py-4">{order.checkout?.fullname || order.checkout?.customerName || order.customerName || "Unknown"}</td>
-                    <td className="px-4 py-4">₹{order.total}</td>
-                    <td className="px-4 py-4">
-                      {order.payment_id || order.paymentID ? "Online" : "Cash on Delivery"}
-                    </td>
-
-                    <td className="px-4 py-4">
-                      {new Date(order.created_at || order.createdAt || 0).toLocaleDateString("en-IN", {
-                        day: "2-digit",
-                        month: "short",
-                        year: "numeric",
-                      })}
-                    </td>
-                    <td className="px-4 py-4">
-                      <select
-                        value={order.status}
-                        onChange={(e) =>
-                          handleStatusChange(order.order_id || order.orderID, e.target.value)
-                        }
-                        className={`${getStatusBadge(
-                          order.status
-                        )} w-full max-w-[150px]`}
+            </thead>
+            <tbody>
+              {filteredOrders.length === 0 ? (
+                <tr>
+                  <td colSpan="7" className="text-center py-6 text-gray-500">
+                    No new orders today.
+                  </td>
+                </tr>
+              ) : (
+                paginatedOrders.map((order) => (
+                  <React.Fragment key={order.order_id || order.orderID}>
+                    <tr className="border border-gray-300 rounded px-4 py-2 w-full md:w-1/3">
+                      <td
+                        className="px-4 py-4 text-blue-700 cursor-pointer hover:underline"
+                        onClick={() => toggleExpand(order.order_id || order.orderID)}
                       >
-                        <option value="Place Order">Place Order</option>
-                        <option value="Packed">Packed</option>
-                        <option value="Shipped">Shipped</option>
-                        <option value="Delivered">Delivered</option>
-                        <option value="Cancelled">Cancelled</option>
-                        <option value="Add More">Add More</option>
-                      </select>
-                    </td>
-                    <td className="px-4 py-4 flex gap-2">
-                      <button
-                        onClick={() => handlePrint(order)}
-                        className="bg-blue-500 hover:bg-blue-600 cursor-pointer text-white px-3 py-1 rounded text-xs"
-                      >
-                        Print
-                      </button>
+                        {order.order_id || order.orderID}
+                      </td>
+                      <td className="px-4 py-4">{order.checkout?.fullname || order.checkout?.customerName || order.customerName || "Unknown"}</td>
+                      <td className="px-4 py-4">₹{order.total}</td>
+                      <td className="px-4 py-4">
+                        {order.payment_id || order.paymentID ? "Online" : "Cash on Delivery"}
+                      </td>
 
-                      <button
-                        onClick={() => AddressPrint(order)}
-                        className="bg-blue-500 hover:bg-blue-600 cursor-pointer text-white px-3 py-1 rounded text-xs"
-                      >
-                        Address
-                      </button>
-                    </td>
-                  </tr>
+                      <td className="px-4 py-4">
+                        {new Date(order.created_at || order.createdAt || 0).toLocaleDateString("en-IN", {
+                          day: "2-digit",
+                          month: "short",
+                          year: "numeric",
+                        })}
+                      </td>
+                      <td className="px-4 py-4">
+                        <select
+                          value={order.status}
+                          onChange={(e) =>
+                            handleStatusChange(order.order_id || order.orderID, e.target.value)
+                          }
+                          className={`${getStatusBadge(
+                            order.status
+                          )} w-full max-w-[150px]`}
+                        >
+                          <option value="Place Order">Place Order</option>
+                          <option value="Packed">Packed</option>
+                          <option value="Shipped">Shipped</option>
+                          <option value="Delivered">Delivered</option>
+                          <option value="Cancelled">Cancelled</option>
+                          <option value="Add More">Add More</option>
+                        </select>
+                      </td>
+                      <td className="px-4 py-4 flex gap-2">
+                        <button
+                          onClick={() => handlePrint(order)}
+                          className="bg-blue-500 hover:bg-blue-600 cursor-pointer text-white px-3 py-1 rounded text-xs"
+                        >
+                          Print
+                        </button>
 
-                  {cancellationInput[order.order_id || order.orderID] && (
-                    <tr>
-                      <td colSpan="7" className="px-4 py-4 bg-red-50">
-                        <div className="flex flex-col sm:flex-row gap-3">
-                          <input
-                            type="text"
-                            placeholder="Reason for cancellation"
-                            className="border border-gray-300 px-3 py-1 rounded w-full sm:w-1/2"
-                            onChange={(e) =>
-                              setCancellationInput((prev) => ({
-                                ...prev,
-                                [order.order_id || order.orderID]: {
-                                  ...(typeof prev[order.order_id || order.orderID] === "object"
-                                    ? prev[order.order_id || order.orderID]
-                                    : {}),
-                                  reason: e.target.value,
-                                },
-                              }))
-                            }
-                          />
-                          <button
-                            onClick={() =>
-                              handleCancelSubmit(
-                                order.order_id || order.orderID,
-                                cancellationInput[order.order_id || order.orderID]?.reason || ""
-                              )
-                            }
-                            className="bg-red-600 text-white px-4 py-1.5 rounded text-sm"
-                          >
-                            Submit Cancellation
-                          </button>
-                        </div>
+                        <button
+                          onClick={() => AddressPrint(order)}
+                          className="bg-blue-500 hover:bg-blue-600 cursor-pointer text-white px-3 py-1 rounded text-xs"
+                        >
+                          Address
+                        </button>
                       </td>
                     </tr>
-                  )}
 
-                  {expandedRows.includes(order.order_id || order.orderID) && (
-                    <tr className="bg-gray-50 border-t">
-                      <td colSpan="7" className="px-4 py-3">
-                        <div className="text-sm text-gray-700 mb-2 space-y-1">
-                          <p>
-                            <strong>Email:</strong> {order.checkout?.email}
-                          </p>
-                          <p>
-                            <strong>Contact:</strong> {order.checkout?.contact}
-                          </p>
-                          <p>
-                            <strong>Address:</strong> {order.checkout?.street},{" "}
-                            {order.checkout?.city}, {order.checkout?.state} -{" "}
-                            {order.checkout?.zip}, {order.checkout?.country}
-                          </p>
-                        </div>
-                        <div className="mt-2">
-                          <p className="font-medium text-sm mb-1">
-                            Cart Items:
-                          </p>
-                          <ul className="space-y-3">
-                            {order.cart?.map((item, idx) => (
-                              <li
-                                key={idx}
-                                className="flex items-start gap-3 text-sm text-gray-700"
-                              >
-                                <span className="font-medium">{idx + 1}.</span>
-                                <img
-                                  src={
-                                    item.image ||
-                                    item.customizedImage ||
-                                    item.images?.[0]
-                                  }
-                                  alt={item.name}
-                                  onClick={() => openImagePreview(item.customizedImage || item.image || item.images?.[0], item.name)}
-                                  className="w-12 h-12 object-cover rounded border cursor-pointer hover:ring-2 hover:ring-blue-500 transition-all"
-                                />
-                                <div className="flex flex-col">
-                                  <span className="font-semibold ">
-                                    {item.name}{" "}
-                                    {item.color === "" && (
-                                      <a
-                                        href={
-                                          item.customizedImage || item.image
-                                        }
-                                        download={`customized-${
-                                          item.name || "image"
-                                        }.jpg`}
-                                        className="text-white bg-gray-800 ml-2  py-2 px-3 rounded-lg mt-1 text-xs"
-                                      >
-                                        Download Image
-                                      </a>
-                                    )}
-                                  </span>
-                                  <span className="mt-3">
-                                    Qty: {item.quantity} | Price: ₹{item.price}{" "}
-                                    | Size: {item.size} | Color: {item.color}
-                                  </span>
-                                </div>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      </td>
-                    </tr>
-                  )}
-                </React.Fragment>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
+                    {cancellationInput[order.order_id || order.orderID] && (
+                      <tr>
+                        <td colSpan="7" className="px-4 py-4 bg-red-50">
+                          <div className="flex flex-col sm:flex-row gap-3">
+                            <input
+                              type="text"
+                              placeholder="Reason for cancellation"
+                              className="border border-gray-300 px-3 py-1 rounded w-full sm:w-1/2"
+                              onChange={(e) =>
+                                setCancellationInput((prev) => ({
+                                  ...prev,
+                                  [order.order_id || order.orderID]: {
+                                    ...(typeof prev[order.order_id || order.orderID] === "object"
+                                      ? prev[order.order_id || order.orderID]
+                                      : {}),
+                                    reason: e.target.value,
+                                  },
+                                }))
+                              }
+                            />
+                            <button
+                              onClick={() =>
+                                handleCancelSubmit(
+                                  order.order_id || order.orderID,
+                                  cancellationInput[order.order_id || order.orderID]?.reason || ""
+                                )
+                              }
+                              className="bg-red-600 text-white px-4 py-1.5 rounded text-sm"
+                            >
+                              Submit Cancellation
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+
+                    {expandedRows.includes(order.order_id || order.orderID) && (
+                      <tr className="bg-gray-50 border-t">
+                        <td colSpan="7" className="px-4 py-3">
+                          <div className="text-sm text-gray-700 mb-2 space-y-1">
+                            <p>
+                              <strong>Email:</strong> {order.checkout?.email}
+                            </p>
+                            <p>
+                              <strong>Contact:</strong> {order.checkout?.contact}
+                            </p>
+                            <p>
+                              <strong>Address:</strong> {order.checkout?.street},{" "}
+                              {order.checkout?.city}, {order.checkout?.state} -{" "}
+                              {order.checkout?.zip}, {order.checkout?.country}
+                            </p>
+                          </div>
+                          <div className="mt-2">
+                            <p className="font-medium text-sm mb-1">
+                              Cart Items:
+                            </p>
+                            <ul className="space-y-3">
+                              {order.cart?.map((item, idx) => (
+                                <li
+                                  key={idx}
+                                  className="flex items-start gap-3 text-sm text-gray-700"
+                                >
+                                  <span className="font-medium">{idx + 1}.</span>
+                                  <img
+                                    src={
+                                      item.image ||
+                                      item.customizedImage ||
+                                      item.images?.[0]
+                                    }
+                                    alt={item.name}
+                                    onClick={() => openImagePreview(item.customizedImage || item.image || item.images?.[0], item.name)}
+                                    className="w-12 h-12 object-cover rounded border cursor-pointer hover:ring-2 hover:ring-blue-500 transition-all"
+                                  />
+                                  <div className="flex flex-col">
+                                    <span className="font-semibold ">
+                                      {item.name}{" "}
+                                      {item.color === "" && (
+                                        <a
+                                          href={
+                                            item.customizedImage || item.image
+                                          }
+                                          download={`customized-${item.name || "image"
+                                            }.jpg`}
+                                          className="text-white bg-gray-800 ml-2  py-2 px-3 rounded-lg mt-1 text-xs"
+                                        >
+                                          Download Image
+                                        </a>
+                                      )}
+                                    </span>
+                                    <span className="mt-3">
+                                      Qty: {item.quantity} | Price: ₹{item.price}{" "}
+                                      | Size: {item.size} | Color: {item.color}
+                                    </span>
+                                  </div>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </React.Fragment>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredOrders.length === 0 ? (
             <div className="col-span-full text-center py-10 bg-white rounded-xl shadow-sm border border-gray-200">
               <p className="text-gray-500">No new orders today.</p>
             </div>
           ) : (
             paginatedOrders.map((order) => (
-              <div key={order.order_id || order.orderID} className="bg-white p-5 rounded-xl shadow-sm border border-gray-200 flex flex-col gap-4 hover:shadow-md transition-shadow">
+              <div key={order.order_id || order.orderID} className="bg-white p-4 rounded-xl shadow-sm border border-gray-200 flex flex-col gap-3 hover:shadow-md transition-shadow">
                 <div className="flex justify-between items-start gap-2">
                   <div className="flex-1 min-w-0">
                     <p className="font-bold text-blue-900 text-lg truncate" title={order.order_id || order.orderID}>{order.order_id || order.orderID}</p>
@@ -633,7 +650,7 @@ const NewOrders = () => {
                   </div>
                   <span className={`${getStatusBadge(order.status)} shrink-0`}>{order.status}</span>
                 </div>
-                
+
                 <div className="flex justify-between items-center text-sm text-gray-600 bg-gray-50 p-3 rounded-lg border border-gray-100">
                   <div>
                     <p className="text-[11px] text-gray-500 uppercase tracking-wider mb-0.5">Amount</p>
@@ -672,7 +689,7 @@ const NewOrders = () => {
                     <option value="Add More">Add More</option>
                   </select>
                 </div>
-                
+
                 {cancellationInput[order.order_id || order.orderID] && (
                   <div className="flex flex-col gap-2 bg-red-50 p-3 rounded-lg border border-red-100">
                     <input
@@ -792,39 +809,38 @@ const NewOrders = () => {
               Showing {filteredOrders.length === 0 ? 0 : startIndex + 1} to {Math.min(endIndex, filteredOrders.length)} of {filteredOrders.length} orders
             </p>
           </div>
-          
+
           {totalPages > 1 && (
-          <div className="flex justify-center items-center gap-2 flex-wrap">
-            <button
-              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-              disabled={currentPage === 1}
-              className="px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 text-sm font-medium transition-colors"
-            >
-              Prev
-            </button>
-            <div className="flex items-center gap-1">
-              {[...Array(totalPages)].map((_, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => setCurrentPage(idx + 1)}
-                  className={`w-8 h-8 flex items-center justify-center rounded-md text-sm font-medium transition-colors ${
-                    currentPage === idx + 1
-                      ? "bg-blue-600 text-white shadow-sm"
-                      : "bg-gray-50 border border-gray-200 hover:bg-gray-100 text-gray-700"
-                  }`}
-                >
-                  {idx + 1}
-                </button>
-              ))}
+            <div className="flex justify-center items-center gap-2 flex-wrap">
+              <button
+                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                className="px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 text-sm font-medium transition-colors"
+              >
+                Prev
+              </button>
+              <div className="flex items-center gap-1">
+                {[...Array(totalPages)].map((_, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setCurrentPage(idx + 1)}
+                    className={`w-8 h-8 flex items-center justify-center rounded-md text-sm font-medium transition-colors ${currentPage === idx + 1
+                        ? "bg-blue-600 text-white shadow-sm"
+                        : "bg-gray-50 border border-gray-200 hover:bg-gray-100 text-gray-700"
+                      }`}
+                  >
+                    {idx + 1}
+                  </button>
+                ))}
+              </div>
+              <button
+                onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+                className="px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 text-sm font-medium transition-colors"
+              >
+                Next
+              </button>
             </div>
-            <button
-              onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-              disabled={currentPage === totalPages}
-              className="px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 text-sm font-medium transition-colors"
-            >
-              Next
-            </button>
-          </div>
           )}
         </div>
       )}
