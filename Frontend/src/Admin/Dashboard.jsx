@@ -178,7 +178,7 @@ const Dashboard = () => {
       try {
         const [productsRes, usersRes, ordersRes, reviewsRes, invoicesRes] = await Promise.all([
           api.get("/products"),
-          api.get("/"),
+          api.get("/users"),
           api.get("/orders"),
           api.get("/reviews"),
           api.get("/invoices"),

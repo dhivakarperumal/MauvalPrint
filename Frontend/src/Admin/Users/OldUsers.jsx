@@ -76,7 +76,7 @@ const OldUsers = () => {
 
   const fetchUsers = async () => {
     try {
-      const { data } = await api.get("/");
+      const { data } = await api.get("/users");
       const dataUsers = (data.users || []).map((user) => {
         return {
           id: user.id,
