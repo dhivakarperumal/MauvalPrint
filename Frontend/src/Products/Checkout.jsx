@@ -152,20 +152,45 @@ const Checkout = () => {
         const { latitude, longitude } = pos.coords;
         const newAddr = await reverseGeocode(latitude, longitude);
         if (newAddr) {
-          // prepend and select
-          const updated = [newAddr, ...savedAddresses];
-          setSavedAddresses(updated);
-          // attempt to persist to backend
-          try {
-            if (user) await api.post(`/users/${user.uid}/addresses`, newAddr);
-          } catch (err) {
-            console.error("Failed to save located address:", err);
+          // check duplicates by lat/lon or normalized fields
+          const normalize = (s) => (s || "").toString().trim().toLowerCase();
+          const existingIndex = savedAddresses.findIndex((a) => {
+            if (a.lat && a.lon && newAddr.lat && newAddr.lon) {
+              // consider equal if very close (within ~0.0005 degrees ~50m)
+              const latDiff = Math.abs(Number(a.lat) - Number(newAddr.lat));
+              const lonDiff = Math.abs(Number(a.lon) - Number(newAddr.lon));
+              if (latDiff < 0.0005 && lonDiff < 0.0005) return true;
+            }
+            return (
+              normalize(a.street) === normalize(newAddr.street) &&
+              normalize(a.city) === normalize(newAddr.city) &&
+              normalize(a.zip) === normalize(newAddr.zip)
+            );
+          });
+
+          if (existingIndex !== -1) {
+            // already present, just select it
+            setIsLocating(false);
+            setSearchTerm("");
+            setSelectedAddressIdx(existingIndex);
+            handleAddressSelect(existingIndex);
+            toast.info("Location already in saved addresses; selected existing.");
+          } else {
+            // prepend and select
+            const updated = [newAddr, ...savedAddresses];
+            setSavedAddresses(updated);
+            // attempt to persist to backend
+            try {
+              if (user) await api.post(`/users/${user.uid}/addresses`, newAddr);
+            } catch (err) {
+              console.error("Failed to save located address:", err);
+            }
+            setIsLocating(false);
+            setSearchTerm("");
+            setSelectedAddressIdx(0);
+            handleAddressSelect(0, updated);
+            toast.success("Location added and selected.");
           }
-          setIsLocating(false);
-          setSearchTerm("");
-          setSelectedAddressIdx(0);
-          handleAddressSelect(0, updated);
-          toast.success("Location added and selected.");
         } else {
           setIsLocating(false);
           toast.error("Could not determine address from location.");
