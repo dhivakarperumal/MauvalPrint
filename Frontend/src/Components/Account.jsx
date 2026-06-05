@@ -14,6 +14,7 @@ import { AuthContext } from "../Context/AuthContext";
 import api from "../api";
 import { toast } from "react-toastify";
 import Head from "./Head";
+import { FaBoxOpen } from "react-icons/fa";
 
 const Account = () => {
   const { user, setUser } = useContext(AuthContext);
@@ -42,6 +43,10 @@ const Account = () => {
     confirmPassword: false,
   });
 
+  const [orders, setOrders] = useState([]);
+  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [loadingOrders, setLoadingOrders] = useState(false);
+
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -50,11 +55,11 @@ const Account = () => {
       navigate("/");
       return;
     }
-    
+
     // Load addresses from localStorage
     const savedAddresses = JSON.parse(localStorage.getItem(`addresses_${user.uid}`) || "[]");
     setAddresses(savedAddresses);
-    
+
     const fetchUserData = async () => {
       try {
         const { data } = await api.get(`/users/${user.uid}`);
@@ -81,6 +86,28 @@ const Account = () => {
       setActiveTab("address");
     }
   }, [user, navigate, location.state]);
+
+  useEffect(() => {
+    if (!user) return;
+
+    const fetchOrders = async () => {
+      try {
+        setLoadingOrders(true);
+
+        const { data } = await api.get(`/orders/user/${user.uid}`);
+
+        if (data.success) {
+          setOrders(data.orders);
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoadingOrders(false);
+      }
+    };
+
+    fetchOrders();
+  }, [user]);
 
 
   const logout = async () => {
@@ -156,7 +183,7 @@ const Account = () => {
       } else {
         updatedAddresses.push({ ...newAddress, id: `addr_${Date.now()}` });
       }
-      
+
       const savedAddresses = JSON.parse(localStorage.getItem(`addresses_${user.uid}`) || "[]");
       if (editingIndex != null) {
         savedAddresses[editingIndex] = updatedAddresses[editingIndex];
@@ -164,7 +191,7 @@ const Account = () => {
         savedAddresses.push(updatedAddresses[updatedAddresses.length - 1]);
       }
       localStorage.setItem(`addresses_${user.uid}`, JSON.stringify(savedAddresses));
-      
+
       setAddresses(updatedAddresses);
       setNewAddress({
         fullname: "",
@@ -329,6 +356,50 @@ const Account = () => {
           </div>
         );
 
+      case "orders":
+        return (
+          <div className="bg-white rounded-lg shadow p-6">
+            <h2 className="text-xl font-bold text-[var(--color-primary)] mb-6">
+              My Orders
+            </h2>
+
+            {loadingOrders ? (
+              <p>Loading...</p>
+            ) : orders.length === 0 ? (
+              <p>No orders found.</p>
+            ) : (
+              <div className="space-y-4">
+                {orders.map((order) => (
+                  <div
+                    key={order.order_id}
+                    onClick={() => setSelectedOrder(order)}
+                    className="border border-slate-200 rounded-2xl bg-slate-50 p-5 cursor-pointer hover:bg-white hover:shadow-lg transition-all"
+                  >
+                    <div className="flex justify-between">
+                      <div>
+                        <h3 className="font-bold">
+                          Order #{order.order_id}
+                        </h3>
+
+                        <p>
+                          {order.checkout?.fullname}
+                        </p>
+
+                        <p>
+                          Status: {order.status}
+                        </p>
+                      </div>
+
+                      <div>
+                        ₹{order.total}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        );
       case "password":
         return (
           <div className="bg-white rounded-lg shadow p-6">
@@ -365,6 +436,11 @@ const Account = () => {
     { key: "personal", label: "Personal Details", icon: <FaUser /> },
     { key: "password", label: "Password", icon: <FaLock /> },
     { key: "address", label: "Address", icon: <FaMapMarkerAlt /> },
+    {
+      key: "orders",
+      label: "Orders",
+      icon: <FaBoxOpen />
+    },
     { key: "logout", label: "Logout", icon: <FaSignOutAlt /> },
   ];
 
@@ -378,11 +454,10 @@ const Account = () => {
               <button
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key)}
-                className={`flex items-center gap-2 px-4 py-2 text-lg font-bold border-b-4 transition-all duration-200 ${
-                  activeTab === tab.key
-                    ? "border-[var(--color-primary)] text-[var(--color-primary)]"
-                    : "border-transparent text-gray-500 hover:text-[var(--color-primary)]"
-                }`}
+                className={`flex items-center gap-2 px-4 py-2 text-lg font-bold border-b-4 transition-all duration-200 ${activeTab === tab.key
+                  ? "border-[var(--color-primary)] text-[var(--color-primary)]"
+                  : "border-transparent text-gray-500 hover:text-[var(--color-primary)]"
+                  }`}
               >
                 {tab.icon} {tab.label}
               </button>
