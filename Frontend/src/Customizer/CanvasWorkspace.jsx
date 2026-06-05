@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Canvas, Rect, Image as FabricImage } from 'fabric';
 
-const CanvasWorkspace = ({ onCanvasReady, product, imageSrc, selectedProductColor }) => {
+const CanvasWorkspace = ({ onCanvasReady, product, imageSrc, selectedProductColor, onExportSafeChange }) => {
   const canvasRef = useRef(null);
   const [fabricCanvas, setFabricCanvas] = useState(null);
 
@@ -17,6 +17,118 @@ const CanvasWorkspace = ({ onCanvasReady, product, imageSrc, selectedProductColo
   // Use the provided imageSrc directly, or fall back to the placeholder
   const displaySrc = imageSrc || placeholderSvg;
 
+  const addImageToCanvas = (canvas, imgEl) => {
+    try {
+      const img = new FabricImage(imgEl, {
+        originX: 'left',
+        originY: 'top',
+        left: 0,
+        top: 0,
+        selectable: true,
+        evented: true,
+        hasControls: true,
+        hasBorders: true,
+        lockRotation: true,
+        cornerStyle: 'circle',
+        cornerStrokeColor: '#4f46e5',
+        borderColor: '#818cf8',
+        cornerSize: 10,
+        transparentCorners: false,
+        opacity: 0.95,
+        id: 'product-image',
+      });
+      const scale = Math.min(250 / img.width, 350 / img.height, 1);
+      img.scale(scale);
+      img.left = (250 - img.getScaledWidth()) / 2;
+      img.top = (350 - img.getScaledHeight()) / 2;
+      canvas.add(img);
+
+      // Use canvas method for Fabric.js v6+ compatibility
+      if (canvas.sendObjectToBack) {
+        canvas.sendObjectToBack(img);
+      } else if (img.sendToBack) {
+        img.sendToBack();
+      }
+
+      canvas.setActiveObject(img);
+      canvas.requestRenderAll();
+    } catch (err) {
+      console.error('Error creating fabric image:', err);
+    }
+  };
+
+  /**
+   * Convert any image URL to a clean data URL that won't taint the canvas.
+   * Strategy:
+   *  1. Try fetch() as same-origin (works for same-origin / CORS-enabled URLs)
+   *  2. Try fetch() via /proxy-image (Vite dev proxy)
+   *  3. Fallback: load <img> without crossOrigin, draw to temp canvas to get dataURL
+   *     (this works because the temp canvas is throwaway — we only need the pixels)
+   */
+  const toCleanDataUrl = (src) => {
+    return new Promise((resolve, reject) => {
+      // data: and blob: are already clean
+      if (src.startsWith('data:') || src.startsWith('blob:')) {
+        resolve(src);
+        return;
+      }
+
+      // Strategy 1 & 2: Try fetch (same-origin first, then proxy)
+      const fetchUrls = [src];
+      try {
+        const url = new URL(src, window.location.origin);
+        if (url.origin !== window.location.origin) {
+          // Add proxied URL as an alternative
+          fetchUrls.unshift('/proxy-image' + url.pathname + url.search);
+        }
+      } catch { /* ignore */ }
+
+      const tryFetch = async () => {
+        for (const fetchUrl of fetchUrls) {
+          try {
+            const res = await fetch(fetchUrl);
+            if (res.ok) {
+              const blob = await res.blob();
+              return new Promise((res2) => {
+                const reader = new FileReader();
+                reader.onloadend = () => res2(reader.result);
+                reader.readAsDataURL(blob);
+              });
+            }
+          } catch { /* try next */ }
+        }
+        return null;
+      };
+
+      tryFetch().then((dataUrl) => {
+        if (dataUrl) {
+          resolve({ src: dataUrl, safe: true });
+          return;
+        }
+
+        // Strategy 3: Load img without crossOrigin, copy pixels via temp canvas
+        const img = new window.Image();
+        img.onload = () => {
+          try {
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = img.naturalWidth;
+            tempCanvas.height = img.naturalHeight;
+            const ctx = tempCanvas.getContext('2d');
+            ctx.drawImage(img, 0, 0);
+            // This will throw if truly cross-origin, but worth trying
+            const result = tempCanvas.toDataURL('image/png');
+            resolve({ src: result, safe: true });
+          } catch {
+            resolve({ src, safe: false });
+          }
+        };
+        img.onerror = () => reject(new Error('Image failed to load: ' + src));
+        // Don't set crossOrigin here — we want the image to load regardless
+        img.src = src;
+      });
+    });
+  };
+
   const loadProductImage = (canvas, src) => {
     if (!canvas || !src) return;
 
@@ -25,57 +137,31 @@ const CanvasWorkspace = ({ onCanvasReady, product, imageSrc, selectedProductColo
       canvas.remove(existing);
     }
 
-    const imgEl = new window.Image();
-    // Do NOT set crossOrigin for display — it works without CORS.
-    // crossOrigin is only needed if we want to export via toDataURL().
-    // Setting it causes failures for external images without proper CORS headers.
-    imgEl.onload = () => {
-      try {
-        const img = new FabricImage(imgEl, {
-          originX: 'left',
-          originY: 'top',
-          left: 0,
-          top: 0,
-          selectable: true,
-          evented: true,
-          hasControls: true,
-          hasBorders: true,
-          lockRotation: true,
-          cornerStyle: 'circle',
-          cornerStrokeColor: '#4f46e5',
-          borderColor: '#818cf8',
-          cornerSize: 10,
-          transparentCorners: false,
-          opacity: 0.95,
-          id: 'product-image',
-        });
-        const scale = Math.min(250 / img.width, 350 / img.height, 1);
-        img.scale(scale);
-        img.left = (250 - img.getScaledWidth()) / 2;
-        img.top = (350 - img.getScaledHeight()) / 2;
-        canvas.add(img);
-        
-        // Use canvas method for Fabric.js v6+ compatibility
-        if (canvas.sendObjectToBack) {
-          canvas.sendObjectToBack(img);
-        } else if (img.sendToBack) {
-          img.sendToBack();
+    toCleanDataUrl(src)
+      .then(({ src: cleanSrc, safe }) => {
+        if (onExportSafeChange) {
+          onExportSafeChange(safe);
         }
-        
-        canvas.setActiveObject(img);
-        canvas.requestRenderAll();
-      } catch (err) {
-        console.error('Error creating fabric image:', err);
-      }
-    };
-    imgEl.onerror = () => {
-      console.error('Canvas image failed to load:', src);
-      // Fall back to inline SVG placeholder (no external dependency)
-      if (!src.startsWith('data:')) {
-        loadProductImage(canvas, errorSvg);
-      }
-    };
-    imgEl.src = src;
+        if (!safe) {
+          console.warn('Using original image source for display. Export/save may fail due to CORS/tainted canvas.');
+        }
+
+        const imgEl = new window.Image();
+        imgEl.onload = () => addImageToCanvas(canvas, imgEl);
+        imgEl.onerror = () => {
+          console.error('Clean image failed to load');
+          if (!src.startsWith('data:')) loadProductImage(canvas, errorSvg);
+          else if (onExportSafeChange) onExportSafeChange(true);
+        };
+        imgEl.src = cleanSrc;
+      })
+      .catch((err) => {
+        console.error('Image conversion failed:', err);
+        if (onExportSafeChange) {
+          onExportSafeChange(true);
+        }
+        if (!src.startsWith('data:')) loadProductImage(canvas, errorSvg);
+      });
   };
 
   useEffect(() => {

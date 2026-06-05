@@ -24,6 +24,7 @@ const CustomizerLayout = () => {
   const [selectedProductColor, setSelectedProductColor] = useState('#ffffff');
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [showRightPanelMobile, setShowRightPanelMobile] = useState(false);
+  const [canvasExportSafe, setCanvasExportSafe] = useState(true);
 
   const productImages = useMemo(() => {
     if (!product) return [];
@@ -255,6 +256,10 @@ const CustomizerLayout = () => {
 
   const handlePlaceOrder = async () => {
     if (!product) return;
+    if (!canvasExportSafe) {
+      alert('This design uses an external image that cannot be exported safely. Please remove or replace the external image before placing an order.');
+      return;
+    }
     
     let customizedImage = product.images?.[0];
     if (canvas) {
@@ -289,6 +294,11 @@ const CustomizerLayout = () => {
 
   const handleSave = () => {
     if (!canvas) return;
+    if (!canvasExportSafe) {
+      alert('This design uses an external image that cannot be exported safely. Please remove or replace the external image before saving.');
+      return;
+    }
+
     try {
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
       const dataUrl = canvas.toDataURL({
@@ -416,7 +426,8 @@ const CustomizerLayout = () => {
               product={product} 
               imageSrc={productImages[selectedImageIndex] || product.images?.[0]}
               selectedProductColor={selectedProductColor}
-              onCanvasReady={(c) => setCanvas(c)} 
+              onCanvasReady={(c) => setCanvas(c)}
+              onExportSafeChange={(safe) => setCanvasExportSafe(safe)}
             />
 
             {/* {productImages.length > 1 && (
