@@ -5,6 +5,7 @@ import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import { AuthContext } from "../Context/AuthContext";
 import PageContainer from "../Components/PageContainer";
+import { FaUserCircle } from "react-icons/fa";
 
 function Testimonial() {
   const { reviews } = useContext(AuthContext);
@@ -76,9 +77,9 @@ function Testimonial() {
             } = review;
 
             return (
-             <div key={i} className="px-3 py-10">
-  <div
-    className="
+              <div key={i} className="px-3 py-10">
+                <div
+                  className="
       relative
       h-[235px]
       rounded-[30px]
@@ -94,13 +95,13 @@ function Testimonial() {
       hover:-translate-y-2
       hover:shadow-[0_15px_40px_rgba(31,38,135,0.2)]
     "
-  >
-    {/* Glass Highlight */}
-    <div className="absolute inset-0 rounded-[30px] bg-gradient-to-br from-white/30 via-white/10 to-transparent pointer-events-none" />
+                >
+                  {/* Glass Highlight */}
+                  <div className="absolute inset-0 rounded-[30px] bg-gradient-to-br from-white/30 via-white/10 to-transparent pointer-events-none" />
 
-    {/* Floating Image */}
-    <div
-      className="
+                  {/* Floating Image */}
+                  <div
+                    className="
         absolute
         left-1/2
         -top-10
@@ -115,52 +116,46 @@ function Testimonial() {
         overflow-hidden
         z-20
       "
-    >
-      {image ? (
-        <img
-          src={image}
-          alt={name}
-          className="w-full h-full object-contain p-1"
-        />
-      ) : (
-        <div className="w-full h-full flex items-center justify-center">
-          <FaRegUser className="text-primary text-3xl" />
-        </div>
-      )}
-    </div>
+                  >
+                    <img
+                      src={image?.trim() ? image : "/Image/avatar.jpg"}
+                      alt={name}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
 
-    {/* Content */}
-    <div className="h-full px-5 pt-14 pb-4 flex flex-col justify-between relative z-10">
+                  {/* Content */}
+                  <div className="h-full px-5 pt-14 pb-4 flex flex-col justify-between relative z-10">
 
-      {/* Rating */}
-      <div className="flex justify-center">
-        {[...Array(Math.round(rating || 5))].map((_, j) => (
-          <FaStar
-            key={j}
-            className="text-yellow-400 text-xs mx-0.5"
-          />
-        ))}
-      </div>
+                    {/* Rating */}
+                    <div className="flex justify-center">
+                      {[...Array(Math.round(rating || 5))].map((_, j) => (
+                        <FaStar
+                          key={j}
+                          className="text-yellow-400 text-xs mx-0.5"
+                        />
+                      ))}
+                    </div>
 
-      {/* Comment */}
-      <p className="text-gray-700 text-sm leading-relaxed line-clamp-3 px-1">
-        "{comment}"
-      </p>
+                    {/* Comment */}
+                    <p className="text-gray-700 text-sm leading-relaxed line-clamp-3 px-1">
+                      "{comment}"
+                    </p>
 
-      {/* User Info */}
-      <div>
-        <h3 className="font-bold text-gray-800 text-lg truncate">
-          {name}
-        </h3>
+                    {/* User Info */}
+                    <div>
+                      <h3 className="font-bold text-gray-800 text-lg truncate">
+                        {name}
+                      </h3>
 
-        <p className="text-primary text-sm font-medium truncate">
-          {product}
-        </p>
-      </div>
+                      <p className="text-primary text-sm font-medium truncate">
+                        {product}
+                      </p>
+                    </div>
 
-    </div>
-  </div>
-</div>
+                  </div>
+                </div>
+              </div>
             );
           })}
         </Slider>
