@@ -85,11 +85,17 @@ const CustomizerLayout = () => {
     return defaultVariantImages;
   }, [product, selectedProductColor]);
 
+  // Validate image index when product or color changes
   useEffect(() => {
-    if (productImages.length > 0) {
-      setSelectedImageIndex(0);
-    }
-  }, [productImages]);
+    setSelectedImageIndex(prev => {
+      // Only reset if the current index is out of bounds
+      if (productImages.length > 0 && prev >= productImages.length) {
+        return 0;
+      }
+      // Otherwise keep the current selection
+      return prev;
+    });
+  }, [productImages]); // Depend on full array to detect content changes
 
   useEffect(() => {
     if (products && products.length > 0) {
@@ -482,10 +488,12 @@ const CustomizerLayout = () => {
               <div className="grid grid-cols-3 gap-3">
                 {productImages.length > 0 ? productImages.map((src, idx) => (
                   <button
-                    key={idx}
+                    key={`${src}-${idx}`}
                     type="button"
-                    onClick={() => setSelectedImageIndex(idx)}
-                    className={`h-20 rounded-xl overflow-hidden border ${selectedImageIndex === idx ? 'border-indigo-500 ring-2 ring-indigo-500/30' : 'border-gray-700'} bg-gray-900`}
+                    onClick={() => {
+                      setSelectedImageIndex(idx);
+                    }}
+                    className={`h-20 rounded-xl overflow-hidden border transition-all ${selectedImageIndex === idx ? 'border-indigo-500 ring-2 ring-indigo-500/30 shadow-lg shadow-indigo-500/20' : 'border-gray-700 hover:border-gray-600'} bg-gray-900`}
                   >
                     <img src={src} alt={`Variant ${idx + 1}`} className="w-full h-full object-cover" />
                   </button>

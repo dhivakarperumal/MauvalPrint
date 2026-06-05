@@ -1,5 +1,6 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { IoClose } from "react-icons/io5";
+import { isValidImageSrc, flattenVariantImages } from "./helpers";
 
 const ProductCustomizer = ({
   product,
@@ -32,6 +33,46 @@ const ProductCustomizer = ({
   handlePlaceCustomizedOrder,
   onClose,
 }) => {
+  // Normalize and validate product images
+  const normalizedImages = useMemo(() => {
+    if (!product) return [];
+    
+    // Try to use product.images first
+    if (product.images) {
+      if (Array.isArray(product.images)) {
+        return product.images.filter(isValidImageSrc);
+      }
+      if (typeof product.images === "string") {
+        try {
+          const parsed = JSON.parse(product.images);
+          if (Array.isArray(parsed)) {
+            return parsed.filter(isValidImageSrc);
+          }
+          return [product.images].filter(isValidImageSrc);
+        } catch {
+          return [product.images].filter(isValidImageSrc);
+        }
+      }
+    }
+    
+    // Fallback to variant images if primary images unavailable
+    const variantImages = flattenVariantImages(product.images_by_variant);
+    if (variantImages.length > 0) {
+      return variantImages;
+    }
+    
+    return [];
+  }, [product]);
+
+  // Get current image with bounds checking
+  const currentImage = useMemo(() => {
+    if (normalizedImages.length === 0) {
+      return "https://via.placeholder.com/500x600.png?text=Product+Image";
+    }
+    const validIndex = Math.max(0, Math.min(selectedImageIndex, normalizedImages.length - 1));
+    return normalizedImages[validIndex] || "https://via.placeholder.com/500x600.png?text=Product+Image";
+  }, [normalizedImages, selectedImageIndex]);
+
   return (
     <div className="fixed inset-0 bg-black/60 z-50 flex justify-center items-center px-4 overflow-y-auto py-8">
       <div className="bg-white p-6 rounded-md max-w-5xl w-full relative overflow-y-auto max-h-[90vh]">
@@ -50,7 +91,7 @@ const ProductCustomizer = ({
             <div className="relative flex-1 flex justify-center items-center overflow-hidden">
               <img
                 ref={previewImageRef}
-                src={product.images[selectedImageIndex]}
+                src={currentImage}
                 alt="preview"
                 className="w-full h-full object-contain pointer-events-none"
               />
@@ -92,19 +133,26 @@ const ProductCustomizer = ({
             </div>
             <div className="mt-4 overflow-x-auto">
               <div className="flex gap-2 justify-center ">
-                {product.images.map((img, idx) => (
-                  <img
-                    key={idx}
-                    src={img}
-                    alt={`thumb-${idx}`}
-                    onClick={() => setSelectedImageIndex(idx)}
-                    className={`w-16 h-16 border p-1 rounded-lg cursor-pointer object-contain transition-all duration-200 ${
-                      selectedImageIndex === idx
-                        ? "border-blue-500"
-                        : "border-gray-300"
-                    }`}
-                  />
-                ))}
+                {normalizedImages.length > 0 ? (
+                  normalizedImages.map((img, idx) => (
+                    <img
+                      key={idx}
+                      src={img}
+                      alt={`thumb-${idx}`}
+                      onClick={() => setSelectedImageIndex(idx)}
+                      className={`w-16 h-16 border p-1 rounded-lg cursor-pointer object-contain transition-all duration-200 ${
+                        selectedImageIndex === idx
+                          ? "border-blue-500"
+                          : "border-gray-300"
+                      }`}
+                      onError={(e) => {
+                        e.target.src = "https://via.placeholder.com/64x64.png?text=Error";
+                      }}
+                    />
+                  ))
+                ) : (
+                  <p className="text-sm text-gray-500">No images available</p>
+                )}
               </div>
             </div>
           </div>

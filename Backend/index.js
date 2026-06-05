@@ -1,5 +1,7 @@
 const express = require("express");
 const cors = require("cors");
+const http = require("http");
+const https = require("https");
 const { connectDB } = require("./src/config/db");
 const userRoutes = require("./src/routers/userRoutes");
 const productRoutes = require("./src/routers/productRoutes");
@@ -30,6 +32,88 @@ app.use('/uploads', express.static(path.join(__dirname, 'public', 'uploads')));
 // Favicon handler - prevents 500 errors
 app.get('/favicon.ico', (req, res) => {
   res.status(204).end(); // No Content
+});
+
+// Image proxy endpoint - fetch external images and serve with CORS headers
+app.get('/api/proxy-image', async (req, res) => {
+  try {
+    const imageUrl = req.query.url;
+    
+    if (!imageUrl) {
+      return res.status(400).json({
+        success: false,
+        message: 'Image URL is required'
+      });
+    }
+
+    // Validate that the URL is actually a URL
+    try {
+      new URL(imageUrl);
+    } catch (e) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid URL format'
+      });
+    }
+
+    // Helper: fetch URL following redirects (up to maxRedirects)
+    const fetchWithRedirects = (url, maxRedirects = 5) => {
+      const parsedUrl = new URL(url);
+      const protocol = parsedUrl.protocol === 'https:' ? https : http;
+      const options = {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (compatible; MauvalPrintProxy/1.0)'
+        }
+      };
+
+      protocol.get(url, options, (response) => {
+        // Follow redirects (301, 302, 303, 307, 308)
+        if ([301, 302, 303, 307, 308].includes(response.statusCode) && response.headers.location) {
+          if (maxRedirects <= 0) {
+            return res.status(502).json({ success: false, message: 'Too many redirects' });
+          }
+          // Resolve relative redirect URLs
+          const redirectUrl = new URL(response.headers.location, url).toString();
+          return fetchWithRedirects(redirectUrl, maxRedirects - 1);
+        }
+
+        // Check for HTTP errors
+        if (response.statusCode < 200 || response.statusCode >= 300) {
+          return res.status(response.statusCode).json({
+            success: false,
+            message: 'Failed to fetch image from external server',
+            statusCode: response.statusCode
+          });
+        }
+
+        // Set appropriate headers
+        res.set('Content-Type', response.headers['content-type'] || 'image/jpeg');
+        res.set('Cache-Control', 'public, max-age=3600');
+        res.set('Access-Control-Allow-Origin', '*');
+        
+        // Pipe the response
+        response.pipe(res);
+      }).on('error', (error) => {
+        console.error('Image proxy error:', error.message);
+        if (!res.headersSent) {
+          res.status(500).json({
+            success: false,
+            message: 'Failed to fetch image',
+            error: error.message
+          });
+        }
+      });
+    };
+
+    fetchWithRedirects(imageUrl);
+  } catch (error) {
+    console.error('Image proxy error:', error.message);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to process image request',
+      error: error.message
+    });
+  }
 });
 
 // upload route
