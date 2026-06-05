@@ -18,9 +18,15 @@ const Dealers = () => {
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState(null);
-  
+
   const [search, setSearch] = useState("");
-  const [viewMode, setViewMode] = useState("table");
+  const [viewMode, setViewMode] = useState(
+    window.innerWidth < 768 ? "card" : "table"
+  );
+
+  const [isMobile, setIsMobile] = useState(
+    window.innerWidth < 768
+  );
 
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -35,7 +41,7 @@ const Dealers = () => {
             if (d.data) {
               extraData = JSON.parse(d.data);
             }
-          } catch (err) {}
+          } catch (err) { }
           return {
             id: d.id,
             dealerId: d.dealer_id,
@@ -72,9 +78,26 @@ const Dealers = () => {
     fetchInvoiceOptions();
   }, []);
 
+  useEffect(() => {
+    const handleResize = () => {
+      const mobile = window.innerWidth < 768;
+
+      setIsMobile(mobile);
+
+      if (mobile) {
+        setViewMode("card");
+      }
+    };
+
+    handleResize();
+    window.addEventListener("resize", handleResize);
+
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   const filteredDealers = useMemo(() => {
-    return dealersList.filter(d => 
-      d.dealerName?.toLowerCase().includes(search.toLowerCase()) || 
+    return dealersList.filter(d =>
+      d.dealerName?.toLowerCase().includes(search.toLowerCase()) ||
       d.dealerId?.toLowerCase().includes(search.toLowerCase()) ||
       d.phone?.includes(search)
     );
@@ -185,22 +208,20 @@ const Dealers = () => {
               <button
                 onClick={() => setViewMode("table")}
                 title="Table View"
-                className={`p-2 rounded-md transition-all cursor-pointer ${
-                  viewMode === "table"
-                    ? "bg-blue-900 text-white shadow-sm"
-                    : "text-gray-500 hover:text-gray-700 hover:bg-gray-200"
-                }`}
+                className={`p-2 rounded-md transition-all cursor-pointer ${viewMode === "table"
+                  ? "bg-blue-900 text-white shadow-sm"
+                  : "text-gray-500 hover:text-gray-700 hover:bg-gray-200"
+                  }`}
               >
                 <FaList size={14} />
               </button>
               <button
                 onClick={() => setViewMode("card")}
                 title="Card View"
-                className={`p-2 rounded-md transition-all cursor-pointer ${
-                  viewMode === "card"
-                    ? "bg-blue-900 text-white shadow-sm"
-                    : "text-gray-500 hover:text-gray-700 hover:bg-gray-200"
-                }`}
+                className={`p-2 rounded-md transition-all cursor-pointer ${viewMode === "card"
+                  ? "bg-blue-900 text-white shadow-sm"
+                  : "text-gray-500 hover:text-gray-700 hover:bg-gray-200"
+                  }`}
               >
                 <FaTh size={14} />
               </button>
@@ -220,7 +241,7 @@ const Dealers = () => {
       </div>
 
       {/* Main Content Area */}
-      {viewMode === "table" ? (
+      {!isMobile && viewMode === "table" ? (
         <div className="overflow-x-auto bg-white rounded-xl shadow-sm border border-gray-200">
           <table className="min-w-full text-sm text-left">
             <thead className="bg-gray-800 text-white">
@@ -300,7 +321,7 @@ const Dealers = () => {
         </div>
       ) : (
         /* Card View */
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {currentItems.length > 0 ? (
             currentItems.map((d) => (
               <div key={d.id} className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 hover:shadow-md transition-shadow relative flex flex-col">
@@ -338,18 +359,19 @@ const Dealers = () => {
                   </div>
                 </div>
 
-                <div className="flex items-center justify-end gap-2 pt-4 border-t border-gray-100 mt-auto">
+                <div className="flex justify-end gap-1.5 pt-3 border-t border-gray-100 mt-auto">
                   <button
                     onClick={() => handleEdit(d)}
-                    className="text-blue-600 bg-blue-50 px-3 py-1.5 text-xs font-bold rounded-lg hover:bg-blue-100 transition-colors cursor-pointer flex items-center gap-1.5"
+                    className="w-7 h-7 bg-blue-100 text-blue-700 rounded flex items-center justify-center"
                   >
-                    <FaEdit /> Edit
+                    <FaEdit size={10} />
                   </button>
+
                   <button
                     onClick={() => handleDelete(d.id)}
-                    className="text-red-600 bg-red-50 px-3 py-1.5 text-xs font-bold rounded-lg hover:bg-red-100 transition-colors cursor-pointer flex items-center gap-1.5"
+                    className="w-7 h-7 bg-red-100 text-red-700 rounded flex items-center justify-center"
                   >
-                    <FaTrash /> Delete
+                    <FaTrash size={10} />
                   </button>
                 </div>
               </div>
@@ -387,51 +409,50 @@ const Dealers = () => {
               Showing {filteredDealers.length === 0 ? 0 : indexOfFirst + 1} to {Math.min(indexOfLast, filteredDealers.length)} of {filteredDealers.length} items
             </p>
           </div>
-          
-          {totalPages > 1 && (
-          <div className="flex justify-center items-center gap-2 flex-wrap">
-            <button
-              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-              disabled={currentPage === 1}
-              className="px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 text-sm font-medium transition-colors"
-            >
-              Prev
-            </button>
-            <div className="flex items-center gap-1">
-              {Array.from({ length: totalPages }, (_, idx) => {
-                const page = idx + 1;
-                const shouldShow = page === 1 || page === totalPages || Math.abs(page - currentPage) <= 2;
-                
-                if (!shouldShow) {
-                  if ((page === 2 && currentPage > 4) || (page === totalPages - 1 && currentPage < totalPages - 3)) {
-                    return <span key={page} className="px-2 text-gray-400 font-medium">...</span>;
-                  }
-                  return null;
-                }
 
-                return (
-                  <button
-                    key={page}
-                    onClick={() => setCurrentPage(page)}
-                    className={`w-8 h-8 flex items-center justify-center rounded-md text-sm font-medium transition-colors ${
-                      currentPage === page
+          {totalPages > 1 && (
+            <div className="flex justify-center items-center gap-2 flex-wrap">
+              <button
+                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                className="px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 text-sm font-medium transition-colors"
+              >
+                Prev
+              </button>
+              <div className="flex items-center gap-1">
+                {Array.from({ length: totalPages }, (_, idx) => {
+                  const page = idx + 1;
+                  const shouldShow = page === 1 || page === totalPages || Math.abs(page - currentPage) <= 2;
+
+                  if (!shouldShow) {
+                    if ((page === 2 && currentPage > 4) || (page === totalPages - 1 && currentPage < totalPages - 3)) {
+                      return <span key={page} className="px-2 text-gray-400 font-medium">...</span>;
+                    }
+                    return null;
+                  }
+
+                  return (
+                    <button
+                      key={page}
+                      onClick={() => setCurrentPage(page)}
+                      className={`w-8 h-8 flex items-center justify-center rounded-md text-sm font-medium transition-colors ${currentPage === page
                         ? "bg-blue-600 text-white shadow-sm"
                         : "bg-gray-50 border border-gray-200 hover:bg-gray-100 text-gray-700"
-                    }`}
-                  >
-                    {page}
-                  </button>
-                );
-              })}
+                        }`}
+                    >
+                      {page}
+                    </button>
+                  );
+                })}
+              </div>
+              <button
+                onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+                className="px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 text-sm font-medium transition-colors"
+              >
+                Next
+              </button>
             </div>
-            <button
-              onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-              disabled={currentPage === totalPages}
-              className="px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 text-sm font-medium transition-colors"
-            >
-              Next
-            </button>
-          </div>
           )}
         </div>
       )}
@@ -446,18 +467,18 @@ const Dealers = () => {
                 <h3 className="text-xl font-bold">{editingId ? "Edit Dealer" : "Add New Dealer"}</h3>
                 <p className="text-blue-200 text-sm mt-1">Fill out the dealer details below.</p>
               </div>
-              <button 
+              <button
                 onClick={() => setShowModal(false)}
                 className="bg-white/20 p-2 rounded-xl hover:bg-white/30 transition-colors cursor-pointer"
               >
                 <FaTimes size={18} />
               </button>
             </div>
-            
+
             {/* Modal Body */}
             <div className="flex-1 overflow-y-auto bg-gray-50 p-6">
               <form onSubmit={handleSubmit} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 space-y-5">
-                
+
                 {!editingId && (
                   <div className="bg-blue-50 border border-blue-100 text-blue-800 p-3 rounded-xl flex items-center justify-between">
                     <span className="text-sm font-semibold">Dealer ID:</span>

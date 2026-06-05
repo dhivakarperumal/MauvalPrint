@@ -20,9 +20,15 @@ const Invoice = () => {
   const [invoiceList, setInvoiceList] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState(null);
-  
+
   const [search, setSearch] = useState("");
-  const [viewMode, setViewMode] = useState("table");
+  const [viewMode, setViewMode] = useState(
+    window.innerWidth < 768 ? "card" : "table"
+  );
+
+  const [isMobile, setIsMobile] = useState(
+    window.innerWidth < 768
+  );
 
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -92,6 +98,23 @@ const Invoice = () => {
   useEffect(() => {
     if (currentPage > totalPages && totalPages > 0) setCurrentPage(totalPages);
   }, [filteredInvoices, currentPage, totalPages]);
+
+  useEffect(() => {
+  const handleResize = () => {
+    const mobile = window.innerWidth < 768;
+
+    setIsMobile(mobile);
+
+    if (mobile) {
+      setViewMode("card");
+    }
+  };
+
+  handleResize();
+  window.addEventListener("resize", handleResize);
+
+  return () => window.removeEventListener("resize", handleResize);
+}, []);
 
   const resetForm = () => {
     setInvoiceData({
@@ -210,22 +233,20 @@ const Invoice = () => {
               <button
                 onClick={() => setViewMode("table")}
                 title="Table View"
-                className={`p-2 rounded-md transition-all cursor-pointer ${
-                  viewMode === "table"
+                className={`p-2 rounded-md transition-all cursor-pointer ${viewMode === "table"
                     ? "bg-blue-900 text-white shadow-sm"
                     : "text-gray-500 hover:text-gray-700 hover:bg-gray-200"
-                }`}
+                  }`}
               >
                 <FaList size={14} />
               </button>
               <button
                 onClick={() => setViewMode("card")}
                 title="Card View"
-                className={`p-2 rounded-md transition-all cursor-pointer ${
-                  viewMode === "card"
+                className={`p-2 rounded-md transition-all cursor-pointer ${viewMode === "card"
                     ? "bg-blue-900 text-white shadow-sm"
                     : "text-gray-500 hover:text-gray-700 hover:bg-gray-200"
-                }`}
+                  }`}
               >
                 <FaTh size={14} />
               </button>
@@ -253,7 +274,7 @@ const Invoice = () => {
       </div>
 
       {/* Main Content Area */}
-      {viewMode === "table" ? (
+      {!isMobile && viewMode === "table" ? (
         <div className="overflow-x-auto bg-white rounded-xl shadow-sm border border-gray-200">
           <table className="min-w-full text-sm text-left">
             <thead className="bg-gray-800 text-white">
@@ -319,7 +340,7 @@ const Invoice = () => {
         </div>
       ) : (
         /* Card View */
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {currentItems.length > 0 ? (
             currentItems.map((item) => (
               <div key={item.id} className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 hover:shadow-md transition-shadow relative flex flex-col">
@@ -404,51 +425,50 @@ const Invoice = () => {
               Showing {filteredInvoices.length === 0 ? 0 : indexOfFirst + 1} to {Math.min(indexOfLast, filteredInvoices.length)} of {filteredInvoices.length} items
             </p>
           </div>
-          
-          {totalPages > 1 && (
-          <div className="flex justify-center items-center gap-2 flex-wrap">
-            <button
-              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-              disabled={currentPage === 1}
-              className="px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 text-sm font-medium transition-colors"
-            >
-              Prev
-            </button>
-            <div className="flex items-center gap-1">
-              {Array.from({ length: totalPages }, (_, idx) => {
-                const page = idx + 1;
-                const shouldShow = page === 1 || page === totalPages || Math.abs(page - currentPage) <= 2;
-                
-                if (!shouldShow) {
-                  if ((page === 2 && currentPage > 4) || (page === totalPages - 1 && currentPage < totalPages - 3)) {
-                    return <span key={page} className="px-2 text-gray-400 font-medium">...</span>;
-                  }
-                  return null;
-                }
 
-                return (
-                  <button
-                    key={page}
-                    onClick={() => setCurrentPage(page)}
-                    className={`w-8 h-8 flex items-center justify-center rounded-md text-sm font-medium transition-colors ${
-                      currentPage === page
-                        ? "bg-blue-600 text-white shadow-sm"
-                        : "bg-gray-50 border border-gray-200 hover:bg-gray-100 text-gray-700"
-                    }`}
-                  >
-                    {page}
-                  </button>
-                );
-              })}
+          {totalPages > 1 && (
+            <div className="flex justify-center items-center gap-2 flex-wrap">
+              <button
+                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                className="px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 text-sm font-medium transition-colors"
+              >
+                Prev
+              </button>
+              <div className="flex items-center gap-1">
+                {Array.from({ length: totalPages }, (_, idx) => {
+                  const page = idx + 1;
+                  const shouldShow = page === 1 || page === totalPages || Math.abs(page - currentPage) <= 2;
+
+                  if (!shouldShow) {
+                    if ((page === 2 && currentPage > 4) || (page === totalPages - 1 && currentPage < totalPages - 3)) {
+                      return <span key={page} className="px-2 text-gray-400 font-medium">...</span>;
+                    }
+                    return null;
+                  }
+
+                  return (
+                    <button
+                      key={page}
+                      onClick={() => setCurrentPage(page)}
+                      className={`w-8 h-8 flex items-center justify-center rounded-md text-sm font-medium transition-colors ${currentPage === page
+                          ? "bg-blue-600 text-white shadow-sm"
+                          : "bg-gray-50 border border-gray-200 hover:bg-gray-100 text-gray-700"
+                        }`}
+                    >
+                      {page}
+                    </button>
+                  );
+                })}
+              </div>
+              <button
+                onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+                className="px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 text-sm font-medium transition-colors"
+              >
+                Next
+              </button>
             </div>
-            <button
-              onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-              disabled={currentPage === totalPages}
-              className="px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 text-sm font-medium transition-colors"
-            >
-              Next
-            </button>
-          </div>
           )}
         </div>
       )}
@@ -463,18 +483,18 @@ const Invoice = () => {
                 <h3 className="text-xl font-bold">{editingId ? "Edit Invoice" : "Add New Invoice"}</h3>
                 <p className="text-blue-200 text-sm mt-1">Fill out the invoice details below.</p>
               </div>
-              <button 
+              <button
                 onClick={() => setShowModal(false)}
                 className="bg-white/20 p-2 rounded-xl hover:bg-white/30 transition-colors cursor-pointer"
               >
                 <FaTimes size={18} />
               </button>
             </div>
-            
+
             {/* Modal Body */}
             <div className="flex-1 overflow-y-auto bg-gray-50 p-6">
               <form onSubmit={handleAddOrUpdateInvoice} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 space-y-5">
-                
+
                 {editingId && (
                   <div>
                     <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1">Invoice Number</label>
