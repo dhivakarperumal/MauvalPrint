@@ -6,6 +6,7 @@ import {
 } from "react-icons/fa";
 import api from "../../api";
 import Billing from "../Billing";
+import ImagePreviewModal from "./ImagePreviewModal";
 const getStatusBadge = (status) => {
   const base = "text-xs font-medium rounded px-2 py-1";
   switch (status) {
@@ -50,6 +51,34 @@ const AllOrders = () => {
   const [viewMode, setViewMode] = useState("table");
   const [statusFilter, setStatusFilter] = useState("All");
   const [showAddBillModal, setShowAddBillModal] = useState(false);
+  const [previewImage, setPreviewImage] = useState(null);
+
+  const openImagePreview = (src, name) => {
+    if (!src) return;
+    setPreviewImage({ src, name });
+  };
+
+  const closeImagePreview = () => setPreviewImage(null);
+
+  const printPreviewImage = (src) => {
+    if (!src) return;
+    const printWindow = window.open("", "", "width=900,height=700");
+    if (!printWindow) return;
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>Print Image</title>
+          <style>body{margin:0;display:flex;align-items:center;justify-content:center;height:100vh;background:#fff}img{max-width:100%;max-height:100%;object-fit:contain;}</style>
+        </head>
+        <body>
+          <img src="${src}" alt="Image Preview" />
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+    printWindow.focus();
+    printWindow.print();
+  };
 
   // ── Status counts ─────────────────────────────────────────────────────────
   const statusCounts = useMemo(() => {
@@ -627,7 +656,8 @@ const AllOrders = () => {
                                 <img
                                   src={item.image || item.customizedImage}
                                   alt={item.name}
-                                  className="w-10 h-10 object-cover border rounded"
+                                  onClick={() => openImagePreview(item.customizedImage || item.image, item.name)}
+                                  className="w-10 h-10 object-cover border rounded cursor-pointer hover:ring-2 hover:ring-blue-500 transition-all"
                                 />
                                 <div>
                                   <p className="font-medium">{item.name}</p>
@@ -776,7 +806,8 @@ const AllOrders = () => {
                                 <img
                                   src={item.image || item.customizedImage || item.images?.[0]}
                                   alt={item.name}
-                                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                  onClick={() => openImagePreview(item.customizedImage || item.image || item.images?.[0], item.name)}
+                                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 cursor-pointer"
                                 />
                               </div>
                               <div className="flex flex-col flex-1 min-w-0 py-0.5">
@@ -808,6 +839,14 @@ const AllOrders = () => {
               ))}
             </div>
           )}
+
+          <ImagePreviewModal
+            isOpen={!!previewImage}
+            imageSrc={previewImage?.src}
+            imageName={previewImage?.name}
+            onClose={closeImagePreview}
+            onPrint={printPreviewImage}
+          />
 
           {/* Pagination Component */}
           {totalPages > 0 && (

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import api from "../../api";
+import ImagePreviewModal from "./ImagePreviewModal";
 import toast from "react-hot-toast";
 import { FaSearch, FaList, FaThLarge, FaChevronDown, FaChevronUp } from "react-icons/fa";
 
@@ -29,6 +30,34 @@ const NewOrders = () => {
   const [filteredOrders, setFilteredOrders] = useState([]);
   const [expandedRows, setExpandedRows] = useState([]);
   const [cancellationInput, setCancellationInput] = useState({});
+  const [previewImage, setPreviewImage] = useState(null);
+
+  const openImagePreview = (src, name) => {
+    if (!src) return;
+    setPreviewImage({ src, name });
+  };
+
+  const closeImagePreview = () => setPreviewImage(null);
+
+  const printPreviewImage = (src) => {
+    if (!src) return;
+    const printWindow = window.open("", "", "width=900,height=700");
+    if (!printWindow) return;
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>Print Image</title>
+          <style>body{margin:0;display:flex;align-items:center;justify-content:center;height:100vh;background:#fff}img{max-width:100%;max-height:100%;object-fit:contain;}</style>
+        </head>
+        <body>
+          <img src="${src}" alt="Image Preview" />
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+    printWindow.focus();
+    printWindow.print();
+  };
 
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState("Today");
@@ -550,7 +579,8 @@ const NewOrders = () => {
                                     item.images?.[0]
                                   }
                                   alt={item.name}
-                                  className="w-12 h-12 object-cover rounded border"
+                                  onClick={() => openImagePreview(item.customizedImage || item.image || item.images?.[0], item.name)}
+                                  className="w-12 h-12 object-cover rounded border cursor-pointer hover:ring-2 hover:ring-blue-500 transition-all"
                                 />
                                 <div className="flex flex-col">
                                   <span className="font-semibold ">
@@ -696,7 +726,8 @@ const NewOrders = () => {
                             <img
                               src={item.image || item.customizedImage || item.images?.[0]}
                               alt={item.name}
-                              className="w-14 h-14 object-cover rounded-md border border-gray-100 bg-gray-50 shrink-0"
+                              onClick={() => openImagePreview(item.customizedImage || item.image || item.images?.[0], item.name)}
+                              className="w-14 h-14 object-cover rounded-md border border-gray-100 bg-gray-50 shrink-0 cursor-pointer"
                             />
                             <div className="flex flex-col flex-1 min-w-0">
                               <span className="font-semibold text-xs text-gray-900 leading-tight truncate" title={item.name}>
@@ -728,6 +759,14 @@ const NewOrders = () => {
           )}
         </div>
       )}
+
+      <ImagePreviewModal
+        isOpen={!!previewImage}
+        imageSrc={previewImage?.src}
+        imageName={previewImage?.name}
+        onClose={closeImagePreview}
+        onPrint={printPreviewImage}
+      />
 
       {/* Pagination Component */}
       {totalPages > 0 && (
