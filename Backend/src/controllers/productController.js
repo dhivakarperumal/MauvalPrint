@@ -486,12 +486,13 @@ const deleteProduct = async (req, res) => {
 const updateStock = async (req, res) => {
   const { id } = req.params; // product_id e.g. "MP001"
   const { color, size, quantity } = req.body;
-
-  const added = Number(quantity);
-  if (!color || !size || isNaN(added) || added <= 0) {
+  const colorValue = typeof color === "string" ? color.trim() : "";
+  const sizeValue = typeof size === "string" ? size.trim() : "";
+  const delta = Number(quantity);
+  if (!colorValue || !sizeValue || isNaN(delta) || delta === 0) {
     return res.status(400).json({
       success: false,
-      message: "Color, size, and a valid quantity are required.",
+      message: "Color, size, and a non-zero quantity are required.",
     });
   }
 
@@ -519,9 +520,21 @@ const updateStock = async (req, res) => {
 
     const key = `${color}-${size}`;
     const currentQty = Number(stockByVariant[key] || 0);
-    stockByVariant[key] = currentQty + added;
+    const updatedQty = currentQty + delta;
+    if (updatedQty < 0) {
+      return res.status(400).json({
+        success: false,
+        message: `Cannot reduce stock below zero for variant ${key}.`,
+      });
+    }
 
-    const updatedTotalStock = Number(product.stock || 0) + added;
+    stockByVariant[key] = updatedQty;
+
+    const updatedTotalStock = Object.values(stockByVariant).reduce(
+      (sum, value) => sum + Number(value || 0),
+      0
+    );
+
     const timestamp = new Date().toISOString().slice(0, 19).replace("T", " ");
 
     await pool.query(

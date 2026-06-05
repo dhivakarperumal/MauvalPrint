@@ -17,23 +17,46 @@ const StockDetails = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const productsPerPage = 8;
 
+  const parseImageArray = (images) => {
+    if (!images) return [];
+    if (Array.isArray(images)) return images.filter(Boolean);
+    if (typeof images === "string") {
+      try {
+        const parsed = JSON.parse(images);
+        return Array.isArray(parsed) ? parsed.filter(Boolean) : [images].filter(Boolean);
+      } catch {
+        return [images].filter(Boolean);
+      }
+    }
+    return [];
+  };
+
+  const getVariantImage = (imagesByVariant) => {
+    if (!imagesByVariant) return "";
+    let parsed = imagesByVariant;
+    if (typeof parsed === "string") {
+      try {
+        parsed = JSON.parse(parsed);
+      } catch {
+        parsed = {};
+      }
+    }
+    if (typeof parsed !== "object" || !parsed) return "";
+    const flat = Object.values(parsed).flat().filter(Boolean);
+    return flat[0] || "";
+  };
+
   const getProductImage = (product) => {
     if (product.image) return product.image;
     if (product.image_url) return product.image_url;
 
-    const images = (() => {
-      if (Array.isArray(product.images)) return product.images;
-      if (typeof product.images === "string") {
-        try {
-          return JSON.parse(product.images || "[]");
-        } catch {
-          return [product.images];
-        }
-      }
-      return [];
-    })();
+    const images = parseImageArray(product.images);
+    if (images.length > 0) return images[0];
 
-    return images?.[0] || "";
+    const variantImage = getVariantImage(product.images_by_variant || product.image_varient || product.imagesByVariant);
+    if (variantImage) return variantImage;
+
+    return "";
   };
 
   const fetchStock = async () => {

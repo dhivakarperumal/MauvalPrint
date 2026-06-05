@@ -197,6 +197,25 @@ const Billing = ({ setActiveTab }) => {
     try { return JSON.parse(raw); } catch { return {}; }
   };
 
+  const getCartQtyForVariant = (productId, color, size) => {
+    if (!productId || !color || !size) return 0;
+    return cart.reduce((sum, item) => {
+      const itemId = item.product_id || item.productId;
+      if (itemId === productId && item.color === color && item.size === size) {
+        return sum + (Number(item.quantity) || 0);
+      }
+      return sum;
+    }, 0);
+  };
+
+  const getVariantAvailableQty = (product, color, size) => {
+    const variants = parseVariants(product.stock_by_variant);
+    const key = `${color}-${size}`;
+    const rawQty = Number(variants[key] || 0);
+    const reservedQty = getCartQtyForVariant(product.product_id || product.productId, color, size);
+    return Math.max(rawQty - reservedQty, 0);
+  };
+
   const handleProductSelect = (id) => {
     setSelectedId(id);
     const product = products.find((p) => p.product_id === id);
@@ -229,10 +248,8 @@ const Billing = ({ setActiveTab }) => {
     const product = products.find((p) => p.product_id === selectedId);
     if (!product) return;
 
-    const variants = parseVariants(product.stock_by_variant);
-    const key = `${color}-${size}`;
-    setAvailableQty(variants[key] || 0);
-  }, [selectedId, color, size, products]);
+    setAvailableQty(getVariantAvailableQty(product, color, size));
+  }, [selectedId, color, size, products, cart]);
 
   const handleAddToCart = () => {
     if (!selectedId || quantity < 1 || !color || !size || !category) {
@@ -243,9 +260,7 @@ const Billing = ({ setActiveTab }) => {
     const product = products.find((p) => p.product_id === selectedId);
     if (!product) return;
 
-    const variants = parseVariants(product.stock_by_variant);
-    const key = `${color}-${size}`;
-    const available = variants[key] || 0;
+    const available = getVariantAvailableQty(product, color, size);
 
     if (available < quantity) {
       toast.error("Selected variant is out of stock or insufficient quantity.");
@@ -312,12 +327,12 @@ const Billing = ({ setActiveTab }) => {
     }
 
     try {
-      // Update stock for each item
+      // Reduce stock for each sold item using the dedicated reduce-stock route
       for (let item of cart) {
-        await api.put(`/products/${item.product_id || item.productId}/stock`, {
-          color: item.color,
-          size: item.size,
-          quantity: item.quantity,
+        await api.put(`/products/${item.product_id || item.productId}/reduce-stock`, {
+          color: item.color?.trim(),
+          size: item.size?.trim(),
+          quantity: Number(item.quantity),
         });
       }
 
