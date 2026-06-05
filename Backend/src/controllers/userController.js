@@ -275,6 +275,69 @@ const getUsers = async (req, res) => {
   }
 };
 
+const getUser = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const pool = req.app.locals.pool;
+    const [rows] = await pool.query(
+      "SELECT user_id, username, email, phone, role, status, created_at FROM users WHERE user_id = ?",
+      [id]
+    );
+    if (rows.length === 0) {
+      return res.status(404).json({ success: false, message: "User not found." });
+    }
+    res.status(200).json({ success: true, user: rows[0] });
+  } catch (error) {
+    console.error("Get user error:", error);
+    res.status(500).json({ success: false, message: "Could not fetch user." });
+  }
+};
+
+const updateUserPassword = async (req, res) => {
+  const { id } = req.params;
+  const { currentPassword, newPassword } = req.body;
+
+  if (!newPassword) {
+    return res.status(400).json({ success: false, message: "New password is required." });
+  }
+
+  try {
+    const pool = req.app.locals.pool;
+    const [rows] = await pool.query(
+      "SELECT password_hash FROM users WHERE user_id = ?",
+      [id]
+    );
+    if (rows.length === 0) {
+      return res.status(404).json({ success: false, message: "User not found." });
+    }
+    const user = rows[0];
+    
+    // If user has an existing password (not Google login), verify current password
+    if (user.password_hash) {
+      if (!currentPassword) {
+        return res.status(400).json({ success: false, message: "Current password is required." });
+      }
+      const valid = await verifyPassword(currentPassword, user.password_hash);
+      if (!valid) {
+        return res.status(401).json({ success: false, message: "Current password is incorrect." });
+      }
+    }
+    // If no existing password (Google login), allow setting first password without verification
+
+    const passwordHash = await hashPassword(newPassword);
+    const timestamp = new Date().toISOString().slice(0, 19).replace("T", " ");
+    await pool.query(
+      "UPDATE users SET password_hash = ?, updated_at = ? WHERE user_id = ?",
+      [passwordHash, timestamp, id]
+    );
+
+    res.status(200).json({ success: true, message: "Password updated successfully." });
+  } catch (error) {
+    console.error("Update user password error:", error);
+    res.status(500).json({ success: false, message: "Could not update password." });
+  }
+};
+
 const updateUser = async (req, res) => {
   const { id } = req.params;
   const { username, email, phone, role, status } = req.body;
@@ -536,7 +599,9 @@ module.exports = {
   login,
   googleLogin,
   getUsers,
+  getUser,
   updateUser,
+  updateUserPassword,
   updateUserStatus,
   deleteUser,
   getUserAddresses,

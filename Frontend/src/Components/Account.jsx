@@ -53,6 +53,7 @@ const Account = () => {
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
   const [showReviewModal, setShowReviewModal] = useState(false);
+  const [hasPassword, setHasPassword] = useState(true); // Track if user has existing password
 
   const [reviewData, setReviewData] = useState({
     rating: 0,
@@ -199,7 +200,7 @@ const Account = () => {
 
     try {
       const { data } = await api.put(`/users/${user.uid}/password`, {
-        currentPassword,
+        currentPassword: currentPassword || undefined, // Send undefined for Google users
         newPassword,
       });
       if (data?.success) {
@@ -499,8 +500,6 @@ const Account = () => {
   };
 
   const renderTabContent = () => {
-    if (activeTab === "logout") return logout();
-
     switch (activeTab) {
       case "personal":
         return (
@@ -772,25 +771,36 @@ const Account = () => {
         return (
           <div className="bg-white rounded-lg shadow p-6">
             <h2 className="text-xl font-bold text-[var(--color-primary)] mb-6">Change Password</h2>
-            {Object.entries(passwordFields).map(([field, value]) => (
-              <div key={field} className="relative md:w-150 mb-4">
-                <label className="block font-semibold mb-1 capitalize">{field.replace(/([A-Z])/g, " $1")}</label>
-                <input
-                  type={showPassword[field] ? "text" : "password"}
-                  name={field}
-                  value={value}
-                  onChange={(e) => setPasswordFields((prev) => ({ ...prev, [field]: e.target.value }))}
-                  className="border p-2 rounded w-full pr-10"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword((prev) => ({ ...prev, [field]: !prev[field] }))}
-                  className="absolute right-3 top-9 text-gray-600"
-                >
-                  {showPassword[field] ? <FaEyeSlash /> : <FaEye />}
-                </button>
-              </div>
-            ))}
+            <p className="text-gray-600 mb-4 text-sm">
+              {hasPassword ? "Enter your current password and create a new one." : "Set up a password for your account (e.g., if you logged in via Google)."}
+            </p>
+            {Object.entries(passwordFields).map(([field, value]) => {
+              // Skip currentPassword field if user doesn't have a password (Google login)
+              if (field === "currentPassword" && !hasPassword) return null;
+              
+              return (
+                <div key={field} className="relative md:w-150 mb-4">
+                  <label className="block font-semibold mb-1 capitalize">
+                    {field.replace(/([A-Z])/g, " $1")}
+                    {field === "currentPassword" && <span className="text-red-500">*</span>}
+                  </label>
+                  <input
+                    type={showPassword[field] ? "text" : "password"}
+                    name={field}
+                    value={value}
+                    onChange={(e) => setPasswordFields((prev) => ({ ...prev, [field]: e.target.value }))}
+                    className="border p-2 rounded w-full pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((prev) => ({ ...prev, [field]: !prev[field] }))}
+                    className="absolute right-3 top-9 text-gray-600"
+                  >
+                    {showPassword[field] ? <FaEyeSlash /> : <FaEye />}
+                  </button>
+                </div>
+              );
+            })}
             <button onClick={updatePassword} className="bg-[var(--color-primary)] text-white px-4 py-2 rounded">Update Password</button>
           </div>
         );
@@ -823,7 +833,13 @@ const Account = () => {
             {tabs.map((tab) => (
               <button
                 key={tab.key}
-                onClick={() => setActiveTab(tab.key)}
+                onClick={() => {
+                  if (tab.key === "logout") {
+                    logout();
+                  } else {
+                    setActiveTab(tab.key);
+                  }
+                }}
                 className={`flex items-center gap-2 px-4 py-2 text-lg font-bold border-b-4 transition-all duration-200 ${activeTab === tab.key
                   ? "border-[var(--color-primary)] text-[var(--color-primary)]"
                   : "border-transparent text-gray-500 hover:text-[var(--color-primary)]"

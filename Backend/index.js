@@ -126,7 +126,6 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use("/api", userRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/categories", categoryRoutes);

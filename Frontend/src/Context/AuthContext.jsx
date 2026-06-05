@@ -170,7 +170,7 @@ export function AuthProvider({ children }) {
   };
 
   const loginWithEmail = async (email, password) => {
-    const response = await api.post("/login", { email, password });
+    const response = await api.post("/users/login", { email, password });
     const apiUser = response.data?.data;
     if (!apiUser) {
       throw new Error("Login failed");
@@ -190,7 +190,7 @@ export function AuthProvider({ children }) {
     }
 
     const response = await api.post(
-      "/google-login",
+      "/users/google-login",
       JSON.stringify({ idToken }),
       {
         headers: {

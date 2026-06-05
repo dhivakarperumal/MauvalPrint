@@ -34,7 +34,7 @@ export default function Register({ onClose, onSwitch }) {
     }
 
     try {
-      const response = await api.post("/register", {
+      const response = await api.post("/users/register", {
         username: form.username,
         email: form.email,
         phone: form.phone,
