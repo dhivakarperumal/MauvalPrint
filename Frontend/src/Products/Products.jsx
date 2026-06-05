@@ -27,12 +27,12 @@ function ProductCard({ product, index, addToCart, addToWishlist, cardSize, setCa
       onClick={() => toggleBubble(product.id)}
       data-aos="fade-up"
       data-aos-delay={index * 100}
-      className="group relative bg-white border border-gray-200 rounded-2xl shadow-md hover:shadow-xl transition-all duration-500 p-4"
+      className="group relative bg-white border border-gray-200 rounded-2xl shadow-md hover:shadow-xl transition-all duration-500 p-3"
     >
       <div className="relative w-full h-52 bg-primary/5 rounded-[30px] overflow-hidden shadow-lg transition-transform duration-700 ease-in-out hover:scale-105">
         {/* Cart button */}
         <div
-          className={`absolute w-[70%] h-[70%] transition-all duration-400 ease-in-out z-10 rounded-[10%_13%_42%_0%/10%_12%_75%_0%] bg-primary/30 ${clickedProductId === product.id
+          className={`absolute w-[65%] h-[65%] transition-all duration-400 ease-in-out z-10 rounded-[10%_13%_42%_0%/10%_12%_75%_0%] bg-primary/30 ${clickedProductId === product.id
             ? "bottom-0 left-0"
             : "bottom-[-70%] left-[-70%] group-hover:bottom-0 group-hover:left-0"
             }`}
@@ -50,17 +50,17 @@ function ProductCard({ product, index, addToCart, addToWishlist, cardSize, setCa
 
                 addToCart({ ...product, selectedSize, selectedColor: defaultColor });
               }}
-              className="text-white bg-white/20 p-2 cursor-pointer rounded-full hover:bg-white hover:text-primary transition"
+              className="text-white bg-white/20 p-1.5 cursor-pointer rounded-full hover:bg-white hover:text-primary transition"
               title="Add to Cart"
             >
-              <FaShoppingCart size={16} />
+              <FaShoppingCart size={15} />
             </button>
           </div>
         </div>
 
         {/* Wishlist button */}
         <div
-          className={`absolute w-[50%] h-[50%] transition-all duration-700 ease-in-out z-10 rounded-[10%_13%_42%_0%/10%_12%_75%_0%] bg-primary/30 ${clickedProductId === product.id
+          className={`absolute w-[47%] h-[47%] transition-all duration-700 ease-in-out z-10 rounded-[10%_13%_42%_0%/10%_12%_75%_0%] bg-primary/30 ${clickedProductId === product.id
             ? "bottom-0 left-0"
             : "bottom-[-70%] left-[-70%] group-hover:bottom-0 group-hover:left-0"
             }`}
@@ -72,17 +72,17 @@ function ProductCard({ product, index, addToCart, addToWishlist, cardSize, setCa
                 e.stopPropagation();
                 addToWishlist(product);
               }}
-              className="text-white cursor-pointer bg-white/20 p-2 rounded-full hover:bg-white hover:text-primary transition"
+              className="text-white cursor-pointer bg-white/20 p-1.5 rounded-full hover:bg-white hover:text-primary transition"
               title="Add to Wishlist"
             >
-              <FaHeart size={16} />
+              <FaHeart size={15} />
             </button>
           </div>
         </div>
 
         {/* View Details button */}
         <div
-          className={`absolute w-[32%] h-[32%] transition-all duration-1000 ease-in-out z-10 rounded-[10%_13%_42%_0%/10%_12%_75%_0%] bg-primary/30 ${clickedProductId === product.id
+          className={`absolute w-[29%] h-[29%] transition-all duration-1000 ease-in-out z-10 rounded-[10%_13%_42%_0%/10%_12%_75%_0%] bg-primary/30 ${clickedProductId === product.id
             ? "bottom-0 left-0"
             : " bottom-[-70%] left-[-70%] group-hover:bottom-0 group-hover:left-0"
             }`}
@@ -91,10 +91,10 @@ function ProductCard({ product, index, addToCart, addToWishlist, cardSize, setCa
           <div className="absolute top-2 right-2">
             <Link to={`/productdetails/${product.product_id}`}>
               <button
-                className="text-white cursor-pointer bg-white/20 p-2 rounded-full hover:bg-white hover:text-primary transition"
+                className="text-white cursor-pointer bg-white/20 p-1.5 rounded-full hover:bg-white hover:text-primary transition"
                 title="View Details"
               >
-                <FaEye size={16} />
+                <FaEye size={15} />
               </button>
             </Link>
           </div>
