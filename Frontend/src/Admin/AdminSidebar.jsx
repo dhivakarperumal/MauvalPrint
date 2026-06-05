@@ -113,6 +113,19 @@ const AdminSidebar = ({ mobileMenu, setMobileMenu, sidebarRef, counts }) => {
   const location = useLocation();
   const currentPath = location.pathname;
 
+  useEffect(() => {
+    const newOpen = {};
+    Object.entries(tabLabels).forEach(([key, value]) => {
+      if (value.isDropdown) {
+        const isChildActive = Object.keys(value.children).some((path) => currentPath === path || currentPath.startsWith(path));
+        if (isChildActive) {
+          newOpen[key] = true;
+        }
+      }
+    });
+    setOpenDropdown((prev) => ({ ...prev, ...newOpen }));
+  }, [currentPath]);
+
   return (
     <aside
       className={`fixed md:relative z-50 bg-[#0f1c35] w-[300px] h-screen text-white transition-all duration-300 ease-in-out shadow-[4px_0_24px_rgba(0,0,0,0.15)] border-r border-white/5 ${

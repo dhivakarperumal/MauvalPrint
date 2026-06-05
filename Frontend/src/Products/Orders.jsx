@@ -308,22 +308,22 @@ const Orders = ({ titleorder }) => {
 
           {/* Sidebar */}
           <div
-            className="relative w-full sm:w-[500px] h-full bg-white shadow-lg overflow-y-auto z-50"
+            className="relative w-full sm:w-[500px] h-full bg-white shadow-xl overflow-y-auto z-50 scrollbar-hide"
             onClick={(e) => e.stopPropagation()} 
           >
-            <div className="p-4 flex justify-between items-center border-b">
-              <h2 className="text-xl font-bold text-slate-800">
+            <div className="p-4 flex justify-between items-center border-b border-slate-200">
+              <h2 className="text-xl font-bold text-slate-900">
                 Order History
               </h2>
               <button
                 onClick={() => setIsOpen(false)}
-                className="text-2xl font-bold cursor-pointer"
+                className="text-2xl font-bold text-slate-700 hover:text-slate-900 transition"
               >
                 ×
               </button>
             </div>
 
-            <div className="p-4 space-y-6">
+            <div className="p-4 space-y-4">
               {loading ? (
                 <div className="flex justify-center h-full">
                   <ImSpinner8 className="animate-spin text-3xl text-slate-700 " />
@@ -337,7 +337,7 @@ const Orders = ({ titleorder }) => {
                   <div
                     key={order.id}
                     onClick={() => setSelectedOrder(order)}
-                    className="border rounded-lg shadow-sm p-4 cursor-pointer hover:shadow-md transition"
+                    className="border border-slate-200 rounded-2xl bg-slate-50 p-5 cursor-pointer hover:bg-white hover:shadow-lg transition-all duration-200"
                   >
                     <div className="flex flex-col md:flex-row justify-between gap-4">
                       {/* Left */}
@@ -351,7 +351,7 @@ const Orders = ({ titleorder }) => {
                         <p className="text-sm flex items-center gap-2">
                           <strong>Status:</strong>
                           <span
-                            className={`px-2 py-1 rounded text-white text-xs font-medium ${
+                            className={`px-3 py-1 rounded-full text-white text-[11px] font-semibold tracking-wide uppercase ${
                               order.status?.toLowerCase().includes("cancel")
                                 ? "bg-red-600"
                                 : order.status
@@ -363,8 +363,8 @@ const Orders = ({ titleorder }) => {
                                     .includes("shipped")
                                 ? "bg-orange-500"
                                 : order.status?.toLowerCase().includes("paked")
-                                ? "bg-yellow-500 text-black"
-                                : "bg-gray-400"
+                                ? "bg-yellow-500 text-slate-800"
+                                : "bg-slate-400"
                             }`}
                           >
                             {order.status}
@@ -394,7 +394,7 @@ const Orders = ({ titleorder }) => {
         <div className="fixed inset-0 bg-black/70 z-50 flex justify-center items-center">
           <div
             ref={printRef}
-            className="bg-white p-6 rounded-lg max-w-2xl w-full relative overflow-y-auto max-h-[90vh]"
+            className="bg-white p-6 rounded-lg max-w-2xl w-full relative overflow-y-auto max-h-[90vh] scrollbar-hide"
           >
             <button
               onClick={() => setSelectedOrder(null)}
