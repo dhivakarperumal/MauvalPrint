@@ -25,6 +25,8 @@ const Billing = ({ setActiveTab }) => {
 
   const [orderSaved, setOrderSaved] = useState(false);
   const [showPopup, setShowPopup] = useState(false);
+  const [showOrderDetails, setShowOrderDetails] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState(null);
   const [shopOrders, setShopOrders] = useState([]);
   
   const [searchTerm, setSearchTerm] = useState("");
@@ -85,6 +87,53 @@ const Billing = ({ setActiveTab }) => {
 
   const invoiceRef = useRef();
   const navigate = useNavigate();
+
+  const getCheckoutData = (order) => {
+    if (!order) return {};
+    if (typeof order.checkout === "string") {
+      try {
+        return JSON.parse(order.checkout || "{}");
+      } catch {
+        return {};
+      }
+    }
+    return order.checkout || {};
+  };
+
+  const getOrderItems = (order) => {
+    if (!order) return [];
+    if (Array.isArray(order.cart) && order.cart.length > 0) return order.cart;
+    if (Array.isArray(order.items) && order.items.length > 0) return order.items;
+    const checkout = getCheckoutData(order);
+    return Array.isArray(checkout.items) ? checkout.items : [];
+  };
+
+  const getOrderItemImage = (item) => {
+    if (!item) return "/placeholder.jpg";
+    if (item.image) return item.image;
+    if (item.customizedImage) return item.customizedImage;
+    if (Array.isArray(item.images) && item.images.length > 0) return item.images[0];
+    if (item.images_by_variant) {
+      const variants = parseVariants(item.images_by_variant);
+      const variantKey = item.color && item.size ? `${item.color}-${item.size}` : "";
+      if (variantKey && Array.isArray(variants[variantKey]) && variants[variantKey].length > 0) {
+        return variants[variantKey][0];
+      }
+      const flatImages = Object.values(variants).flat().filter(Boolean);
+      if (flatImages.length > 0) return flatImages[0];
+    }
+    return "/placeholder.jpg";
+  };
+
+  const openOrderDetails = (order) => {
+    setSelectedOrder(order);
+    setShowOrderDetails(true);
+  };
+
+  const closeOrderDetails = () => {
+    setSelectedOrder(null);
+    setShowOrderDetails(false);
+  };
 
   const getVariantImage = (imagesByVariant, selectedColor, selectedSize) => {
     if (!imagesByVariant) return "";
@@ -296,8 +345,12 @@ const Billing = ({ setActiveTab }) => {
       });
 
       toast.success("Order saved successfully!");
-      setActiveTab("deliveryOrders")
-      
+      if (typeof setActiveTab === "function") {
+        setActiveTab();
+      } else {
+        navigate("/admin/billing");
+      }
+
       setCustomerName("");
       setCustomerPhone("");
       setGstNumber("");
@@ -461,7 +514,7 @@ const Billing = ({ setActiveTab }) => {
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {currentItems.map((order) => (
-                  <tr key={order.order_id} className="hover:bg-gray-50 transition-colors">
+                  <tr key={order.order_id} className="hover:bg-gray-50 transition-colors cursor-pointer" onClick={() => openOrderDetails(order)}>
                     <td className="px-4 py-4 font-bold text-blue-700">{order.order_id}</td>
                     <td className="px-4 py-4">{order.checkout?.customerName || order.checkout?.fullname || "Unknown"}</td>
                     <td className="px-4 py-4">{order.checkout?.customerPhone || order.checkout?.contact || "-"}</td>
@@ -508,6 +561,9 @@ const Billing = ({ setActiveTab }) => {
                       {order.created_at ? new Date(order.created_at).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "-"}
                     </p>
                   </div>
+                </div>
+                <div className="flex justify-end">
+                  <button onClick={() => openOrderDetails(order)} className="text-blue-700 font-semibold text-sm hover:underline">View Details</button>
                 </div>
               </div>
             </div>
@@ -585,6 +641,87 @@ const Billing = ({ setActiveTab }) => {
             </button>
           </div>
           )}
+        </div>
+      )}
+
+      {/* Order Details Modal */}
+      {showOrderDetails && selectedOrder && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-3xl bg-white rounded-2xl shadow-2xl overflow-hidden">
+            <div className="flex items-center justify-between px-6 py-5 border-b border-gray-200 bg-blue-900 text-white">
+              <div>
+                <h3 className="text-xl font-bold">Order Details</h3>
+                <p className="text-sm text-blue-100">Order #{selectedOrder.order_id}</p>
+              </div>
+              <button onClick={closeOrderDetails} className="text-white/90 hover:text-white">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+            <div className="p-6 space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Customer</h4>
+                  <p className="mt-2 text-gray-900 font-semibold">{getCheckoutData(selectedOrder).customerName || getCheckoutData(selectedOrder).fullname || "Unknown"}</p>
+                  <p className="text-sm text-gray-600">{getCheckoutData(selectedOrder).customerPhone || getCheckoutData(selectedOrder).contact || "-"}</p>
+                </div>
+                <div>
+                  <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Address</h4>
+                  <p className="mt-2 text-gray-900 whitespace-pre-line">{getCheckoutData(selectedOrder).address || "Not provided"}</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="rounded-xl bg-gray-50 p-4">
+                  <p className="text-xs text-gray-500 uppercase tracking-wide">Order ID</p>
+                  <p className="mt-2 font-semibold text-gray-900">{selectedOrder.order_id}</p>
+                </div>
+                <div className="rounded-xl bg-gray-50 p-4">
+                  <p className="text-xs text-gray-500 uppercase tracking-wide">Total</p>
+                  <p className="mt-2 font-semibold text-gray-900">₹{selectedOrder.total}</p>
+                </div>
+                <div className="rounded-xl bg-gray-50 p-4">
+                  <p className="text-xs text-gray-500 uppercase tracking-wide">Status</p>
+                  <p className="mt-2 font-semibold text-gray-900">{selectedOrder.status || "Delivered"}</p>
+                </div>
+              </div>
+
+              <div>
+                <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Items</h4>
+                <div className="mt-3 space-y-3">
+                  {getOrderItems(selectedOrder).map((item, index) => {
+                    const orderItem = item?.item || item;
+                    const quantity = orderItem.quantity || orderItem.qty || 1;
+                    const price = parseFloat(orderItem.price || orderItem.amount || 0) || 0;
+                    return (
+                      <div key={index} className="flex items-start justify-between gap-4 p-4 rounded-xl border border-gray-200 bg-white">
+                        <div className="flex items-center gap-4">
+                          <img
+                            src={getOrderItemImage(orderItem)}
+                            alt={orderItem.name || orderItem.productName || "Item image"}
+                            onError={(e) => { e.currentTarget.src = "/placeholder.jpg"; }}
+                            className="w-16 h-16 object-cover rounded-lg border"
+                          />
+                          <div>
+                            <p className="font-semibold text-gray-900">{orderItem.name || orderItem.productName || "Item"}</p>
+                            <p className="text-sm text-gray-500">
+                              {orderItem.color ? `Color: ${orderItem.color}` : ""}
+                              {orderItem.color && orderItem.size ? " • " : ""}
+                              {orderItem.size ? `Size: ${orderItem.size}` : ""}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-right text-sm text-gray-700">
+                          <p>Qty: {quantity}</p>
+                          <p className="font-semibold">₹{price.toFixed(2)}</p>
+                          <p className="text-xs text-gray-500">Total: ₹{(price * quantity).toFixed(2)}</p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 
