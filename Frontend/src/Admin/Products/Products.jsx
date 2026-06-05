@@ -28,6 +28,7 @@ const ProductList = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [viewMode, setViewMode] = useState("table");
   const [productsPerPage, setProductsPerPage] = useState(10);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
   useEffect(() => {
     const savedPage = localStorage.getItem("productsCurrentPage");
@@ -40,6 +41,34 @@ const ProductList = () => {
   useEffect(() => {
     localStorage.setItem("productsCurrentPage", currentPage);
   }, [currentPage]);
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 768) {
+        setViewMode("card");
+      }
+    };
+
+    handleResize();
+    window.addEventListener("resize", handleResize);
+
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+
+      if (window.innerWidth < 768) {
+        setViewMode("card");
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+    handleResize();
+
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   // ─── Fetch ────────────────────────────────────────────────────────────────
   const fetchProducts = async () => {
@@ -176,7 +205,7 @@ const ProductList = () => {
       const [min, max] = selectedOfferRange.split("-").map(Number);
       matchesOfferRange = Number(p.offer) >= min && Number(p.offer) <= max;
     }
-    
+
     let matchesType = true;
     if (productTypeFilter === "Normal") {
       matchesType = p.our_design === true;
@@ -229,11 +258,10 @@ const ProductList = () => {
             {/* All Products */}
             <div
               onClick={() => setProductTypeFilter("All")}
-              className={`cursor-pointer group relative overflow-hidden rounded-2xl p-5 transition-all duration-500 hover:-translate-y-1 ${
-                productTypeFilter === "All"
-                  ? "shadow-xl shadow-blue-500/25 ring-2 ring-blue-400/50"
-                  : "shadow-md hover:shadow-xl"
-              }`}
+              className={`cursor-pointer group relative overflow-hidden rounded-2xl p-5 transition-all duration-500 hover:-translate-y-1 ${productTypeFilter === "All"
+                ? "shadow-xl shadow-blue-500/25 ring-2 ring-blue-400/50"
+                : "shadow-md hover:shadow-xl"
+                }`}
               style={{ background: "linear-gradient(135deg, #1e3a8a 0%, #3b82f6 50%, #60a5fa 100%)" }}
             >
               <div className="absolute -top-4 -right-4 w-24 h-24 rounded-full bg-white/10 group-hover:scale-150 transition-transform duration-700"></div>
@@ -256,11 +284,10 @@ const ProductList = () => {
             {/* Normal Products */}
             <div
               onClick={() => setProductTypeFilter("Normal")}
-              className={`cursor-pointer group relative overflow-hidden rounded-2xl p-5 transition-all duration-500 hover:-translate-y-1 ${
-                productTypeFilter === "Normal"
-                  ? "shadow-xl shadow-emerald-500/25 ring-2 ring-emerald-400/50"
-                  : "shadow-md hover:shadow-xl"
-              }`}
+              className={`cursor-pointer group relative overflow-hidden rounded-2xl p-5 transition-all duration-500 hover:-translate-y-1 ${productTypeFilter === "Normal"
+                ? "shadow-xl shadow-emerald-500/25 ring-2 ring-emerald-400/50"
+                : "shadow-md hover:shadow-xl"
+                }`}
               style={{ background: "linear-gradient(135deg, #065f46 0%, #10b981 50%, #34d399 100%)" }}
             >
               <div className="absolute -top-4 -right-4 w-24 h-24 rounded-full bg-white/10 group-hover:scale-150 transition-transform duration-700"></div>
@@ -283,11 +310,10 @@ const ProductList = () => {
             {/* Customise Products */}
             <div
               onClick={() => setProductTypeFilter("Customise")}
-              className={`cursor-pointer group relative overflow-hidden rounded-2xl p-5 transition-all duration-500 hover:-translate-y-1 ${
-                productTypeFilter === "Customise"
-                  ? "shadow-xl shadow-purple-500/25 ring-2 ring-purple-400/50"
-                  : "shadow-md hover:shadow-xl"
-              }`}
+              className={`cursor-pointer group relative overflow-hidden rounded-2xl p-5 transition-all duration-500 hover:-translate-y-1 ${productTypeFilter === "Customise"
+                ? "shadow-xl shadow-purple-500/25 ring-2 ring-purple-400/50"
+                : "shadow-md hover:shadow-xl"
+                }`}
               style={{ background: "linear-gradient(135deg, #581c87 0%, #a855f7 50%, #c084fc 100%)" }}
             >
               <div className="absolute -top-4 -right-4 w-24 h-24 rounded-full bg-white/10 group-hover:scale-150 transition-transform duration-700"></div>
@@ -360,22 +386,20 @@ const ProductList = () => {
               <button
                 onClick={() => setViewMode("table")}
                 title="Table View"
-                className={`p-2 rounded-md transition-all cursor-pointer ${
-                  viewMode === "table"
-                    ? "bg-blue-900 text-white shadow-sm"
-                    : "text-gray-500 hover:text-gray-700 hover:bg-gray-200"
-                }`}
+                className={`p-2 rounded-md transition-all cursor-pointer ${viewMode === "table"
+                  ? "bg-blue-900 text-white shadow-sm"
+                  : "text-gray-500 hover:text-gray-700 hover:bg-gray-200"
+                  }`}
               >
                 <FaList size={14} />
               </button>
               <button
                 onClick={() => setViewMode("card")}
                 title="Card View"
-                className={`p-2 rounded-md transition-all cursor-pointer ${
-                  viewMode === "card"
-                    ? "bg-blue-900 text-white shadow-sm"
-                    : "text-gray-500 hover:text-gray-700 hover:bg-gray-200"
-                }`}
+                className={`p-2 rounded-md transition-all cursor-pointer ${viewMode === "card"
+                  ? "bg-blue-900 text-white shadow-sm"
+                  : "text-gray-500 hover:text-gray-700 hover:bg-gray-200"
+                  }`}
               >
                 <FaTh size={14} />
               </button>
@@ -402,11 +426,10 @@ const ProductList = () => {
             </button>
             <button
               onClick={() => setShowFilter(!showFilter)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors cursor-pointer ${
-                showFilter 
-                  ? "bg-blue-100 text-blue-900 border border-blue-200 shadow-inner" 
-                  : "bg-gray-50 text-gray-700 border border-gray-200 hover:bg-gray-100 shadow-sm"
-              }`}
+              className={`px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors cursor-pointer ${showFilter
+                ? "bg-blue-100 text-blue-900 border border-blue-200 shadow-inner"
+                : "bg-gray-50 text-gray-700 border border-gray-200 hover:bg-gray-100 shadow-sm"
+                }`}
             >
               <FaFilter /> Filter
             </button>
@@ -414,24 +437,28 @@ const ProductList = () => {
         </div>
       </div>
 
-     
-
       {/* Product Type Tabs */}
-      <div className="flex gap-2 mt-2 mb-6 border-b border-gray-200 pb-2 overflow-x-auto">
-        {["All", "Normal", "Customise"].map((type) => (
-          <button
-            key={type}
-            onClick={() => setProductTypeFilter(type)}
-            className={`px-4 py-2 rounded-full text-sm font-semibold transition-colors whitespace-nowrap ${
-              productTypeFilter === type
-                ? "bg-blue-100 text-blue-900 shadow-sm"
-                : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-            }`}
-          >
-            {type === "All" ? "All Products" : type === "Normal" ? "Normal Products" : "Customise Products"}
-          </button>
-        ))}
-      </div>
+    <div className="mt-2 mb-6 border-b border-gray-200 pb-2">
+  <div className="flex flex-wrap gap-2">
+    {["All", "Normal", "Customise"].map((type) => (
+      <button
+        key={type}
+        onClick={() => setProductTypeFilter(type)}
+        className={`px-3 py-2 rounded-full text-xs font-semibold ${
+          productTypeFilter === type
+            ? "bg-blue-100 text-blue-900 shadow-sm"
+            : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+        }`}
+      >
+        {type === "All"
+          ? "All Products"
+          : type === "Normal"
+          ? "Normal Products"
+          : "Customise Products"}
+      </button>
+    ))}
+  </div>
+</div>
 
       <div className="flex gap-4 mt-6">
         {/* Filter Panel */}
@@ -524,7 +551,7 @@ const ProductList = () => {
 
         {/* Product Grid / Table */}
         <div className="flex-1">
-          {viewMode === "card" ? (
+          {window.innerWidth < 768 || viewMode === "card" ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-5 lg:gap-6">
               {currentProducts.map((p) => (
                 <div key={p.product_id} className="group relative bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100 flex flex-col h-full">
@@ -535,7 +562,7 @@ const ProductList = () => {
                       alt={p.name}
                       className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                     />
-                    
+
                     {/* Badges */}
                     <div className="absolute top-3 left-3 flex flex-col gap-2">
                       {p.our_design ? (
@@ -574,11 +601,11 @@ const ProductList = () => {
                       <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{p.category || "Uncategorized"}</p>
                       <span className="text-[10px] font-semibold text-gray-500 bg-gray-100 px-2 py-0.5 rounded border border-gray-200">ID: {p.title || p.product_id}</span>
                     </div>
-                    
+
                     <h3 className="font-bold text-gray-800 text-xs sm:text-sm leading-snug mb-2 line-clamp-2" title={p.name}>
                       {p.name}
                     </h3>
-                    
+
                     <div className="mt-auto flex items-end justify-between pt-3 border-t border-gray-50">
                       <div>
                         {Number(p.offer) > 0 || Number(p.mrp) > Number(p.sale_price) ? (
@@ -588,7 +615,7 @@ const ProductList = () => {
                         )}
                         <p className="text-base sm:text-lg font-extrabold text-blue-900 tracking-tight">₹{p.sale_price}</p>
                       </div>
-                      
+
                       {/* Rating / Stock Indicator */}
                       <div className="flex flex-col items-end gap-1.5">
                         <div className="flex items-center gap-1 bg-yellow-50 px-2 py-0.5 rounded border border-yellow-100">
@@ -609,7 +636,7 @@ const ProductList = () => {
           ) : (
             <div className="overflow-x-auto bg-white rounded-lg shadow-sm border border-gray-200">
               <table className="w-full text-left border-collapse">
-               <thead className="bg-gray-800 text-white">
+                <thead className="bg-gray-800 text-white">
                   <tr>
                     <th className="p-4 border-b border-gray-200 font-semibold w-16 text-center">S No</th>
                     <th className="p-4 border-b border-gray-200 font-semibold">Image</th>
@@ -713,61 +740,60 @@ const ProductList = () => {
                 <option value={100}>100</option>
               </select>
             </div>
-          
+
             {totalPages > 1 && (
               <div className="flex flex-wrap items-center gap-2 justify-center">
-            <button
-              onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-              disabled={currentPage === 1}
-              className="rounded-full px-4 py-2 border border-gray-300 bg-white text-gray-700 font-medium disabled:cursor-not-allowed disabled:opacity-50 hover:bg-gray-100 transition-colors"
-            >
-              ← Prev
-            </button>
-
-            {Array.from({ length: totalPages }, (_, idx) => {
-              const page = idx + 1;
-              const shouldShow =
-                page === 1 ||
-                page === totalPages ||
-                Math.abs(page - currentPage) <= 2;
-
-              if (!shouldShow) {
-                if (
-                  (page === 2 && currentPage > 4) ||
-                  (page === totalPages - 1 && currentPage < totalPages - 3)
-                ) {
-                  return (
-                    <span key={page} className="px-2 text-gray-400 font-medium">
-                      ...
-                    </span>
-                  );
-                }
-                return null;
-              }
-
-              return (
                 <button
-                  key={page}
-                  onClick={() => setCurrentPage(page)}
-                  className={`h-10 min-w-[2.5rem] rounded-full border font-medium transition-colors ${
-                    currentPage === page
-                      ? "bg-gray-900 text-white border-gray-900 shadow-md"
-                      : "bg-white text-gray-700 border-gray-300 hover:border-gray-400 hover:bg-gray-50"
-                  }`}
+                  onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                  disabled={currentPage === 1}
+                  className="rounded-full px-4 py-2 border border-gray-300 bg-white text-gray-700 font-medium disabled:cursor-not-allowed disabled:opacity-50 hover:bg-gray-100 transition-colors"
                 >
-                  {page}
+                  ← Prev
                 </button>
-              );
-            })}
 
-            <button
-              onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-              disabled={currentPage === totalPages}
-              className="rounded-full px-4 py-2 border border-gray-300 bg-white text-gray-700 font-medium disabled:cursor-not-allowed disabled:opacity-50 hover:bg-gray-100 transition-colors"
-            >
-                Next →
-              </button>
-            </div>
+                {Array.from({ length: totalPages }, (_, idx) => {
+                  const page = idx + 1;
+                  const shouldShow =
+                    page === 1 ||
+                    page === totalPages ||
+                    Math.abs(page - currentPage) <= 2;
+
+                  if (!shouldShow) {
+                    if (
+                      (page === 2 && currentPage > 4) ||
+                      (page === totalPages - 1 && currentPage < totalPages - 3)
+                    ) {
+                      return (
+                        <span key={page} className="px-2 text-gray-400 font-medium">
+                          ...
+                        </span>
+                      );
+                    }
+                    return null;
+                  }
+
+                  return (
+                    <button
+                      key={page}
+                      onClick={() => setCurrentPage(page)}
+                      className={`h-10 min-w-[2.5rem] rounded-full border font-medium transition-colors ${currentPage === page
+                        ? "bg-gray-900 text-white border-gray-900 shadow-md"
+                        : "bg-white text-gray-700 border-gray-300 hover:border-gray-400 hover:bg-gray-50"
+                        }`}
+                    >
+                      {page}
+                    </button>
+                  );
+                })}
+
+                <button
+                  onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                  disabled={currentPage === totalPages}
+                  className="rounded-full px-4 py-2 border border-gray-300 bg-white text-gray-700 font-medium disabled:cursor-not-allowed disabled:opacity-50 hover:bg-gray-100 transition-colors"
+                >
+                  Next →
+                </button>
+              </div>
             )}
           </div>
           <p className="text-sm text-gray-500 font-medium">
