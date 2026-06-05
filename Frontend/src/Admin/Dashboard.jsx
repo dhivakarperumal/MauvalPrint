@@ -669,7 +669,7 @@ const Dashboard = () => {
     },
   };
 
-    return (
+  return (
     <div className="px-4 py-8 bg-slate-50 min-h-screen space-y-8 font-sans">
       {/* Header */}
       <div
@@ -702,7 +702,7 @@ const Dashboard = () => {
           className="relative overflow-hidden bg-gradient-to-br from-indigo-900 via-slate-900 to-slate-800 text-white rounded-3xl p-8 flex flex-col justify-between shadow-xl border border-slate-700/50 hover:shadow-2xl transition-all duration-300 hover:-translate-y-1"
         >
           <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
-          
+
           <div className="relative z-10">
             <h3 className="text-2xl font-bold text-white mb-2 tracking-tight">
               Congratulations, {user.username || user.name}! 🎉
@@ -711,11 +711,11 @@ const Dashboard = () => {
               You are the top seller of the month. Keep up the great work!
             </p>
           </div>
-          
+
           <div className="mt-12 mb-2 relative z-10">
             <p className="text-xs font-bold text-indigo-400 uppercase tracking-widest mb-2 shadow-sm">Monthly Revenue</p>
             <div className="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white to-indigo-200 drop-shadow-md">
-              ₹ {monthlyRevenue.toLocaleString()} 
+              ₹ {monthlyRevenue.toLocaleString()}
             </div>
           </div>
 
@@ -778,7 +778,7 @@ const Dashboard = () => {
             )}
           </div>
         </div>
-        
+
         <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-slate-100 relative overflow-hidden group">
           <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-50 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none group-hover:bg-emerald-100 transition-colors duration-500"></div>
           <div className="relative z-10 mb-6">
@@ -825,17 +825,13 @@ const Dashboard = () => {
         </div>
       </div>
 
-      
-
-      
-
       {/* Orders and Transactions */}
       <div className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden mb-6">
         <div className="p-6 border-b border-slate-100 flex justify-between items-center">
           <h3 className="text-lg font-bold text-slate-800 tracking-tight">Today's Orders</h3>
         </div>
-        
-        <div className="overflow-x-auto rounded-2xl border border-gray-200 shadow-sm bg-white">
+
+        <div className="hidden md:block overflow-x-auto rounded-2xl border border-gray-200 shadow-sm bg-white">
           <table className="min-w-[750px] w-full text-sm text-left">
             <thead className="bg-gray-800 text-white">
               <tr>
@@ -909,6 +905,105 @@ const Dashboard = () => {
             </tbody>
           </table>
         </div>
+        {/* Mobile Cards */}
+        <div className="md:hidden space-y-4 p-4">
+          {(() => {
+            const isSameLocalDate = (dateValue) => {
+              if (!dateValue) return false;
+
+              if (typeof dateValue === "string") {
+                const datePart = dateValue.split("T")[0].split(" ")[0];
+                const today = new Date().toISOString().split("T")[0];
+                return datePart === today;
+              }
+
+              const createdAtDate = dateValue?.toDate
+                ? dateValue.toDate()
+                : new Date(dateValue);
+
+              if (!createdAtDate || Number.isNaN(createdAtDate.getTime()))
+                return false;
+
+              return (
+                createdAtDate.getFullYear() === new Date().getFullYear() &&
+                createdAtDate.getMonth() === new Date().getMonth() &&
+                createdAtDate.getDate() === new Date().getDate()
+              );
+            };
+
+            const todayOrdersFiltered = Orders.filter((order) =>
+              isSameLocalDate(order.created_at || order.createdAt)
+            );
+
+            if (todayOrdersFiltered.length === 0) {
+              return (
+                <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center">
+                  <div className="flex flex-col items-center gap-3">
+                    <div className="w-14 h-14 rounded-full bg-slate-100 flex items-center justify-center">
+                      <FaClipboardList className="text-slate-400 text-xl" />
+                    </div>
+                    <p className="font-bold text-slate-600">
+                      No orders yet today
+                    </p>
+                    <p className="text-sm text-slate-400">
+                      When new orders are placed, they will appear here.
+                    </p>
+                  </div>
+                </div>
+              );
+            }
+
+            return todayOrdersFiltered.map((order, idx) => (
+              <div
+                key={idx}
+                className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4"
+              >
+                <div className="flex justify-between items-start mb-3">
+                  <div>
+                    <p className="text-xs text-slate-500">Order ID</p>
+                    <p className="font-bold text-slate-800">
+                      {order.order_id || order.orderID}
+                    </p>
+                  </div>
+
+                  <span className={getStatusBadge(order.status)}>
+                    {order.status}
+                  </span>
+                </div>
+
+                <div className="space-y-3">
+                  <div>
+                    <p className="text-xs text-slate-500">Customer</p>
+                    <p className="font-medium text-slate-800">
+                      {order?.checkout?.fullname ||
+                        order?.checkout?.customerName ||
+                        order?.customerName ||
+                        "Unknown"}
+                    </p>
+                  </div>
+
+                  <div className="flex justify-between">
+                    <div>
+                      <p className="text-xs text-slate-500">Payment</p>
+                      <p className="font-medium text-slate-700">
+                        {order.payment_id || order.paymentID
+                          ? "Online"
+                          : "Cash on Delivery"}
+                      </p>
+                    </div>
+
+                    <div className="text-right">
+                      <p className="text-xs text-slate-500">Amount</p>
+                      <p className="font-bold text-green-600 text-lg">
+                        ₹{order.total}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ));
+          })()}
+        </div>
       </div>
     </div>
   );
@@ -934,7 +1029,7 @@ const StatBox = ({ title, count, color, icon }) => {
       {/* Decorative glass shapes */}
       <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 group-hover:scale-125 transition-transform duration-700 ease-out pointer-events-none"></div>
       <div className="absolute bottom-0 left-0 w-32 h-32 bg-black/10 rounded-full blur-2xl translate-y-1/3 -translate-x-1/3 group-hover:scale-125 transition-transform duration-700 ease-out pointer-events-none"></div>
-      
+
       <div className="flex justify-between items-start relative z-10">
         <div className="text-white">
           <p className="text-xs font-bold text-white/80 uppercase tracking-widest mb-1 drop-shadow-sm">{title}</p>
@@ -944,7 +1039,7 @@ const StatBox = ({ title, count, color, icon }) => {
           {icon}
         </div>
       </div>
-      
+
       <div className="mt-8 relative z-10">
         <p className="text-xs text-white/90 font-medium mb-2 drop-shadow-sm">Total registered {title.toLowerCase()}</p>
         <div className="h-1.5 w-full bg-black/20 rounded-full overflow-hidden shadow-inner">

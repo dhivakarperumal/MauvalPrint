@@ -62,7 +62,7 @@ const AdminTopbar = ({
         >
           <FiMenu />
         </button>
-        <h1 className="font-bold text-lg whitespace-nowrap tracking-wide">
+        <h1 className="font-bold text-lg hidden md:block whitespace-nowrap tracking-wide">
           {getTabLabel(location.pathname)}
           <span className="text-sm text-gray-300 block mt-1">
             Hi Welcome to Admin Panel
