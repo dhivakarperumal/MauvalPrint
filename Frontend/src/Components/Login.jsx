@@ -7,8 +7,8 @@ import tshirtImg from "/Image/login.png";
 import { toast } from "react-toastify";
 
 export default function Login({ onClose, onSwitch }) {
-  const { loginWithEmail, loginWithGoogle } = useContext(AuthContext);
-  const [form, setForm] = useState({ email: "", password: "" });
+  const { loginWithIdentifier, loginWithGoogle } = useContext(AuthContext);
+  const [form, setForm] = useState({ identifier: "", password: "" });
   const [rememberMe, setRememberMe] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
@@ -35,10 +35,10 @@ export default function Login({ onClose, onSwitch }) {
   };
 
   useEffect(() => {
-    const savedEmail = localStorage.getItem("rememberedEmail");
+    const savedIdentifier = localStorage.getItem("rememberedLogin");
     const savedChecked = localStorage.getItem("rememberMe") === "true";
-    if (savedEmail && savedChecked) {
-      setForm((prev) => ({ ...prev, email: savedEmail }));
+    if (savedIdentifier && savedChecked) {
+      setForm((prev) => ({ ...prev, identifier: savedIdentifier }));
       setRememberMe(true);
     }
   }, []);
@@ -46,14 +46,14 @@ export default function Login({ onClose, onSwitch }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await loginWithEmail(form.email, form.password);
+      await loginWithIdentifier(form.identifier, form.password);
       toast.success("Login successful!");
 
       if (rememberMe) {
-        localStorage.setItem("rememberedEmail", form.email);
+        localStorage.setItem("rememberedLogin", form.identifier);
         localStorage.setItem("rememberMe", "true");
       } else {
-        localStorage.removeItem("rememberedEmail");
+        localStorage.removeItem("rememberedLogin");
         localStorage.setItem("rememberMe", "false");
       }
 
@@ -62,7 +62,7 @@ export default function Login({ onClose, onSwitch }) {
     } catch (err) {
       console.error("Login error:", err);
       const errorMessage =
-        err?.response?.data?.message || err?.message || "Invalid email or password";
+        err?.response?.data?.message || err?.message || "Invalid login identifier or password";
       toast.error(errorMessage);
     }
   };
@@ -100,11 +100,11 @@ export default function Login({ onClose, onSwitch }) {
 
           <form onSubmit={handleSubmit} className="space-y-3">
             <input
-              name="email"
-              type="email"
-              placeholder="Email"
-              value={form.email}
-              onChange={(e) => setForm({ ...form, email: e.target.value })}
+              name="identifier"
+              type="text"
+              placeholder="Email, Username or Phone"
+              value={form.identifier}
+              onChange={(e) => setForm({ ...form, identifier: e.target.value })}
               className="w-full border-b px-4 py-2 border-primary mb-5 placeholder-primary text-primary"
               required
             />

@@ -169,8 +169,8 @@ export function AuthProvider({ children }) {
     }
   };
 
-  const loginWithEmail = async (email, password) => {
-    const response = await api.post("/users/login", { email, password });
+  const loginWithIdentifier = async (identifier, password) => {
+    const response = await api.post("/users/login", { identifier, password });
     const apiUser = response.data?.data;
     if (!apiUser) {
       throw new Error("Login failed");
@@ -383,7 +383,7 @@ export function AuthProvider({ children }) {
         user,
         setUser,
         registerUser: () => { },
-        loginWithEmail,
+        loginWithIdentifier,
         loginWithGoogle,
         logout,
         updateUserProfile,

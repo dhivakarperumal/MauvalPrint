@@ -103,33 +103,28 @@ const register = async (req, res) => {
 };
 
 const login = async (req, res) => {
-  const { email, password } = req.body;
+  const { identifier: rawIdentifier, email, username, phone, password } = req.body;
+  const identifier = rawIdentifier || email || username || phone;
 
-  if (!email || !password) {
+  if (!identifier || !password) {
     return res.status(400).json({
       success: false,
-      message: "Email and password are required.",
-    });
-  }
-
-  if (!email.includes("@")) {
-    return res.status(400).json({
-      success: false,
-      message: "Please enter a valid email address.",
+      message: "Login identifier and password are required.",
     });
   }
 
   try {
     const pool = req.app.locals.pool;
     const [users] = await pool.query(
-      "SELECT id, user_id, username, email, password_hash, role, status FROM users WHERE email = ?",
-      [email]
+      `SELECT id, user_id, username, email, phone, password_hash, role, status FROM users
+       WHERE email = ? OR username = ? OR phone = ? LIMIT 1`,
+      [identifier, identifier, identifier]
     );
 
     if (users.length === 0) {
       return res.status(401).json({
         success: false,
-        message: "Invalid email or password.",
+        message: "Invalid login identifier or password.",
       });
     }
 
@@ -145,7 +140,7 @@ const login = async (req, res) => {
     if (!isPasswordValid) {
       return res.status(401).json({
         success: false,
-        message: "Invalid email or password.",
+        message: "Invalid login identifier or password.",
       });
     }
 
@@ -156,7 +151,9 @@ const login = async (req, res) => {
         user_id: user.user_id,
         username: user.username,
         email: user.email,
+        phone: user.phone,
         role: user.role,
+        status: user.status,
       },
     });
   } catch (error) {
