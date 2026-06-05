@@ -418,7 +418,7 @@ function Products() {
 
       <Head title="Our Products" subtitle="Products" />
       <PageContainer>
-         <div className="flex items-center justify-between mb-4">
+         <div className="flex items-center justify-between mt-4">
             <button
               onClick={() => setShowFilters(!showFilters)}
               className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg shadow-md hover:opacity-90"
@@ -426,19 +426,7 @@ function Products() {
               <IoMdOptions size={18} />
               {showFilters ? "Hide Filters" : "Show Filters"}
             </button>
-
-            
           </div>
-        {/* Mobile Filter Dropdown */}
-        <div className="md:hidden p-4 bg-white border-b border-gray-200">
-          <button
-            onClick={() => setShowFilters((prev) => !prev)}
-            className="w-full flex items-center justify-between px-4 py-2 bg-primary text-white rounded-md"
-          >
-            Customize Filters
-            <IoIosArrowDown className={`transition-transform duration-300 ${showFilters ? "rotate-180" : ""}`} />
-          </button>
-        </div>
 
         <section className="py-4 md:py-8 bg-white">
           <div className="flex flex-col md:flex-row gap-6">
