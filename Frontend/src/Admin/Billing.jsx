@@ -86,6 +86,28 @@ const Billing = ({ setActiveTab }) => {
   const invoiceRef = useRef();
   const navigate = useNavigate();
 
+  const getVariantImage = (imagesByVariant, selectedColor, selectedSize) => {
+    if (!imagesByVariant) return "";
+    let parsed = imagesByVariant;
+    if (typeof parsed === "string") {
+      try {
+        parsed = JSON.parse(parsed);
+      } catch {
+        parsed = {};
+      }
+    }
+    if (typeof parsed !== "object" || !parsed) return "";
+
+    if (selectedColor && selectedSize) {
+      const variantKey = `${selectedColor}-${selectedSize}`;
+      const variantImages = parsed[variantKey];
+      if (Array.isArray(variantImages) && variantImages.length > 0) return variantImages[0];
+    }
+
+    const flatImages = Object.values(parsed).flat().filter(Boolean);
+    return flatImages[0] || "";
+  };
+
   useEffect(() => {
     const fetchProducts = async () => {
       try {
@@ -198,6 +220,8 @@ const Billing = ({ setActiveTab }) => {
       try { return JSON.parse(product.images || "[]"); } catch { return []; }
     })();
 
+    const defaultVariantImage = getVariantImage(product.images_by_variant, color, size);
+
     const cartItem = {
       ...product,
       quantity,
@@ -205,7 +229,7 @@ const Billing = ({ setActiveTab }) => {
       size,
       category,
       price: product.sale_price,
-      image: images[0] || "",
+      image: images[0] || defaultVariantImage || product.customizedImage || "/placeholder.jpg",
       uid: `${selectedId}-${color}-${size}-${Date.now()}`,
     };
 
@@ -690,7 +714,12 @@ const Billing = ({ setActiveTab }) => {
         {cart.map((item) => (
           <tr key={item.uid} className="border-t">
             <td className="p-2">
-              <img src={item.image} alt={item.name} className="w-12 h-12 object-cover rounded border" />
+              <img
+                src={item.image || item.customizedImage || item.images?.[0] || "/placeholder.jpg"}
+                alt={item.name}
+                className="w-12 h-12 object-cover rounded border"
+                onError={(e) => { e.currentTarget.src = "/placeholder.jpg"; }}
+              />
             </td>
             <td className="p-2">{item.name}</td>
             <td className="p-2">{item.category}</td>
@@ -713,7 +742,12 @@ const Billing = ({ setActiveTab }) => {
     {cart.map((item) => (
       <div key={item.uid} className=" rounded-lg p-4 shadow-md bg-white">
         <div className="flex items-center gap-4">
-          <img src={item.image} alt={item.name} className="w-16 h-16 object-cover rounded border" />
+          <img
+            src={item.image || item.customizedImage || item.images?.[0] || "/placeholder.jpg"}
+            alt={item.name}
+            className="w-16 h-16 object-cover rounded border"
+            onError={(e) => { e.currentTarget.src = "/placeholder.jpg"; }}
+          />
           <div className="flex-1">
             <h4 className="text-lg font-semibold">{item.name}</h4>
             <p className="text-sm text-gray-500">{item.category}</p>
