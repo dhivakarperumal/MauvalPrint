@@ -178,7 +178,7 @@ const Dashboard = () => {
       try {
         const [productsRes, usersRes, ordersRes, reviewsRes, invoicesRes] = await Promise.all([
           api.get("/products"),
-          api.get("/users"),
+          api.get("/"),
           api.get("/orders"),
           api.get("/reviews"),
           api.get("/invoices"),
@@ -848,13 +848,26 @@ const Dashboard = () => {
             </thead>
             <tbody className="divide-y divide-slate-100">
               {(() => {
-                const todayOrdersFiltered = Orders.filter((order) => {
-                  const today = new Date().toISOString().split('T')[0];
-                  const dateValue = order.created_at || order.createdAt;
-                  const createdAtDate = dateValue?.toDate ? dateValue.toDate() : (dateValue ? new Date(dateValue) : new Date(0));
-                  const orderDate = createdAtDate.toISOString().split('T')[0];
-                  return orderDate === today;
-                });
+                const isSameLocalDate = (dateValue) => {
+                  if (!dateValue) return false;
+
+                  if (typeof dateValue === "string") {
+                    const datePart = dateValue.split("T")[0].split(" ")[0];
+                    const today = new Date().toISOString().split("T")[0];
+                    return datePart === today;
+                  }
+
+                  const createdAtDate = dateValue?.toDate ? dateValue.toDate() : new Date(dateValue);
+                  if (!createdAtDate || Number.isNaN(createdAtDate.getTime())) return false;
+
+                  return (
+                    createdAtDate.getFullYear() === new Date().getFullYear() &&
+                    createdAtDate.getMonth() === new Date().getMonth() &&
+                    createdAtDate.getDate() === new Date().getDate()
+                  );
+                };
+
+                const todayOrdersFiltered = Orders.filter((order) => isSameLocalDate(order.created_at || order.createdAt));
 
                 if (todayOrdersFiltered.length === 0) {
                   return (

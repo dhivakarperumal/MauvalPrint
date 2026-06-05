@@ -30,7 +30,7 @@ const NewUsers = () => {
 
   const fetchUsers = async () => {
     try {
-      const { data } = await api.get("/users");
+      const { data } = await api.get("/");
       const users = (data.users || []).map((user) => {
         const createdAt = user.created_at ? new Date(user.created_at) : null;
         return {

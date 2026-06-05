@@ -127,7 +127,7 @@ const AdminPanel = () => {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const { data } = await api.get("/users");
+        const { data } = await api.get("/");
         const users = data?.users || [];
         const todayStr = new Date().toISOString().split("T")[0];
 

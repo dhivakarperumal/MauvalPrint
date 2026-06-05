@@ -22,7 +22,7 @@ const Profile = () => {
       if (!user) return;
 
       try {
-        const { data } = await api.get("/users");
+        const { data } = await api.get("/");
         const users = data?.users || [];
         const currentUser = users.find(
           (u) =>
