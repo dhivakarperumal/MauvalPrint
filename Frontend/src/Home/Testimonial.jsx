@@ -125,8 +125,8 @@ function Testimonial() {
                   </div>
 
                   {/* Content */}
-                  <div className="h-full px-5 pt-14 pb-4 flex flex-col justify-between relative z-10">
- {/* User Info */}
+                  <div className="h-full px-5 pt-14 pb-4 flex flex-col gap-3 relative z-10">
+                    {/* User Info */}
                     <div>
                       <h3 className="font-bold text-gray-800 text-lg truncate">
                         {name}
@@ -147,11 +147,13 @@ function Testimonial() {
                     </div>
 
                     {/* Comment */}
-                    <p className="text-gray-700 text-sm leading-relaxed line-clamp-3 px-1">
-                      "{comment}"
-                    </p>
+                    <div className="h-[70px] overflow-y-auto px-1 custom-scrollbar">
+                      <p className="text-gray-700 text-sm leading-relaxed">
+                        "{comment}"
+                      </p>
+                    </div>
 
-                   
+
 
                   </div>
                 </div>
