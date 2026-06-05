@@ -462,6 +462,9 @@ const getUserAddresses = async (req, res) => {
       } catch (e) {
         parsed = {};
       }
+      if (parsed && typeof parsed === "object") {
+        delete parsed.id;
+      }
       return { id: r.id, ...parsed };
     });
     res.status(200).json({ success: true, addresses });
@@ -473,7 +476,8 @@ const getUserAddresses = async (req, res) => {
 
 const addUserAddress = async (req, res) => {
   const { id } = req.params;
-  const addressData = req.body;
+  const addressData = { ...req.body };
+  delete addressData.id;
   try {
     const pool = req.app.locals.pool;
     const timestamp = new Date().toISOString().slice(0, 19).replace("T", " ");
@@ -488,6 +492,45 @@ const addUserAddress = async (req, res) => {
   }
 };
 
+const updateUserAddress = async (req, res) => {
+  const { id, addressId } = req.params;
+  const addressData = { ...req.body };
+  delete addressData.id;
+  try {
+    const pool = req.app.locals.pool;
+    const timestamp = new Date().toISOString().slice(0, 19).replace("T", " ");
+    const [result] = await pool.query(
+      "UPDATE user_addresses SET address = ?, updated_at = ? WHERE id = ? AND user_id = ?",
+      [JSON.stringify(addressData), timestamp, addressId, id]
+    );
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ success: false, message: "Address not found." });
+    }
+    res.status(200).json({ success: true, message: "Address updated successfully." });
+  } catch (error) {
+    console.error("Update user address error:", error);
+    res.status(500).json({ success: false, message: "Could not update user address." });
+  }
+};
+
+const deleteUserAddress = async (req, res) => {
+  const { id, addressId } = req.params;
+  try {
+    const pool = req.app.locals.pool;
+    const [result] = await pool.query(
+      "DELETE FROM user_addresses WHERE id = ? AND user_id = ?",
+      [addressId, id]
+    );
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ success: false, message: "Address not found." });
+    }
+    res.status(200).json({ success: true, message: "Address deleted successfully." });
+  } catch (error) {
+    console.error("Delete user address error:", error);
+    res.status(500).json({ success: false, message: "Could not delete user address." });
+  }
+};
+
 module.exports = {
   register,
   login,
@@ -498,4 +541,6 @@ module.exports = {
   deleteUser,
   getUserAddresses,
   addUserAddress,
+  updateUserAddress,
+  deleteUserAddress,
 };

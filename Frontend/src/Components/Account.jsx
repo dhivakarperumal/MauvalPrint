@@ -44,6 +44,7 @@ const Account = () => {
     newPassword: false,
     confirmPassword: false,
   });
+  const [loadingAddresses, setLoadingAddresses] = useState(false);
 
   const [orders, setOrders] = useState([]);
   const [selectedOrder, setSelectedOrder] = useState(null);
@@ -63,16 +64,48 @@ const Account = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
+  const dedupeAddresses = (list) => {
+    const seen = new Set();
+    return list.filter((addr) => {
+      const key = JSON.stringify({
+        fullname: addr.fullname?.trim() || "",
+        contact: addr.contact?.trim() || "",
+        email: addr.email?.trim() || "",
+        city: addr.city?.trim() || "",
+        zip: addr.zip?.trim() || "",
+        state: addr.state?.trim() || "",
+        street: addr.street?.trim() || "",
+        country: addr.country?.trim() || "",
+      });
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  };
+
+  const loadAddresses = async () => {
+    if (!user?.uid) return;
+    setLoadingAddresses(true);
+    try {
+      const { data } = await api.get(`/users/${user.uid}/addresses`);
+      const addresses = data.success && Array.isArray(data.addresses) ? data.addresses : [];
+      setAddresses(dedupeAddresses(addresses));
+    } catch (error) {
+      console.error("Error loading addresses:", error);
+      setAddresses([]);
+    } finally {
+      setLoadingAddresses(false);
+    }
+  };
+
   useEffect(() => {
     if (!user) {
       navigate("/");
       return;
     }
 
-    // Load addresses from localStorage
-    const savedAddresses = JSON.parse(localStorage.getItem(`addresses_${user.uid}`) || "[]");
-    setAddresses(savedAddresses);
-
+    loadAddresses();
+    
     const fetchUserData = async () => {
       try {
         const { data } = await api.get(`/users/${user.uid}`);
@@ -190,22 +223,29 @@ const Account = () => {
         return;
       }
 
-      let updatedAddresses = [...addresses];
-      if (editingIndex != null) {
-        updatedAddresses[editingIndex] = { ...newAddress, id: addresses[editingIndex].id };
-      } else {
-        updatedAddresses.push({ ...newAddress, id: `addr_${Date.now()}` });
-      }
+      const payload = { ...newAddress };
+      delete payload.id;
 
-      const savedAddresses = JSON.parse(localStorage.getItem(`addresses_${user.uid}`) || "[]");
       if (editingIndex != null) {
-        savedAddresses[editingIndex] = updatedAddresses[editingIndex];
+        const addressToUpdate = addresses[editingIndex];
+        const { data } = await api.put(
+          `/users/${user.uid}/addresses/${addressToUpdate.id}`,
+          payload
+        );
+        if (data?.success) {
+          const updated = [...addresses];
+          updated[editingIndex] = { ...payload, id: addressToUpdate.id };
+          setAddresses(dedupeAddresses(updated));
+          toast.success("Address updated!");
+        }
       } else {
-        savedAddresses.push(updatedAddresses[updatedAddresses.length - 1]);
+        const { data } = await api.post(`/users/${user.uid}/addresses`, payload);
+        if (data?.success) {
+          const newAddressWithId = { ...payload, id: data.address_id };
+          setAddresses((prev) => dedupeAddresses([newAddressWithId, ...prev]));
+          toast.success("Address added!");
+        }
       }
-      localStorage.setItem(`addresses_${user.uid}`, JSON.stringify(savedAddresses));
-
-      setAddresses(updatedAddresses);
       setNewAddress({
         fullname: "",
         contact: "",
@@ -217,23 +257,20 @@ const Account = () => {
         country: "",
       });
       setEditingIndex(null);
-      toast.success(editingIndex != null ? "Address updated!" : "Address added!");
     } catch (error) {
       console.error("Error saving address:", error);
-      toast.error("Failed to save address");
+      toast.error(error?.response?.data?.message || "Failed to save address");
     }
   };
 
   const handleAddressDelete = async (id) => {
     try {
-      const updatedAddresses = addresses.filter((a) => a.id !== id);
-      const savedAddresses = updatedAddresses.map(({ id, ...rest }) => rest);
-      localStorage.setItem(`addresses_${user.uid}`, JSON.stringify(savedAddresses));
-      setAddresses(updatedAddresses);
+      await api.delete(`/users/${user.uid}/addresses/${id}`);
+      setAddresses((prev) => prev.filter((a) => a.id !== id));
       toast.success("Address deleted!");
     } catch (error) {
       console.error("Error deleting address:", error);
-      toast.error("Failed to delete address");
+      toast.error(error?.response?.data?.message || "Failed to delete address");
     }
   };
 
@@ -534,39 +571,51 @@ const Account = () => {
             <h2 className="text-xl font-bold text-[var(--color-primary)] mb-6">
               Address Book
             </h2>
-            {addresses.map((addr, idx) => (
-              <div
-                key={addr.id}
-                className="border p-4 rounded mb-2 flex justify-between"
-              >
-                <div>
-                  <p>
-                    <strong>{addr.fullname}</strong> — {addr.contact}
-                  </p>
-                  <p>
-                    {addr.street}, {addr.city}, {addr.state} - {addr.zip}
-                  </p>
-                  <p>{addr.country}</p>
-                </div>
-                <div className="space-x-2">
-                  <button
-                    onClick={() => {
-                      setNewAddress(addr);
-                      setEditingIndex(idx);
-                    }}
-                    className="text-blue-600"
+            {loadingAddresses && (
+              <div className="p-4 text-sm text-gray-600">Loading addresses...</div>
+            )}
+            {!loadingAddresses && addresses.length === 0 && (
+              <div className="p-4 text-sm text-gray-600">No saved addresses yet.</div>
+            )}
+            {!loadingAddresses && addresses.length > 0 && (
+              <div className="space-y-3">
+                {addresses.map((addr, idx) => (
+                  <div
+                    key={addr.id}
+                    className="border p-4 rounded mb-2 flex justify-between"
                   >
-                    <FaEdit />
-                  </button>
-                  <button
-                    onClick={() => handleAddressDelete(addr.id)}
-                    className="text-red-600"
-                  >
-                    <FaTrashAlt />
-                  </button>
-                </div>
+                    <div>
+                      <p>
+                        <strong>{addr.fullname}</strong> — {addr.contact}
+                      </p>
+                      <p>
+                        {addr.street}, {addr.city}, {addr.state} - {addr.zip}
+                      </p>
+                      <p>{addr.country}</p>
+                    </div>
+                    <div className="space-x-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setNewAddress(addr);
+                          setEditingIndex(idx);
+                        }}
+                        className="text-blue-600"
+                      >
+                        <FaEdit />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleAddressDelete(addr.id)}
+                        className="text-red-600"
+                      >
+                        <FaTrashAlt />
+                      </button>
+                    </div>
+                  </div>
+                ))}
               </div>
-            ))}
+            )}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
               {Object.entries(newAddress).map(([key, val]) => (
                 <input
@@ -585,6 +634,7 @@ const Account = () => {
               ))}
             </div>
             <button
+              type="button"
               onClick={handleAddressSave}
               className="bg-[var(--color-primary)] text-white px-4 py-2 rounded mt-3"
             >
