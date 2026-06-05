@@ -381,8 +381,9 @@ const updateUser = async (req, res) => {
     fields.push("updated_at = ?");
     values.push(timestamp);
     values.push(id);
+    values.push(id);
 
-    query += fields.join(", ") + " WHERE id = ?";
+    query += fields.join(", ") + " WHERE user_id = ? OR id = ?";
 
     console.log("Generated Query:", query);
     console.log("Query Values:", values);
