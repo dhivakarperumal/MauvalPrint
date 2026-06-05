@@ -124,9 +124,9 @@ const Checkout = () => {
       const data = await res.json();
       const addr = data.address || {};
       return {
-        fullname: user?.displayName || "My Location",
+        fullname: user?.username || user?.displayName || user?.email || "My Location",
         email: user?.email || "",
-        contact: user?.phoneNumber || "",
+        contact: user?.phone || user?.phoneNumber || "",
         street: [addr.road, addr.neighbourhood, addr.suburb].filter(Boolean).join(", ") || addr.display_name || "",
         city: addr.city || addr.town || addr.village || "",
         state: addr.state || "",
