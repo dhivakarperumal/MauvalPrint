@@ -373,25 +373,49 @@ const Account = () => {
                   <div
                     key={order.order_id}
                     onClick={() => setSelectedOrder(order)}
-                    className="border border-slate-200 rounded-2xl bg-slate-50 p-5 cursor-pointer hover:bg-white hover:shadow-lg transition-all"
+                    className="border border-slate-200 rounded-2xl bg-slate-50 p-5 cursor-pointer hover:bg-white hover:shadow-lg transition-all duration-200"
                   >
-                    <div className="flex justify-between">
-                      <div>
-                        <h3 className="font-bold">
-                          Order #{order.order_id}
-                        </h3>
+                    <div className="flex flex-col md:flex-row justify-between gap-4">
+                      <div className="space-y-1">
+                        <div className="text-xl font-bold">
+                          OrderId: {order.order_id || order.orderID}
+                        </div>
 
-                        <p>
-                          {order.checkout?.fullname}
+                        <p className="text-sm">
+                          <strong>Name:</strong> {order.checkout?.fullname}
                         </p>
 
-                        <p>
-                          Status: {order.status}
+                        <p className="text-sm flex items-center gap-2">
+                          <strong>Status:</strong>
+
+                          <span
+                            className={`px-3 py-1 rounded-full text-white text-[11px] font-semibold tracking-wide uppercase ${order.status?.toLowerCase().includes("cancel")
+                              ? "bg-red-600"
+                              : order.status?.toLowerCase().includes("delivered")
+                                ? "bg-green-600"
+                                : order.status?.toLowerCase().includes("shipped")
+                                  ? "bg-orange-500"
+                                  : order.status?.toLowerCase().includes("paked")
+                                    ? "bg-yellow-500 text-slate-800"
+                                    : "bg-slate-400"
+                              }`}
+                          >
+                            {order.status}
+                          </span>
                         </p>
                       </div>
 
-                      <div>
-                        ₹{order.total}
+                      <div className="text-sm text-right space-y-1">
+                        <p>
+                          <strong>Phone:</strong> {order.checkout?.contact}
+                        </p>
+
+                        <p>
+                          <strong>Date:</strong>{" "}
+                          {new Date(
+                            order.created_at || order.createdAt
+                          ).toLocaleString("en-IN")}
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -432,6 +456,8 @@ const Account = () => {
     }
   };
 
+
+
   const tabs = [
     { key: "personal", label: "Personal Details", icon: <FaUser /> },
     { key: "password", label: "Password", icon: <FaLock /> },
@@ -464,6 +490,86 @@ const Account = () => {
             ))}
           </div>
           {renderTabContent()}
+          {
+            selectedOrder && (
+              <div className="fixed inset-0 bg-black/70 z-50 flex justify-center items-center">
+                <div className="bg-white p-6 rounded-lg max-w-2xl w-full relative overflow-y-auto max-h-[90vh]">
+
+                  <button
+                    onClick={() => setSelectedOrder(null)}
+                    className="absolute top-2 right-4 text-2xl font-bold"
+                  >
+                    ×
+                  </button>
+
+                  <h2 className="text-xl font-bold mb-2">
+                    Order #{selectedOrder.order_id || selectedOrder.orderID}
+                  </h2>
+
+                  <p className="text-sm mb-3">
+                    <strong>Name:</strong> {selectedOrder.checkout?.fullname}
+                    <br />
+                    <strong>Address:</strong>{" "}
+                    {selectedOrder.checkout?.street},
+                    {selectedOrder.checkout?.city},
+                    {selectedOrder.checkout?.state}
+                    <br />
+                    <strong>Phone:</strong>{" "}
+                    {selectedOrder.checkout?.contact}
+                    <br />
+                    <strong>Email:</strong>{" "}
+                    {selectedOrder.checkout?.email}
+                    <br />
+                    <strong>Status:</strong>{" "}
+                    {selectedOrder.status}
+                  </p>
+
+                  <h3 className="font-bold mb-3">
+                    Products
+                  </h3>
+
+                  <div className="space-y-3">
+                    {selectedOrder.cart?.map((item, i) => (
+                      <div
+                        key={i}
+                        className="flex gap-4 border p-2 rounded"
+                      >
+                        <img
+                          src={
+                            item.image ||
+                            item.customizedImage ||
+                            item.images?.[0]
+                          }
+                          alt={item.name}
+                          className="w-16 h-16 object-cover rounded"
+                        />
+
+                        <div>
+                          <p>
+                            <strong>{item.name}</strong>
+                          </p>
+                          <p>Qty: {item.quantity}</p>
+                          <p>Size: {item.size}</p>
+                          <p>Color: {item.color}</p>
+                          <p>₹{item.price}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="mt-4 flex justify-end">
+                    <button
+                      onClick={() => setSelectedOrder(null)}
+                      className="px-4 py-2 bg-slate-800 text-white rounded"
+                    >
+                      Close
+                    </button>
+                  </div>
+
+                </div>
+              </div>
+            )
+          }
         </div>
       </section>
     </div>
