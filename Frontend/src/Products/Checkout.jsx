@@ -1,6 +1,7 @@
 import React, { useContext, useEffect, useRef, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { IoIosArrowForward } from "react-icons/io";
+import { FiSearch } from "react-icons/fi";
 import emailjs from "@emailjs/browser";
 
 import logoimg from '/Image/lo.png'
@@ -21,6 +22,10 @@ const Checkout = () => {
   const form = useRef();
   const [useDifferentAddress, setUseDifferentAddress] = useState(false);
   const [savedAddresses, setSavedAddresses] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [isLocating, setIsLocating] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const searchWrapperRef = useRef();
   const [selectedAddressIdx, setSelectedAddressIdx] = useState(null);
   const [buyNowProduct, setBuyNowProduct] = useState([]);
   const [razorpayLoaded, setRazorpayLoaded] = useState(false);
@@ -98,6 +103,117 @@ const Checkout = () => {
     form.current.zipcode.value = addr.zip;
     form.current.country.value = addr.country;
   };
+
+  const filteredAddresses = savedAddresses.filter((a) => {
+    if (!searchTerm) return true;
+    const q = searchTerm.toLowerCase();
+    return (
+      (a.fullname || "").toString().toLowerCase().includes(q) ||
+      (a.contact || "").toString().toLowerCase().includes(q) ||
+      (a.street || "").toString().toLowerCase().includes(q) ||
+      (a.city || "").toString().toLowerCase().includes(q) ||
+      (a.zip || "").toString().toLowerCase().includes(q)
+    );
+  });
+
+  const reverseGeocode = async (lat, lon) => {
+    try {
+      const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}`;
+      const res = await fetch(url, { headers: { "User-Agent": "MauvalPrint/1.0" } });
+      if (!res.ok) throw new Error("Reverse geocode failed");
+      const data = await res.json();
+      const addr = data.address || {};
+      return {
+        fullname: user?.displayName || "My Location",
+        email: user?.email || "",
+        contact: user?.phoneNumber || "",
+        street: [addr.road, addr.neighbourhood, addr.suburb].filter(Boolean).join(", ") || addr.display_name || "",
+        city: addr.city || addr.town || addr.village || "",
+        state: addr.state || "",
+        zip: addr.postcode || "",
+        country: addr.country || "",
+        lat,
+        lon,
+      };
+    } catch (err) {
+      console.error(err);
+      return null;
+    }
+  };
+
+  const handleUseMyLocation = () => {
+    if (!navigator.geolocation) {
+      toast.error("Geolocation is not supported by your browser.");
+      return;
+    }
+    setIsLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const { latitude, longitude } = pos.coords;
+        const newAddr = await reverseGeocode(latitude, longitude);
+        if (newAddr) {
+          // check duplicates by lat/lon or normalized fields
+          const normalize = (s) => (s || "").toString().trim().toLowerCase();
+          const existingIndex = savedAddresses.findIndex((a) => {
+            if (a.lat && a.lon && newAddr.lat && newAddr.lon) {
+              // consider equal if very close (within ~0.0005 degrees ~50m)
+              const latDiff = Math.abs(Number(a.lat) - Number(newAddr.lat));
+              const lonDiff = Math.abs(Number(a.lon) - Number(newAddr.lon));
+              if (latDiff < 0.0005 && lonDiff < 0.0005) return true;
+            }
+            return (
+              normalize(a.street) === normalize(newAddr.street) &&
+              normalize(a.city) === normalize(newAddr.city) &&
+              normalize(a.zip) === normalize(newAddr.zip)
+            );
+          });
+
+          if (existingIndex !== -1) {
+            // already present, just select it
+            setIsLocating(false);
+            setSearchTerm("");
+            setSelectedAddressIdx(existingIndex);
+            handleAddressSelect(existingIndex);
+            toast.info("Location already in saved addresses; selected existing.");
+          } else {
+            // prepend and select
+            const updated = [newAddr, ...savedAddresses];
+            setSavedAddresses(updated);
+            // attempt to persist to backend
+            try {
+              if (user) await api.post(`/users/${user.uid}/addresses`, newAddr);
+            } catch (err) {
+              console.error("Failed to save located address:", err);
+            }
+            setIsLocating(false);
+            setSearchTerm("");
+            setSelectedAddressIdx(0);
+            handleAddressSelect(0, updated);
+            toast.success("Location added and selected.");
+          }
+        } else {
+          setIsLocating(false);
+          toast.error("Could not determine address from location.");
+        }
+      },
+      (err) => {
+        console.error(err);
+        setIsLocating(false);
+        toast.error("Unable to get your location.");
+      },
+      { enableHighAccuracy: true, timeout: 20000 }
+    );
+  };
+  // close suggestions on outside click
+  useEffect(() => {
+    const onDocClick = (e) => {
+      if (searchWrapperRef.current && !searchWrapperRef.current.contains(e.target)) {
+        setShowSuggestions(false);
+      }
+    };
+    document.addEventListener("mousedown", onDocClick);
+    return () => document.removeEventListener("mousedown", onDocClick);
+  }, []);
   const handlePayment = async (e) => {
     e.preventDefault();
 
@@ -299,38 +415,68 @@ const Checkout = () => {
           {/* Saved addresses */}
           {savedAddresses.length > 0 && (
             <div className=" mb-8">
-              <h2 className="text-xl font-semibold mb-4">
-                Choose a Saved Address
-              </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {savedAddresses.map((addr, idx) => (
-                  <label
-                    key={idx}
-                    onClick={() => handleAddressSelect(idx)}
-                    className={`border p-4 rounded-lg shadow cursor-pointer transition ${selectedAddressIdx === idx
-                      ? "border-slate-800 bg-slate-100"
-                      : "border-gray-300 bg-white"
-                      }`}
-                  >
-                    <div className="flex items-start">
-                      <input
-                        type="radio"
-                        name="savedAddress"
-                        checked={selectedAddressIdx === idx}
-                        onChange={() => handleAddressSelect(idx)}
-                        className="mr-2 mt-1 accent-slate-800"
-                      />
-                      <div>
-                        <strong>{addr.fullname}</strong> – {addr.contact}
-                        <div className="text-sm text-gray-600">
-                          {addr.street}, {addr.city}, {addr.state} – {addr.zip},{" "}
-                          {addr.country}
-                        </div>
-                      </div>
+              <h2 className="text-xl font-semibold mb-4">Choose a Saved Address</h2>
+
+              <div className="flex items-start gap-3 mb-4">
+                <div className="relative w-full" ref={searchWrapperRef}>
+                  <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                    <FiSearch />
+                  </div>
+                  <input
+                    placeholder="Search saved addresses..."
+                    value={searchTerm}
+                    onChange={(e) => { setSearchTerm(e.target.value); setShowSuggestions(true); }}
+                    onFocus={() => setShowSuggestions(true)}
+                    className="border rounded-lg px-12 py-3 w-full placeholder-gray-400 bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-800"
+                  />
+
+                  {showSuggestions && (
+                    <div className="absolute left-0 right-0 mt-2 bg-white border rounded-md shadow-lg z-50 max-h-64 overflow-y-auto">
+                      <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase bg-gray-50 border-b">Saved Addresses</div>
+                      {filteredAddresses.length === 0 ? (
+                        <div className="px-4 py-3 text-sm text-gray-600">No saved addresses</div>
+                      ) : (
+                        filteredAddresses.map((addr, sidx) => {
+                          const origIndex = savedAddresses.findIndex((sa) =>
+                            (sa.street === addr.street && sa.contact === addr.contact && sa.zip === addr.zip) || (sa.lat && addr.lat && sa.lat === addr.lat && sa.lon === addr.lon)
+                          );
+                          const onSelectSuggestion = () => {
+                            if (origIndex !== -1) handleAddressSelect(origIndex);
+                            else handleAddressSelect(sidx, filteredAddresses);
+                            setShowSuggestions(false);
+                          };
+                          return (
+                            <div
+                              key={sidx}
+                              onClick={onSelectSuggestion}
+                              className="px-4 py-3 hover:bg-slate-50 cursor-pointer flex items-start border-b last:border-b-0"
+                            >
+                              <div className="flex-1">
+                                <div className="font-medium text-sm">{addr.fullname} <span className="text-gray-500">– {addr.contact}</span></div>
+                                <div className="text-sm text-gray-600">{addr.street}{addr.street ? ', ' : ''}{addr.city} {addr.state} – {addr.zip}</div>
+                              </div>
+                            </div>
+                          );
+                        })
+                      )}
                     </div>
-                  </label>
-                ))}
+                  )}
+                </div>
+
+                <div className="flex flex-col items-end gap-3">
+              
+                  <button
+                    type="button"
+                    onClick={handleUseMyLocation}
+                    disabled={isLocating}
+                    className="px-5 py-3 bg-slate-900 text-white rounded-lg shadow-md hover:bg-slate-800"
+                  >
+                    {isLocating ? "Locating..." : "Use my location"}
+                  </button>
+                </div>
               </div>
+
+             
             </div>
           )}
 
