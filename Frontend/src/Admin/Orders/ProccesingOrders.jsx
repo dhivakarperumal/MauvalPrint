@@ -46,8 +46,20 @@ const ProccesingOrders = () => {
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [viewMode, setViewMode] = useState("table");
+  const [viewMode, setViewMode] = useState(window.innerWidth < 768 ? "card" : "table");
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const itemsPerPage = 10;
+
+  useEffect(() => {
+    const handleResize = () => {
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+      if (mobile) setViewMode("card");
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -420,7 +432,7 @@ const ProccesingOrders = () => {
         </div>
       ) : (
         <>
-          {viewMode === "table" ? (
+          {!isMobile && viewMode === "table" ? (
             <div className="overflow-x-auto shadow-sm rounded-xl border border-gray-200 bg-white">
               <table className="w-full text-sm text-left">
                 <thead className="bg-gray-800 text-white">
