@@ -15,6 +15,50 @@ const CanvasWorkspace = ({ onCanvasReady, product, imageSrc, selectedProductColo
 
   const proxiedImageSrc = getProxyUrl(imageSrc || "https://via.placeholder.com/500x600.png?text=T-Shirt+Mockup");
 
+  const loadProductImage = (canvas, src) => {
+    if (!canvas || !src) return;
+
+    const existing = canvas.getObjects().find((obj) => obj.id === 'product-image');
+    if (existing) {
+      canvas.remove(existing);
+    }
+
+    const imgEl = new window.Image();
+    imgEl.crossOrigin = 'anonymous';
+    imgEl.onload = () => {
+      const img = new FabricImage(imgEl, {
+        originX: 'left',
+        originY: 'top',
+        left: 0,
+        top: 0,
+        selectable: true,
+        evented: true,
+        hasControls: true,
+        hasBorders: true,
+        lockRotation: true,
+        cornerStyle: 'circle',
+        cornerStrokeColor: '#4f46e5',
+        borderColor: '#818cf8',
+        cornerSize: 10,
+        transparentCorners: false,
+        opacity: 0.95,
+        id: 'product-image',
+      });
+      const scale = Math.min(250 / img.width, 350 / img.height, 1);
+      img.scale(scale);
+      img.left = (250 - img.getScaledWidth()) / 2;
+      img.top = (350 - img.getScaledHeight()) / 2;
+      canvas.add(img);
+      img.sendToBack();
+      canvas.setActiveObject(img);
+      canvas.requestRenderAll();
+    };
+    imgEl.onerror = () => {
+      console.error('Canvas image failed to load:', src);
+    };
+    imgEl.src = src;
+  };
+
   useEffect(() => {
     if (!canvasRef.current) return;
 
@@ -23,7 +67,7 @@ const CanvasWorkspace = ({ onCanvasReady, product, imageSrc, selectedProductColo
       height: 350,
       preserveObjectStacking: true,
       selection: true,
-      backgroundColor: selectedProductColor || '#ffffff',
+      backgroundColor: '#ffffff', // keep workspace background white by default
     });
 
     const clipPath = new Rect({
@@ -42,27 +86,6 @@ const CanvasWorkspace = ({ onCanvasReady, product, imageSrc, selectedProductColo
     });
 
     canvas.add(clipPath);
-
-    FabricImage.fromURL(proxiedImageSrc, (img) => {
-      img.set({
-        originX: 'left',
-        originY: 'top',
-        left: 0,
-        top: 0,
-        width: 250,
-        height: 350,
-        selectable: false,
-        evented: false,
-        opacity: 0.95,
-      });
-      canvas.setBackgroundImage(img, canvas.renderAll.bind(canvas), {
-        originX: 'left',
-        originY: 'top',
-        width: 250,
-        height: 350,
-      });
-    }, { crossOrigin: 'anonymous' });
-
     setFabricCanvas(canvas);
     if (onCanvasReady) onCanvasReady(canvas);
 
@@ -71,38 +94,20 @@ const CanvasWorkspace = ({ onCanvasReady, product, imageSrc, selectedProductColo
     };
   }, []);
 
+  // Keep the canvas background white so designs remain visible
   useEffect(() => {
     if (!fabricCanvas) return;
-    fabricCanvas.set('backgroundColor', selectedProductColor || '#ffffff');
+    fabricCanvas.set('backgroundColor', '#ffffff');
     fabricCanvas.requestRenderAll();
-  }, [selectedProductColor, fabricCanvas]);
+  }, [fabricCanvas]);
 
   useEffect(() => {
     if (!fabricCanvas) return;
-
-    FabricImage.fromURL(proxiedImageSrc, (img) => {
-      img.set({
-        originX: 'left',
-        originY: 'top',
-        left: 0,
-        top: 0,
-        width: 250,
-        height: 350,
-        selectable: false,
-        evented: false,
-        opacity: 0.95,
-      });
-      fabricCanvas.setBackgroundImage(img, fabricCanvas.renderAll.bind(fabricCanvas), {
-        originX: 'left',
-        originY: 'top',
-        width: 250,
-        height: 350,
-      });
-    }, { crossOrigin: 'anonymous' });
+    loadProductImage(fabricCanvas, proxiedImageSrc);
   }, [proxiedImageSrc, fabricCanvas]);
 
   return (
-    <div className="w-full max-w-[500px] aspect-[5/6] rounded-2xl shadow-2xl relative flex items-center justify-center overflow-hidden shrink-0 bg-white">
+    <div className="w-full max-w-[500px] md:aspect-[5/6] h-[300px] md:h-auto rounded-2xl shadow-2xl relative flex items-center justify-center overflow-hidden shrink-0 bg-white">
       <div className="absolute inset-0 w-full h-full pointer-events-none" />
       <div className="w-full h-full [&>div]:!w-full [&>div]:!h-full [&>div>canvas]:!w-full [&>div>canvas]:!h-full">
         <canvas ref={canvasRef} />

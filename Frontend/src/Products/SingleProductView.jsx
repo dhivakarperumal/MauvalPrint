@@ -15,6 +15,7 @@ import Login from "../Components/Login";
 import RegisterPage from "../Components/Register";
 import ProductCustomizer from "./ProductCustomizer";
 import RelatedProducts from "./RelatedProducts";
+import PageContainer from "../Components/PageContainer";
 
 // Image optimization utility
 const optimizeImageUrl = (url) => {
@@ -133,6 +134,67 @@ const SingleProductView = () => {
     const key = c.toString().toLowerCase();
     return colorMap[key] || c; // fallback to the original value if not in the map
   }, [colorMap]);
+
+  const normalizeVariantKey = useCallback((value) => {
+    if (!value && value !== 0) return "";
+    return value
+      .toString()
+      .trim()
+      .toLowerCase()
+      .replace(/\s+/g, "")
+      .replace(/[_-]+/g, "");
+  }, []);
+
+  const getVariantImages = useCallback((variantKey) => {
+    if (!product || !product.images_by_variant) return [];
+    const images = product.images_by_variant[variantKey];
+    if (!images) return [];
+    if (Array.isArray(images)) return images.filter(isValidImageSrc);
+    if (typeof images === "string") {
+      try {
+        const parsed = JSON.parse(images);
+        return Array.isArray(parsed) ? parsed.filter(isValidImageSrc) : [images].filter(isValidImageSrc);
+      } catch {
+        return [images].filter(isValidImageSrc);
+      }
+    }
+    return [];
+  }, [product]);
+
+  const getVariantImagesByNormalizedKey = useCallback((normalizedKey) => {
+    if (!product || !product.images_by_variant) return [];
+    const entry = Object.entries(product.images_by_variant).find(
+      ([key]) => normalizeVariantKey(key) === normalizedKey
+    );
+    return entry ? getVariantImages(entry[0]) : [];
+  }, [product, normalizeVariantKey, getVariantImages]);
+
+  const findColorVariantImages = useCallback(() => {
+    if (!product || !product.images_by_variant) return [];
+    const normalizedVariantEntries = Object.entries(product.images_by_variant || {}).map(([key, value]) => ({
+      normalizedKey: normalizeVariantKey(key),
+      originalKey: key,
+      images: value,
+    }));
+
+    const exactKey = normalizeVariantKey(`${selectedColor}-${selectedSize}`);
+    const exactMatch = normalizedVariantEntries.find((entry) => entry.normalizedKey === exactKey);
+    if (exactMatch) {
+      return getVariantImages(exactMatch.originalKey);
+    }
+
+    const colorQuery = normalizeVariantKey(selectedColor);
+    const sameColorMatch = normalizedVariantEntries.find((entry) =>
+      entry.normalizedKey.startsWith(`${colorQuery}-`) ||
+      entry.normalizedKey.endsWith(`-${colorQuery}`) ||
+      entry.normalizedKey.includes(colorQuery)
+    );
+    if (sameColorMatch) {
+      return getVariantImages(sameColorMatch.originalKey);
+    }
+
+    return flattenVariantImages(product.images_by_variant || {});
+  }, [product, selectedColor, selectedSize, normalizeVariantKey, getVariantImages]);
 
   const handleAddToCart = useCallback(() => {
     if (!selectedSize || !selectedColor)
@@ -350,19 +412,18 @@ const SingleProductView = () => {
   if (!product) return <div className="p-6 text-center">Loading...</div>;
   const isWishlisted = wishlist.some((p) => p.id === product.id);
 
-  // prepare images: ALWAYS filter by variant if color & size are selected
+  // prepare images: ALWAYS filter by selected color/size variant if available
   let displayImages = [];
-  
-  if (selectedColor && selectedSize && product.images_by_variant) {
-    // Primary: Show only images for the selected color-size combination
-    const variantKey = `${selectedColor}-${selectedSize}`;
-    const variantImages = product.images_by_variant[variantKey];
-    displayImages = (Array.isArray(variantImages) ? variantImages : []).filter(isValidImageSrc);
-  } else if (Array.isArray(product.images) && product.images.filter(isValidImageSrc).length > 0) {
-    // Fallback: Use general product images if variant images don't exist
+
+  if (product?.images_by_variant) {
+    displayImages = findColorVariantImages();
+  }
+
+  if (displayImages.length === 0 && Array.isArray(product.images) && product.images.filter(isValidImageSrc).length > 0) {
     displayImages = product.images.filter(isValidImageSrc);
-  } else if (product.images_by_variant) {
-    // Last resort: show first available variant's images
+  }
+
+  if (displayImages.length === 0 && product?.images_by_variant) {
     displayImages = flattenVariantImages(product.images_by_variant || {});
   }
 
@@ -373,10 +434,10 @@ const SingleProductView = () => {
     mrp > 0 ? Math.round(((mrp - salePrice) / mrp) * 100) : 0;
 
   return (
-    <div className="mt-20">
-      <Head title={product.name} subtitle={product.name} />
-
-      <div className="px-4 md:px-20">
+      <>
+      <div className="mt-20">
+        <Head title={product.name} subtitle={product.name} />
+        <PageContainer>
         <div className="grid lg:grid-cols-2 gap-10 border-b border-primary py-10">
           <div className="z-10">
             {/* ✅ Zoom Image Component */}
@@ -544,7 +605,12 @@ const SingleProductView = () => {
                     if (!user) {
                       setShowLogin(true);
                     } else {
-                      navigate(`/customizer/${product.id || product.productId}`);
+                      navigate(`/customizer/${product.id || product.productId}`, {
+                        state: {
+                          selectedColor,
+                          selectedImageIndex,
+                        },
+                      });
                     }
                   }}
                   className="px-6 py-3 bg-orange-500 text-white rounded-md hover:bg-orange-600 transition-all cursor-pointer hover:shadow-md"
@@ -588,6 +654,8 @@ const SingleProductView = () => {
             </p>
           </div>
         </div>
+        </PageContainer>
+        
         {category && (
           <div className="mt-10">
             <h3 className="text-xl font-semibold mb-4">Related Products</h3>
@@ -655,7 +723,8 @@ const SingleProductView = () => {
           />
         )}
       </div>
-      {showLogin && (
+
+      {showLogin ? (
         <Login
           onClose={() => setShowLogin(false)}
           onSwitch={() => {
@@ -663,7 +732,7 @@ const SingleProductView = () => {
             setShowRegister(true);
           }}
         />
-      )}
+      ) : null}
       {showRegister && (
         <RegisterPage
           onClose={() => setShowRegister(false)}
@@ -673,7 +742,7 @@ const SingleProductView = () => {
           }}
         />
       )}
-    </div>
+      </>
   );
 };
 

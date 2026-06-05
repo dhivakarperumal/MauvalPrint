@@ -1,24 +1,95 @@
-import React, { useState, useEffect, useContext } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { IoArrowBack, IoDownloadOutline, IoCartOutline } from 'react-icons/io5';
+import React, { useState, useEffect, useContext, useMemo } from 'react';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { IoArrowBack, IoDownloadOutline, IoCartOutline, IoMenu, IoClose } from 'react-icons/io5';
 import { IText, Rect, Circle, Triangle, FabricImage } from 'fabric';
 import { AuthContext } from '../Context/AuthContext';
 import SidebarTools from './SidebarTools';
 import CanvasWorkspace from './CanvasWorkspace';
 import PropertiesPanel from './PropertiesPanel';
+import { flattenVariantImages } from '../Products/helpers';
 
 const CustomizerLayout = () => {
   const { productId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const { products, addToCart } = useContext(AuthContext);
   
   const [product, setProduct] = useState(null);
   const [activeTab, setActiveTab] = useState('text');
   const [canvas, setCanvas] = useState(null);
   const [activeObject, setActiveObject] = useState(null);
+  const [zoomLevel, setZoomLevel] = useState(1);
   const [currentViewIndex, setCurrentViewIndex] = useState(0);
   const [viewStates, setViewStates] = useState({});
   const [selectedProductColor, setSelectedProductColor] = useState('#ffffff');
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const [showRightPanelMobile, setShowRightPanelMobile] = useState(false);
+
+  const productImages = useMemo(() => {
+    if (!product) return [];
+
+    const normalizeImageArray = (images) => {
+      if (!images) return [];
+      if (Array.isArray(images)) return images.filter(Boolean);
+      if (typeof images === 'string') {
+        try {
+          const parsed = JSON.parse(images);
+          if (Array.isArray(parsed)) return parsed.filter(Boolean);
+        } catch {
+          return images.split(',').map((item) => item.trim()).filter(Boolean);
+        }
+      }
+      return [];
+    };
+
+    const normalizeVariantKey = (value) => {
+      if (!value && value !== 0) return '';
+      return value
+        .toString()
+        .trim()
+        .toLowerCase()
+        .replace(/\s+/g, '-')
+        .replace(/_+/g, '-')
+        .replace(/-+/g, '-');
+    };
+
+    const primaryImages = normalizeImageArray(product.images);
+    const defaultVariantImages = flattenVariantImages(product.images_by_variant);
+
+    if (selectedProductColor && product.images_by_variant) {
+      const colorKey = normalizeVariantKey(selectedProductColor);
+      const matchedVariantImages = Object.entries(product.images_by_variant || {})
+        .flatMap(([variantKey, images]) => {
+          const normalizedKey = normalizeVariantKey(variantKey);
+          if (
+            normalizedKey === colorKey ||
+            normalizedKey.startsWith(`${colorKey}-`) ||
+            normalizedKey.endsWith(`-${colorKey}`) ||
+            normalizedKey.includes(`-${colorKey}-`)
+          ) {
+            return normalizeImageArray(images);
+          }
+          return [];
+        })
+        .filter(Boolean);
+
+      if (matchedVariantImages.length > 0) {
+        return matchedVariantImages;
+      }
+    }
+
+    if (primaryImages.length > 0) {
+      return primaryImages;
+    }
+
+    return defaultVariantImages;
+  }, [product, selectedProductColor]);
+
+  useEffect(() => {
+    if (productImages.length > 0) {
+      setSelectedImageIndex(0);
+    }
+  }, [productImages]);
 
   useEffect(() => {
     if (products && products.length > 0) {
@@ -26,6 +97,26 @@ const CustomizerLayout = () => {
       setProduct(found);
     }
   }, [productId, products]);
+
+  useEffect(() => {
+    if (location?.state?.selectedColor) {
+      setSelectedProductColor(location.state.selectedColor);
+    }
+    if (location?.state?.selectedImageIndex !== undefined) {
+      setSelectedImageIndex(location.state.selectedImageIndex);
+    }
+  }, [location?.state?.selectedColor, location?.state?.selectedImageIndex]);
+
+  useEffect(() => {
+    if (!product) return;
+    if (location?.state?.selectedColor) return;
+
+    const firstColor = Array.isArray(product.color) && product.color.length > 0
+      ? product.color[0]
+      : '#ffffff';
+
+    setSelectedProductColor(firstColor);
+  }, [product, location?.state?.selectedColor]);
 
   useEffect(() => {
     if (!canvas) return;
@@ -44,6 +135,20 @@ const CustomizerLayout = () => {
       canvas.off('selection:cleared', handleSelection);
     };
   }, [canvas]);
+
+  useEffect(() => {
+    if (!canvas) return;
+    canvas.setZoom(zoomLevel);
+    canvas.requestRenderAll();
+  }, [canvas, zoomLevel]);
+
+  const handleZoomIn = () => {
+    setZoomLevel((prev) => Math.min(prev + 0.1, 2));
+  };
+
+  const handleZoomOut = () => {
+    setZoomLevel((prev) => Math.max(prev - 0.1, 0.4));
+  };
 
   if (!product) {
     return <div className="h-screen w-full bg-gray-900 text-white flex items-center justify-center">Loading product...</div>;
@@ -200,7 +305,7 @@ const CustomizerLayout = () => {
   return (
     <div className="h-screen w-full bg-gray-900 text-white flex flex-col font-sans overflow-hidden">
       {/* Top Navigation Bar */}
-      <header className="h-auto min-h-[3.5rem] border-b border-gray-800 bg-gray-950 flex flex-wrap items-center justify-between px-2 md:px-4 py-2 shrink-0 gap-y-2">
+      <header className="h-auto min-h-[3.5rem] border-b border-gray-800 bg-gray-950 flex flex-wrap items-center justify-between px-10 md:px-4 py-2 shrink-0 gap-y-2">
         <div className="flex items-center gap-2 md:gap-4">
           <button 
             onClick={() => navigate(-1)}
@@ -215,14 +320,20 @@ const CustomizerLayout = () => {
           </h1>
         </div>
         
-        <div className="flex items-center gap-2 md:gap-3">
+        <div className="flex items-center gap-2 md:gap-3 w-full sm:w-auto overflow-x-auto">
           <span className="text-xs md:text-sm font-medium mr-1 md:mr-4">₹{product.salePrice || product.price || 0}</span>
-          <button onClick={handleSave} className="px-2 md:px-4 py-1.5 text-xs md:text-sm font-medium border border-gray-700 hover:bg-gray-800 rounded transition flex items-center gap-1 md:gap-2 cursor-pointer">
-            <IoDownloadOutline size={16} /> <span className="hidden md:inline">Save</span>
-          </button>
-          <button onClick={handlePlaceOrder} className="px-3 md:px-4 py-1.5 text-xs md:text-sm font-medium bg-indigo-600 hover:bg-indigo-700 text-white rounded transition flex items-center gap-1 md:gap-2 cursor-pointer">
-            <IoCartOutline size={16} /> <span className="hidden sm:inline">Place Order</span><span className="sm:hidden">Order</span>
-          </button>
+          <div className="flex flex-row items-center gap-2 flex-nowrap">
+            <button onClick={handleSave} className="px-2 md:px-3 py-2 text-xs md:text-sm font-medium border border-gray-700 hover:bg-gray-800 rounded transition flex items-center gap-2 justify-center">
+              <IoDownloadOutline size={16} /> <span className="hidden md:inline">Save</span>
+            </button>
+            <button onClick={handlePlaceOrder} className="px-3 md:px-4 py-2 text-xs md:text-sm font-medium bg-indigo-600 hover:bg-indigo-700 text-white rounded transition flex items-center gap-2 justify-center">
+              <IoCartOutline size={16} /> <span className="hidden sm:inline">Place Order</span><span className="sm:hidden">Order</span>
+            </button>
+            {/* Mobile: open right-side panel */}
+            <button onClick={() => setShowRightPanelMobile(true)} className="ml-0 sm:ml-2 md:hidden p-2 bg-gray-800 rounded-md flex items-center justify-center">
+              <IoMenu size={18} />
+            </button>
+          </div>
         </div>
       </header>
 
@@ -235,7 +346,7 @@ const CustomizerLayout = () => {
         </div>
 
         {/* Expanded Tool Panel */}
-        <div className={`order-2 md:order-2 w-full md:w-80 ${activeTab ? 'h-64' : 'h-0 hidden'} md:h-full md:flex bg-gray-900 border-t md:border-t-0 border-b md:border-b-0 md:border-r border-gray-800 p-6 overflow-y-auto z-20 flex-col shadow-2xl relative shrink-0 transition-all`}>
+        <div className={`order-2 md:order-2 w-full md:w-80 ${activeTab ? 'h-40' : 'h-0 hidden'} md:h-full md:flex bg-gray-900 border-t md:border-t-0 border-b md:border-b-0 md:border-r border-gray-800 p-6 overflow-y-auto z-20 flex-col shadow-2xl relative shrink-0 transition-all`}>
           <h2 className="text-xl font-bold mb-6 capitalize tracking-wide bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">{activeTab}</h2>
           
           {activeTab === 'templates' && (
@@ -260,13 +371,13 @@ const CustomizerLayout = () => {
              </div>
           )}
 
-          {activeTab === 'text' && (
-             <div className="flex flex-col gap-4">
-                <button onClick={() => handleAddText('heading')} className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 rounded-xl font-semibold shadow-lg shadow-indigo-600/20 transition-all">Add a heading</button>
-                <button onClick={() => handleAddText('subheading')} className="w-full py-2 bg-gray-800 hover:bg-gray-700 rounded-xl font-medium border border-gray-700 transition-all">Add a subheading</button>
-                <button onClick={() => handleAddText('body')} className="w-full py-2 bg-gray-800 hover:bg-gray-700 rounded-xl text-sm border border-gray-700 transition-all">Add a little bit of body text</button>
+           {activeTab === 'text' && (
+             <div className="flex flex-col gap-3">
+               <button onClick={() => handleAddText('heading')} className="w-full py-2 md:py-3 bg-indigo-600 hover:bg-indigo-700 rounded-lg font-semibold shadow-lg shadow-indigo-600/20 transition-all text-sm md:text-base">Add a heading</button>
+               <button onClick={() => handleAddText('subheading')} className="w-full py-1.5 md:py-2 bg-gray-800 hover:bg-gray-700 rounded-lg font-medium border border-gray-700 transition-all text-sm">Add a subheading</button>
+               <button onClick={() => handleAddText('body')} className="w-full py-1.5 md:py-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-sm border border-gray-700 transition-all">Add a little bit of body text</button>
              </div>
-          )}
+           )}
 
           {activeTab === 'elements' && (
              <div className="grid grid-cols-3 gap-3">
@@ -288,61 +399,139 @@ const CustomizerLayout = () => {
               <p>More tools coming soon.</p>
             </div>
           )}
-
-          {/* Properties Panel (Shows when an object is selected) */}
-          <PropertiesPanel 
-            activeObject={activeObject} 
-            canvas={canvas} 
-            setActiveObject={setActiveObject} 
-          />
         </div>
 
         {/* Canvas Workspace */}
         <div className="order-1 md:order-3 flex-1 bg-gray-900 relative flex flex-col items-center justify-center overflow-hidden md:overflow-auto p-4 md:p-8 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCI+PHBhdGggZD0iTTIwIDBoLTIwdjIwaDIweiIgZmlsbD0ibm9uZSIvPjxwYXRoIGQ9Ik0xOSAxOUgxVjFoMTh2MTh6IiBmaWxsPSJub25lIi8+PHBhdGggZD0iTTIwIDBoLTF2MTloLTE5djFoMjB6IiBmaWxsPSIjMjIyMjIyIiBvcGFjaXR5PSIuNSIvPjwvc3ZnPg==')]">
-          
-          {/* Product Color Picker Overlay */}
-          <div className="absolute top-4 right-4 md:top-6 md:right-6 bg-gray-900/80 backdrop-blur border border-gray-700 rounded-2xl p-2 md:p-4 flex flex-col gap-2 md:gap-3 shadow-lg z-20 scale-90 md:scale-100 origin-top-right">
-             <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Product Color</h3>
-             <div className="flex flex-wrap max-w-[140px] gap-2">
-                {((product?.color && product.color.length > 0) ? product.color : ['#ffffff', '#000000', '#f87171', '#60a5fa', '#34d399', '#fbbf24']).map((color, idx) => {
-                  // If color is a string, handle it. Some APIs return an object, we assume string.
-                  const colorVal = typeof color === 'string' ? color : (color.hex || color.name || '#ffffff');
-                  return (
+
+          <div className="flex flex-col items-center gap-4 w-full">
+            <CanvasWorkspace 
+              key={productImages[selectedImageIndex] || product.images?.[0] || 'customizer'}
+              product={product} 
+              imageSrc={productImages[selectedImageIndex] || product.images?.[0]}
+              selectedProductColor={selectedProductColor}
+              onCanvasReady={(c) => setCanvas(c)} 
+            />
+
+            {/* {productImages.length > 1 && (
+              <div className="w-full overflow-x-auto py-2 px-1 flex gap-2 justify-center items-center">
+                {productImages.map((src, idx) => (
                   <button
                     key={idx}
-                    onClick={() => setSelectedProductColor(colorVal)}
-                    className={`w-8 h-8 rounded-full border-2 shadow-sm transition-transform hover:scale-110 ${selectedProductColor === colorVal ? 'border-indigo-500 scale-110' : 'border-gray-700'}`}
-                    style={{ backgroundColor: colorVal }}
-                    title={colorVal}
-                  />
-                )})}
-             </div>
-          </div>
-
-          <CanvasWorkspace 
-            product={product} 
-            imageSrc={product.images?.[currentViewIndex] || product.images?.[0]} 
-            selectedProductColor={selectedProductColor}
-            onCanvasReady={(c) => setCanvas(c)} 
-          />
-          
-          {/* Bottom Zoom/View Controls */}
-          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-gray-900/80 backdrop-blur border border-gray-700 rounded-full px-2 md:px-4 py-1 md:py-2 flex items-center gap-2 md:gap-4 shadow-lg scale-90 md:scale-100 whitespace-nowrap z-20 overflow-x-auto max-w-[90vw] custom-scrollbar">
-             <button className="text-gray-300 hover:text-white">-</button>
-             <span className="text-sm font-medium w-12 text-center">100%</span>
-             <button className="text-gray-300 hover:text-white">+</button>
-             <div className="w-px h-4 bg-gray-700 shrink-0"></div>
-              {views.map((viewName, idx) => (
-                <button 
-                  key={idx}
-                  onClick={() => handleViewChange(idx)}
-                  className={`text-sm whitespace-nowrap ${currentViewIndex === idx ? 'text-white font-medium' : 'text-gray-500 hover:text-gray-300'}`}
-                >
-                  {viewName}
-                </button>
-             ))}
+                    type="button"
+                    onClick={() => setSelectedImageIndex(idx)}
+                    className={`border rounded-lg overflow-hidden ${selectedImageIndex === idx ? 'border-indigo-500 ring-2 ring-indigo-500/30' : 'border-gray-700'} shrink-0`}
+                    style={{ width: 72, height: 72 }}
+                  >
+                    <img
+                      src={src}
+                      alt={`Product image ${idx + 1}`}
+                      className="w-full h-full object-cover"
+                    />
+                  </button>
+                ))}
+              </div>
+            )} */}
           </div>
         </div>
+
+        {/* Right Side Control Panel (desktop static, mobile slide-up) */}
+        {/* Overlay for mobile */}
+        {showRightPanelMobile && (
+          <div onClick={() => setShowRightPanelMobile(false)} className="fixed inset-0 bg-black/50 z-40 md:hidden" />
+        )}
+
+        <aside className={`order-4 md:order-4 shrink-0 w-full md:w-96 bg-gray-950 border-t border-gray-800 md:border-t-0 md:border-l p-5 overflow-y-auto transition-transform duration-300 z-50 ${showRightPanelMobile ? 'translate-y-0 fixed bottom-0 left-0 right-0 h-[45vh] rounded-t-xl md:static md:translate-y-0 md:h-auto md:rounded-none' : 'translate-y-full fixed bottom-0 left-0 right-0 h-[45vh] rounded-t-xl md:static md:translate-y-0 md:h-auto md:rounded-none'}`}>
+          {/* close handle for mobile */}
+          <div className="md:hidden flex items-center justify-between mb-3">
+            <h2 className="text-lg font-semibold tracking-wide">Customizer</h2>
+            <button onClick={() => setShowRightPanelMobile(false)} className="p-2 bg-gray-800 rounded-md"><IoClose /></button>
+          </div>
+          <div className="flex flex-col gap-5">
+            <div>
+              <h2 className="text-lg font-semibold tracking-wide">Customizer</h2>
+              <p className="text-sm text-gray-400 mt-1">Right-side controls and variant images.</p>
+            </div>
+
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-semibold text-gray-300">Selected Color</span>
+                <span className="text-xs text-gray-500">{selectedProductColor}</span>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {((product?.color && product.color.length > 0) ? product.color : ['#ffffff', '#000000', '#f87171', '#60a5fa', '#34d399', '#fbbf24']).map((color, idx) => {
+                  const colorVal = typeof color === 'string' ? color : (color.hex || color.name || '#ffffff');
+                  return (
+                    <button
+                      key={idx}
+                      onClick={() => setSelectedProductColor(colorVal)}
+                      className={`w-9 h-9 rounded-full border-2 shadow-sm transition-transform hover:scale-110 ${selectedProductColor === colorVal ? 'border-indigo-500 scale-110' : 'border-gray-700'}`}
+                      style={{ backgroundColor: colorVal }}
+                      title={colorVal}
+                    />
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-semibold text-gray-300">Product Images</span>
+                <span className="text-xs text-gray-500">{productImages.length} items</span>
+              </div>
+              <div className="grid grid-cols-3 gap-3">
+                {productImages.length > 0 ? productImages.map((src, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => setSelectedImageIndex(idx)}
+                    className={`h-20 rounded-xl overflow-hidden border ${selectedImageIndex === idx ? 'border-indigo-500 ring-2 ring-indigo-500/30' : 'border-gray-700'} bg-gray-900`}
+                  >
+                    <img src={src} alt={`Variant ${idx + 1}`} className="w-full h-full object-cover" />
+                  </button>
+                )) : (
+                  <div className="col-span-3 rounded-xl bg-gray-900 border border-dashed border-gray-700 p-4 text-center text-sm text-gray-400">No images available.</div>
+                )}
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-semibold text-gray-300">Zoom</span>
+                <span className="text-xs text-gray-500">{Math.round(zoomLevel * 100)}%</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <button onClick={handleZoomOut} className="flex-1 px-3 py-2 rounded-2xl bg-gray-800 hover:bg-gray-700 text-white">-</button>
+                <button onClick={handleZoomIn} className="flex-1 px-3 py-2 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white">+</button>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <h3 className="text-sm font-semibold text-gray-300">Views</h3>
+              <div className="grid gap-2">
+                {views.map((viewName, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => handleViewChange(idx)}
+                    className={`w-full text-left px-4 py-2 rounded-2xl text-sm transition ${currentViewIndex === idx ? 'bg-indigo-600 text-white' : 'bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white'}`}
+                  >
+                    {viewName}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {activeObject && (
+              <div className="pt-4 border-t border-gray-800">
+                <PropertiesPanel
+                  activeObject={activeObject}
+                  canvas={canvas}
+                  setActiveObject={setActiveObject}
+                />
+              </div>
+            )}
+          </div>
+        </aside>
       </main>
     </div>
   );

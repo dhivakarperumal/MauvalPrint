@@ -40,6 +40,20 @@ const PropertiesPanel = ({ activeObject, canvas, setActiveObject }) => {
     });
   };
 
+  const handleImageScaleChange = (value) => {
+    if (!activeObject || !isImage) return;
+    activeObject.set({ scaleX: value, scaleY: value });
+    canvas.requestRenderAll();
+    setTick(t => t + 1);
+  };
+
+  const handleImagePositionChange = (property, value) => {
+    if (!activeObject || !isImage) return;
+    activeObject.set(property, value);
+    canvas.requestRenderAll();
+    setTick(t => t + 1);
+  };
+
   const handleBringForward = () => {
     canvas.bringObjectForward(activeObject);
     canvas.requestRenderAll();
@@ -134,19 +148,105 @@ const PropertiesPanel = ({ activeObject, canvas, setActiveObject }) => {
             <span className="text-xs font-medium text-gray-300">Line Height</span>
             <input type="range" min="0.5" max="3" step="0.1" value={activeObject.lineHeight || 1.16} onChange={(e) => handlePropertyChange('lineHeight', parseFloat(e.target.value))} className="w-full accent-indigo-500" />
           </div>
+      
+          <div className="flex flex-col gap-1">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-medium text-gray-300">Font Size</span>
+              <span className="text-xs text-gray-400">{Math.round(activeObject.fontSize || 24)} px</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <input
+                type="range"
+                min="8"
+                max="200"
+                step="1"
+                value={activeObject.fontSize || 24}
+                onChange={(e) => handlePropertyChange('fontSize', parseInt(e.target.value, 10))}
+                className="flex-1 accent-indigo-500"
+              />
+              <input
+                type="number"
+                min="8"
+                max="200"
+                value={activeObject.fontSize || 24}
+                onChange={(e) => {
+                  const v = parseInt(e.target.value || '24', 10);
+                  if (!isNaN(v)) handlePropertyChange('fontSize', v);
+                }}
+                className="w-16 bg-gray-800 border border-gray-700 rounded px-2 py-1 text-sm text-white"
+              />
+            </div>
+          </div>
         </>
       )}
 
       {/* Image Filters (Mock for now) */}
       {isImage && (
-        <div className="flex flex-col gap-2">
-           <span className="text-xs font-medium text-gray-300">Image Filters</span>
-           <div className="grid grid-cols-2 gap-2">
-             <button className="py-1.5 bg-gray-800 hover:bg-gray-700 rounded text-xs">Grayscale</button>
-             <button className="py-1.5 bg-gray-800 hover:bg-gray-700 rounded text-xs">Vintage</button>
-             <button className="py-1.5 bg-gray-800 hover:bg-gray-700 rounded text-xs">Remove BG ✨</button>
-           </div>
-        </div>
+        <>
+          <div className="flex flex-col gap-2">
+            <span className="text-xs font-medium text-gray-300">Image Position</span>
+            <div className="grid grid-cols-2 gap-2">
+              <label className="flex flex-col text-xs text-gray-300">
+                X
+                <input
+                  type="range"
+                  min="-250"
+                  max="250"
+                  step="1"
+                  value={activeObject.left || 0}
+                  onChange={(e) => handleImagePositionChange('left', parseInt(e.target.value, 10))}
+                  className="w-full accent-indigo-500"
+                />
+              </label>
+              <label className="flex flex-col text-xs text-gray-300">
+                Y
+                <input
+                  type="range"
+                  min="-250"
+                  max="250"
+                  step="1"
+                  value={activeObject.top || 0}
+                  onChange={(e) => handleImagePositionChange('top', parseInt(e.target.value, 10))}
+                  className="w-full accent-indigo-500"
+                />
+              </label>
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <span className="text-xs font-medium text-gray-300">Image Scale</span>
+            <input
+              type="range"
+              min="0.3"
+              max="3"
+              step="0.05"
+              value={activeObject.scaleX || 1}
+              onChange={(e) => handleImageScaleChange(parseFloat(e.target.value))}
+              className="w-full accent-indigo-500"
+            />
+            <div className="flex justify-between text-xs text-gray-400">
+              <span>{Math.round((activeObject.scaleX || 1) * 100)}%</span>
+              <button
+                onClick={() => {
+                  if (!activeObject) return;
+                  activeObject.set({ left: 0, top: 0, scaleX: 1, scaleY: 1 });
+                  canvas.requestRenderAll();
+                  setTick(t => t + 1);
+                }}
+                className="text-xs text-indigo-400 hover:text-indigo-200"
+              >Reset</button>
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <span className="text-xs font-medium text-gray-300">Image Filters</span>
+            <div className="grid grid-cols-2 gap-2">
+              <button className="py-1.5 bg-gray-800 hover:bg-gray-700 rounded text-xs">Grayscale</button>
+              <button className="py-1.5 bg-gray-800 hover:bg-gray-700 rounded text-xs">Vintage</button>
+              <button className="py-1.5 bg-gray-800 hover:bg-gray-700 rounded text-xs">Remove BG ✨</button>
+            </div>
+          </div>
+        </>
       )}
     </div>
   );
