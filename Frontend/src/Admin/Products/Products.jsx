@@ -214,7 +214,7 @@ const ProductList = () => {
     return null;
   };
   return (
-    <div className="p-8 bg-gray-50 min-h-screen relative">
+    <div className="p-3 sm:p-5 lg:p-8 bg-gray-50 min-h-screen relative">
 
       {/* Product Count Cards */}
       {(() => {
@@ -354,7 +354,7 @@ const ProductList = () => {
           </div>
 
           {/* Right side controls */}
-          <div className="flex items-center gap-3 flex-wrap ml-auto">
+          <div className="flex flex-wrap items-center gap-2 w-full md:w-auto md:ml-auto">
             {/* View Mode Toggle */}
             <div className="hidden md:flex items-center bg-gray-100 rounded-lg p-1 gap-1">
               <button
@@ -525,11 +525,11 @@ const ProductList = () => {
         {/* Product Grid / Table */}
         <div className="flex-1">
           {viewMode === "card" ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-5 lg:gap-6">
               {currentProducts.map((p) => (
                 <div key={p.product_id} className="group relative bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100 flex flex-col h-full">
                   {/* Image Section */}
-                  <div className="relative h-56 w-full overflow-hidden bg-gray-50 flex-shrink-0">
+                  <div className="relative h-40 sm:h-48 lg:h-56 w-full overflow-hidden bg-gray-50 flex-shrink-0">
                     <img
                       src={pickPrimaryImage(p) || "https://via.placeholder.com/150"}
                       alt={p.name}
@@ -555,7 +555,7 @@ const ProductList = () => {
                     </div>
 
                     {/* Overlay Actions */}
-                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-4">
+                    <div className="absolute inset-0 bg-black/40 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-4">
                       <button onClick={() => handleView(p)} className="bg-white text-gray-800 p-3 rounded-full hover:bg-blue-600 hover:text-white transition-colors transform translate-y-4 group-hover:translate-y-0 duration-300 shadow-lg" title="View">
                         <FaEye size={18} />
                       </button>
@@ -569,13 +569,13 @@ const ProductList = () => {
                   </div>
 
                   {/* Content Section */}
-                  <div className="p-4 flex flex-col flex-grow">
+                  <div className="p-3 sm:p-4 flex flex-col flex-grow">
                     <div className="flex justify-between items-start mb-2">
                       <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{p.category || "Uncategorized"}</p>
                       <span className="text-[10px] font-semibold text-gray-500 bg-gray-100 px-2 py-0.5 rounded border border-gray-200">ID: {p.title || p.product_id}</span>
                     </div>
                     
-                    <h3 className="font-bold text-gray-800 text-sm leading-snug mb-3 line-clamp-2" title={p.name}>
+                    <h3 className="font-bold text-gray-800 text-xs sm:text-sm leading-snug mb-2 line-clamp-2" title={p.name}>
                       {p.name}
                     </h3>
                     
@@ -586,7 +586,7 @@ const ProductList = () => {
                         ) : (
                           <p className="text-[11px] text-transparent mb-0.5">-</p>
                         )}
-                        <p className="text-lg font-extrabold text-blue-900 tracking-tight">₹{p.sale_price}</p>
+                        <p className="text-base sm:text-lg font-extrabold text-blue-900 tracking-tight">₹{p.sale_price}</p>
                       </div>
                       
                       {/* Rating / Stock Indicator */}
