@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useRef, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { IoIosArrowForward } from "react-icons/io";
-import { FiSearch } from "react-icons/fi";
+import { FiSearch, FiMapPin } from "react-icons/fi";
 import emailjs from "@emailjs/browser";
 
 import logoimg from '/Image/lo.png'
@@ -418,8 +418,8 @@ const Checkout = () => {
               <h2 className="text-xl font-semibold mb-4">Choose a Saved Address</h2>
 
               <div className="flex items-start gap-3 mb-4">
-                <div className="relative w-full" ref={searchWrapperRef}>
-                  <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                <div className="relative flex-1 max-w-3xl" ref={searchWrapperRef}>
+                  <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-base">
                     <FiSearch />
                   </div>
                   <input
@@ -427,16 +427,16 @@ const Checkout = () => {
                     value={searchTerm}
                     onChange={(e) => { setSearchTerm(e.target.value); setShowSuggestions(true); }}
                     onFocus={() => setShowSuggestions(true)}
-                    className="border rounded-lg px-12 py-3 w-full placeholder-gray-400 bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-800"
+                    className="border border-gray-400 rounded-lg px-10 py-2 w-1/2 placeholder-gray-400 bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-800"
                   />
 
                   {showSuggestions && (
-                    <div className="absolute left-0 right-0 mt-2 bg-white border rounded-md shadow-lg z-50 max-h-64 overflow-y-auto">
-                      <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase bg-gray-50 border-b">Saved Addresses</div>
-                      {filteredAddresses.length === 0 ? (
-                        <div className="px-4 py-3 text-sm text-gray-600">No saved addresses</div>
-                      ) : (
-                        filteredAddresses.map((addr, sidx) => {
+                    <div className="absolute left-0 right-0 mt-2 bg-white border border-gray-200 rounded-md shadow-lg z-50 max-h-64 overflow-y-auto">
+                      <div className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase bg-gray-50 border-b border-gray-200">Saved Addresses</div>
+                        {filteredAddresses.length === 0 ? (
+                          <div className="px-3 py-2 text-sm text-gray-600">No saved addresses</div>
+                        ) : (
+                          filteredAddresses.map((addr, sidx) => {
                           const origIndex = savedAddresses.findIndex((sa) =>
                             (sa.street === addr.street && sa.contact === addr.contact && sa.zip === addr.zip) || (sa.lat && addr.lat && sa.lat === addr.lat && sa.lon === addr.lon)
                           );
@@ -449,7 +449,7 @@ const Checkout = () => {
                             <div
                               key={sidx}
                               onClick={onSelectSuggestion}
-                              className="px-4 py-3 hover:bg-slate-50 cursor-pointer flex items-start border-b last:border-b-0"
+                              className="px-3 py-2 hover:bg-slate-50 cursor-pointer flex items-start border-b border-gray-200 last:border-b-0"
                             >
                               <div className="flex-1">
                                 <div className="font-medium text-sm">{addr.fullname} <span className="text-gray-500">– {addr.contact}</span></div>
@@ -463,15 +463,15 @@ const Checkout = () => {
                   )}
                 </div>
 
-                <div className="flex flex-col items-end gap-3">
-              
+                <div className="flex flex-col items-end gap-3 w-34">
                   <button
                     type="button"
                     onClick={handleUseMyLocation}
                     disabled={isLocating}
-                    className="px-5 py-3 bg-slate-900 text-white rounded-lg shadow-md hover:bg-slate-800"
+                    className="px-3 py-2.5 font-semibold bg-slate-900 text-white rounded-lg shadow-md hover:bg-slate-800 text-md w-full flex items-center justify-center gap-2"
                   >
-                    {isLocating ? "Locating..." : "Use my location"}
+                    <FiMapPin />Live
+                    
                   </button>
                 </div>
               </div>
@@ -484,7 +484,7 @@ const Checkout = () => {
           <form ref={form} onSubmit={handlePayment} className="">
             <div className="flex flex-col lg:flex-row gap-10">
               {/* ---------------- Shipping details ---------------- */}
-              <div className="w-full lg:w-2/3 border p-6 rounded-xl border-slate-800 bg-white shadow">
+              <div className="w-full lg:w-2/3 border border-gray-200 p-6 rounded-xl  bg-white shadow">
                 <h1 className="text-2xl font-semibold mb-6">Shipping Details</h1>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <input
@@ -710,7 +710,7 @@ const Checkout = () => {
                 {itemsToShow.map((i, idx) => (
                   <div
                     key={idx}
-                    className="flex items-center gap-3 mb-3 pb-3 border-b"
+                    className="flex items-center gap-3 mb-3 pb-3 "
                   >
                     <img
                       src={i.customizedImage || i.image || i.images?.[0]}
@@ -744,7 +744,7 @@ const Checkout = () => {
                   </div>
                 ))}
 
-                <div className="mt-4 border-t pt-4 space-y-2 text-sm">
+                <div className="mt-4 border-t border-gray-300 pt-4 space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span>Total Items</span>
                     <span>{itemsToShow.length}</span>
@@ -777,7 +777,7 @@ const Checkout = () => {
                     </span>
                   </div>
 
-                  <div className="flex justify-between font-bold text-base border-t pt-3">
+                  <div className="flex justify-between font-bold text-base border-t border-gray-300 pt-3">
                     <span>Total</span>
                     <span>₹{payable.toFixed(2)}</span>
                   </div>
