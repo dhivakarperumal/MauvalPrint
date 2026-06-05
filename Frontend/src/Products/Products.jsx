@@ -2,7 +2,7 @@ import React, { useContext, useEffect, useState, useMemo } from "react";
 import { AuthContext } from "../Context/AuthContext";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { FaStar, FaHeart, FaShoppingCart, FaEye } from "react-icons/fa";
-import { IoIosArrowDown } from "react-icons/io";
+import { IoIosArrowDown, IoMdOptions } from "react-icons/io";
 import AOS from "aos";
 import PageContainer from "../Components/PageContainer";
 import "aos/dist/aos.css";
@@ -27,12 +27,12 @@ function ProductCard({ product, index, addToCart, addToWishlist, cardSize, setCa
       onClick={() => toggleBubble(product.id)}
       data-aos="fade-up"
       data-aos-delay={index * 100}
-      className="group relative bg-white border border-gray-200 rounded-2xl shadow-md hover:shadow-xl transition-all duration-500 p-4"
+      className="group relative bg-white border border-gray-200 rounded-2xl shadow-md hover:shadow-xl transition-all duration-500 p-3"
     >
       <div className="relative w-full h-52 bg-primary/5 rounded-[30px] overflow-hidden shadow-lg transition-transform duration-700 ease-in-out hover:scale-105">
         {/* Cart button */}
         <div
-          className={`absolute w-[70%] h-[70%] transition-all duration-400 ease-in-out z-10 rounded-[10%_13%_42%_0%/10%_12%_75%_0%] bg-primary/30 ${clickedProductId === product.id
+          className={`absolute w-[65%] h-[65%] transition-all duration-400 ease-in-out z-10 rounded-[10%_13%_42%_0%/10%_12%_75%_0%] bg-primary/30 ${clickedProductId === product.id
             ? "bottom-0 left-0"
             : "bottom-[-70%] left-[-70%] group-hover:bottom-0 group-hover:left-0"
             }`}
@@ -50,17 +50,17 @@ function ProductCard({ product, index, addToCart, addToWishlist, cardSize, setCa
 
                 addToCart({ ...product, selectedSize, selectedColor: defaultColor });
               }}
-              className="text-white bg-white/20 p-2 cursor-pointer rounded-full hover:bg-white hover:text-primary transition"
+              className="text-white bg-white/20 p-1.5 cursor-pointer rounded-full hover:bg-white hover:text-primary transition"
               title="Add to Cart"
             >
-              <FaShoppingCart size={16} />
+              <FaShoppingCart size={15} />
             </button>
           </div>
         </div>
 
         {/* Wishlist button */}
         <div
-          className={`absolute w-[50%] h-[50%] transition-all duration-700 ease-in-out z-10 rounded-[10%_13%_42%_0%/10%_12%_75%_0%] bg-primary/30 ${clickedProductId === product.id
+          className={`absolute w-[47%] h-[47%] transition-all duration-700 ease-in-out z-10 rounded-[10%_13%_42%_0%/10%_12%_75%_0%] bg-primary/30 ${clickedProductId === product.id
             ? "bottom-0 left-0"
             : "bottom-[-70%] left-[-70%] group-hover:bottom-0 group-hover:left-0"
             }`}
@@ -72,17 +72,17 @@ function ProductCard({ product, index, addToCart, addToWishlist, cardSize, setCa
                 e.stopPropagation();
                 addToWishlist(product);
               }}
-              className="text-white cursor-pointer bg-white/20 p-2 rounded-full hover:bg-white hover:text-primary transition"
+              className="text-white cursor-pointer bg-white/20 p-1.5 rounded-full hover:bg-white hover:text-primary transition"
               title="Add to Wishlist"
             >
-              <FaHeart size={16} />
+              <FaHeart size={15} />
             </button>
           </div>
         </div>
 
         {/* View Details button */}
         <div
-          className={`absolute w-[32%] h-[32%] transition-all duration-1000 ease-in-out z-10 rounded-[10%_13%_42%_0%/10%_12%_75%_0%] bg-primary/30 ${clickedProductId === product.id
+          className={`absolute w-[29%] h-[29%] transition-all duration-1000 ease-in-out z-10 rounded-[10%_13%_42%_0%/10%_12%_75%_0%] bg-primary/30 ${clickedProductId === product.id
             ? "bottom-0 left-0"
             : " bottom-[-70%] left-[-70%] group-hover:bottom-0 group-hover:left-0"
             }`}
@@ -91,10 +91,10 @@ function ProductCard({ product, index, addToCart, addToWishlist, cardSize, setCa
           <div className="absolute top-2 right-2">
             <Link to={`/productdetails/${product.product_id}`}>
               <button
-                className="text-white cursor-pointer bg-white/20 p-2 rounded-full hover:bg-white hover:text-primary transition"
+                className="text-white cursor-pointer bg-white/20 p-1.5 rounded-full hover:bg-white hover:text-primary transition"
                 title="View Details"
               >
-                <FaEye size={16} />
+                <FaEye size={15} />
               </button>
             </Link>
           </div>
@@ -163,7 +163,7 @@ function Products() {
   const [selectedSize, setSelectedSize] = useState("all");
   const [selectedColor, setSelectedColor] = useState("all");
   const [minRating, setMinRating] = useState(0);
-  const [showFilters, setShowFilters] = useState(false);
+  const [showFilters, setShowFilters] = useState(true);
   const [cardSize, setCardSize] = useState({});
 
   const allContextProducts = useMemo(() => {
@@ -350,7 +350,7 @@ function Products() {
     });
   }, [products, category, priceRange, minRating, selectedSize, selectedColor, selectedSubcategory]);
 
-  const productsPerPage = 6;
+  const productsPerPage = showFilters ? 8 : 10;
   const totalPages = Math.max(1, Math.ceil(filteredProducts.length / productsPerPage));
 
   useEffect(() => {
@@ -362,7 +362,7 @@ function Products() {
   const paginatedProducts = useMemo(() => {
     const start = (currentPage - 1) * productsPerPage;
     return filteredProducts.slice(start, start + productsPerPage);
-  }, [filteredProducts, currentPage]);
+  }, [filteredProducts, currentPage, productsPerPage]);
 
   const handlePageChange = (page) => {
     if (page >= 1 && page <= totalPages) {
@@ -418,22 +418,21 @@ function Products() {
 
       <Head title="Our Products" subtitle="Products" />
       <PageContainer>
-        {/* Mobile Filter Dropdown */}
-        <div className="md:hidden p-4 bg-white border-b border-gray-200">
-          <button
-            onClick={() => setShowFilters((prev) => !prev)}
-            className="w-full flex items-center justify-between px-4 py-2 bg-primary text-white rounded-md"
-          >
-            Customize Filters
-            <IoIosArrowDown className={`transition-transform duration-300 ${showFilters ? "rotate-180" : ""}`} />
-          </button>
-        </div>
+         <div className="flex items-center justify-between mt-4">
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg shadow-md hover:opacity-90"
+            >
+              <IoMdOptions size={18} />
+              {showFilters ? "Hide Filters" : "Show Filters"}
+            </button>
+          </div>
 
         <section className="py-4 md:py-8 bg-white">
           <div className="flex flex-col md:flex-row gap-6">
             {/* Filters */}
-            {(showFilters || window.innerWidth >= 768) && (
-              <div className="w-full md:w-1/4 h-full border border-gray-200 rounded-xl p-4 shadow-sm bg-primary/5">
+            {showFilters && (
+              <div className="w-[280px] flex-shrink-0 h-full border border-gray-200 rounded-xl p-4 shadow-sm bg-primary/5">
                 <h3 className="text-lg font-semibold mb-4">Filter By</h3>
 
                 {/* Category */}
@@ -560,12 +559,20 @@ function Products() {
             )}
 
             {/* Products Grid */}
-            <div className="w-full md:w-3/4">
+            <div
+              className={`min-w-0 transition-all duration-300 ${showFilters ? "flex-1" : "w-full"
+                }`}
+            >
               {paginatedProducts.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div
+                  className={`grid gap-4 ${showFilters
+                      ? "grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+                      : "grid-cols-2 md:grid-cols-4 xl:grid-cols-5"
+                    }`}
+                >
                   {paginatedProducts.map((product, index) => (
                     <ProductCard
-                      key={product.id || index}
+                      key={`${product.id}-${showFilters}`}
                       product={product}
                       index={index}
                       addToCart={addToCart}
