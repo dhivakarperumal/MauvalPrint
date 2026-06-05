@@ -308,8 +308,8 @@ const Checkout = () => {
                     key={idx}
                     onClick={() => handleAddressSelect(idx)}
                     className={`border p-4 rounded-lg shadow cursor-pointer transition ${selectedAddressIdx === idx
-                        ? "border-slate-800 bg-slate-100"
-                        : "border-gray-300 bg-white"
+                      ? "border-slate-800 bg-slate-100"
+                      : "border-gray-300 bg-white"
                       }`}
                   >
                     <div className="flex items-start">
@@ -562,9 +562,39 @@ const Checkout = () => {
                 <h3 className="text-xl font-semibold mb-4">Order Summary</h3>
 
                 {itemsToShow.map((i, idx) => (
-                  <div key={idx} className="text-sm mb-2">
-                    <strong>{i.name}</strong> × {i.quantity} <br />
-                    ₹{(i.price * i.quantity).toFixed(2)}
+                  <div
+                    key={idx}
+                    className="flex items-center gap-3 mb-3 pb-3 border-b"
+                  >
+                    <img
+                      src={i.customizedImage || i.image || i.images?.[0]}
+                      alt={i.name}
+                      className="w-16 h-16 object-contain rounded shadow-lg border border-gray-200"
+                    />
+
+                    <div className="flex-1">
+                      <h4 className="font-medium text-sm">{i.name}</h4>
+
+                      {i.selectedSize && (
+                        <p className="text-xs text-gray-500">
+                          Size: {i.selectedSize}
+                        </p>
+                      )}
+
+                      {i.selectedColor && (
+                        <p className="text-xs text-gray-500">
+                          Color: {i.selectedColor}
+                        </p>
+                      )}
+
+                      <p className="text-sm font-semibold">
+                        Qty: {i.quantity}
+                      </p>
+
+                      <p className="text-primary font-bold">
+                        ₹{(i.price * i.quantity).toFixed(2)}
+                      </p>
+                    </div>
                   </div>
                 ))}
 
@@ -589,10 +619,6 @@ const Checkout = () => {
                       <span>- ₹{(grandTotal - payable).toFixed(2)}</span>
                     </div>
                   )}
-
-
-
-
 
                   <div className="flex justify-between">
                     <span>Shipping <b> (Free) </b> </span>
