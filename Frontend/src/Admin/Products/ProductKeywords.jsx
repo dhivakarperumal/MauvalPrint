@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import api from "../../api";
 import toast from "react-hot-toast";
 import { FaEdit, FaTrash, FaPlus, FaCheck, FaTimes, FaSearch } from "react-icons/fa";
+import { FaTh, FaList } from "react-icons/fa";
 
 const toRoman = (num) => {
   const lookup = [
@@ -316,7 +317,7 @@ const ProductKeywords = () => {
               onClick={() => setActiveTab("all")}
               className={`px-5 py-2 text-sm font-bold rounded-lg transition-colors whitespace-nowrap ${activeTab === "all" ? "bg-blue-900 text-white shadow-sm" : "bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-800"}`}
             >
-              All Keywords
+              All 
             </button>
             <button
               onClick={() => setActiveTab("selected")}
@@ -345,22 +346,24 @@ const ProductKeywords = () => {
             <div className="hidden md:flex items-center bg-gray-100 rounded-lg p-1 gap-1">
               <button
                 onClick={() => setViewMode("table")}
-                className={`p-2 rounded-md transition-all ${viewMode === "table"
-                  ? "bg-blue-900 text-white"
-                  : "text-gray-500 hover:bg-gray-200"
+                title="Table View"
+                className={`p-2 rounded-md transition-all cursor-pointer ${viewMode === "table"
+                    ? "bg-blue-900 text-white shadow-sm"
+                    : "text-gray-500 hover:bg-gray-200"
                   }`}
               >
-                Table
+                <FaList size={14} />
               </button>
 
               <button
                 onClick={() => setViewMode("card")}
-                className={`p-2 rounded-md transition-all ${viewMode === "card"
-                  ? "bg-blue-900 text-white"
-                  : "text-gray-500 hover:bg-gray-200"
+                title="Card View"
+                className={`p-2 rounded-md transition-all cursor-pointer ${viewMode === "card"
+                    ? "bg-blue-900 text-white shadow-sm"
+                    : "text-gray-500 hover:bg-gray-200"
                   }`}
               >
-                Card
+                <FaTh size={14} />
               </button>
             </div>
             <button
