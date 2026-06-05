@@ -16,6 +16,8 @@ const CanvasWorkspace = ({ onCanvasReady, product, imageSrc, selectedProductColo
 
   // Use the provided imageSrc directly, or fall back to the placeholder
   const displaySrc = imageSrc || placeholderSvg;
+  const proxyApiUrl = '/api/proxy-image?url=';
+  const viteProxyBase = '/proxy-image';
 
   const addImageToCanvas = (canvas, imgEl) => {
     try {
@@ -69,17 +71,18 @@ const CanvasWorkspace = ({ onCanvasReady, product, imageSrc, selectedProductColo
     return new Promise((resolve, reject) => {
       // data: and blob: are already clean
       if (src.startsWith('data:') || src.startsWith('blob:')) {
-        resolve(src);
+        resolve({ src, safe: true });
         return;
       }
 
-      // Strategy 1 & 2: Try fetch (same-origin first, then proxy)
       const fetchUrls = [src];
       try {
         const url = new URL(src, window.location.origin);
         if (url.origin !== window.location.origin) {
-          // Add proxied URL as an alternative
-          fetchUrls.unshift('/proxy-image' + url.pathname + url.search);
+          fetchUrls.unshift(viteProxyBase + url.pathname + url.search);
+          if (backendProxyBase) {
+            fetchUrls.unshift(backendProxyBase + encodeURIComponent(src));
+          }
         }
       } catch { /* ignore */ }
 
@@ -97,6 +100,21 @@ const CanvasWorkspace = ({ onCanvasReady, product, imageSrc, selectedProductColo
             }
           } catch { /* try next */ }
         }
+
+        if (proxyApiUrl) {
+          try {
+            const proxyRes = await fetch(proxyApiUrl + encodeURIComponent(src));
+            if (proxyRes.ok) {
+              const blob = await proxyRes.blob();
+              return new Promise((res2) => {
+                const reader = new FileReader();
+                reader.onloadend = () => res2(reader.result);
+                reader.readAsDataURL(blob);
+              });
+            }
+          } catch { /* ignore proxy failure */ }
+        }
+
         return null;
       };
 
@@ -115,7 +133,6 @@ const CanvasWorkspace = ({ onCanvasReady, product, imageSrc, selectedProductColo
             tempCanvas.height = img.naturalHeight;
             const ctx = tempCanvas.getContext('2d');
             ctx.drawImage(img, 0, 0);
-            // This will throw if truly cross-origin, but worth trying
             const result = tempCanvas.toDataURL('image/png');
             resolve({ src: result, safe: true });
           } catch {
@@ -123,9 +140,8 @@ const CanvasWorkspace = ({ onCanvasReady, product, imageSrc, selectedProductColo
           }
         };
         img.onerror = () => reject(new Error('Image failed to load: ' + src));
-        // Don't set crossOrigin here — we want the image to load regardless
         img.src = src;
-      });
+      }).catch((err) => reject(err));
     });
   };
 

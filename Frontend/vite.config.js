@@ -42,14 +42,14 @@ export default defineConfig({
     port: 5173, // ensure consistent port for proxying
     proxy: {
       "/api": {
-        // target: "http://localhost:5000",
-        target: "https://product2.qtechx.com",
+        target: process.env.VITE_BACKEND_URL || "http://localhost:5000",
         changeOrigin: true,
         secure: false,
       },
       '/proxy-uploads': {
-        target: 'https://product2.qtechx.com/uploads',
+        target: process.env.VITE_BACKEND_URL ? `${process.env.VITE_BACKEND_URL}/uploads` : 'http://localhost:5000/uploads',
         changeOrigin: true,
+        secure: false,
         rewrite: (path) => path.replace(/^\/proxy-uploads/, '')
       }
     }
