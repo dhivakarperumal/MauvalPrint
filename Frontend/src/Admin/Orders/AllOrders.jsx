@@ -819,9 +819,9 @@ const AllOrders = () => {
                                   {item.size && <span className="bg-gray-50 border border-gray-100 text-gray-600 px-1.5 py-0.5 rounded-md text-[10px] font-medium">Size: <b className="text-gray-900">{item.size}</b></span>}
                                 </div>
                                 <div className="mt-1.5 font-bold text-green-700 text-xs">₹{item.price}</div>
-                                {item.color === "" && item.customizedImage && (
+                                {(item.customizedImage || item.image || item.images?.[0]) && (
                                   <a
-                                    href={item.customizedImage}
+                                    href={item.customizedImage || item.image || item.images?.[0]}
                                     download={`customized-${item.name || "image"}.jpg`}
                                     className="text-white bg-blue-600 hover:bg-blue-700 px-2 py-1 rounded text-[10px] mt-2 inline-block text-center w-fit transition-colors shadow-sm font-medium"
                                   >

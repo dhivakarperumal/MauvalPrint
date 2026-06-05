@@ -738,13 +738,13 @@ const NewOrders = () => {
                                 <span className="bg-green-50 text-green-700 px-1.5 py-0.5 rounded font-medium">₹{item.price}</span>
                                 {item.size && <span className="bg-gray-100 px-1.5 py-0.5 rounded">Size: <b>{item.size}</b></span>}
                               </div>
-                              {item.color === "" && item.customizedImage && (
+                              {(item.customizedImage || item.image || item.images?.[0]) && (
                                 <a
-                                  href={item.customizedImage}
+                                  href={item.customizedImage || item.image || item.images?.[0]}
                                   download={`customized-${item.name || "image"}.jpg`}
                                   className="text-white bg-blue-600 hover:bg-blue-700 px-2 py-1 rounded text-[10px] mt-2 inline-block text-center w-fit transition-colors cursor-pointer"
                                 >
-                                  Download Custom Image
+                                  Download Image
                                 </a>
                               )}
                             </div>
