@@ -41,6 +41,10 @@ const ProductKeywords = () => {
 
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [viewMode, setViewMode] = useState(
+    window.innerWidth < 768 ? "card" : "table"
+  );
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
   const fetchData = async () => {
     try {
@@ -62,6 +66,23 @@ const ProductKeywords = () => {
 
   useEffect(() => {
     fetchData();
+  }, []);
+
+  useEffect(() => {
+    const handleResize = () => {
+      const mobile = window.innerWidth < 768;
+
+      setIsMobile(mobile);
+
+      if (mobile) {
+        setViewMode("card");
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+    handleResize();
+
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   const handleAddKeyword = async (e) => {
@@ -156,7 +177,7 @@ const ProductKeywords = () => {
   const filteredKeywords = keywords.filter(kw => {
     const matchesSearch = kw.keyword_name.toLowerCase().includes(searchTerm.toLowerCase());
     if (!matchesSearch) return false;
-    
+
     if (activeTab === "selected") return kw.show_on_home;
     if (activeTab === "unselected") return !kw.show_on_home;
     return true;
@@ -176,7 +197,7 @@ const ProductKeywords = () => {
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
-     
+
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-8">
@@ -257,7 +278,7 @@ const ProductKeywords = () => {
       {showAddPopup && (
         <div className="fixed inset-0 z-50 flex justify-end bg-black/50 transition-opacity">
           <div className="w-full sm:w-96 bg-white h-full shadow-2xl p-6 relative flex flex-col animate-[slideIn_0.3s_ease-out]">
-            <button 
+            <button
               onClick={() => setShowAddPopup(false)}
               className="absolute top-5 right-5 text-gray-500 hover:text-red-500 transition-colors"
             >
@@ -321,6 +342,27 @@ const ProductKeywords = () => {
                 className="pl-9 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 w-full sm:w-64"
               />
             </div>
+            <div className="hidden md:flex items-center bg-gray-100 rounded-lg p-1 gap-1">
+              <button
+                onClick={() => setViewMode("table")}
+                className={`p-2 rounded-md transition-all ${viewMode === "table"
+                  ? "bg-blue-900 text-white"
+                  : "text-gray-500 hover:bg-gray-200"
+                  }`}
+              >
+                Table
+              </button>
+
+              <button
+                onClick={() => setViewMode("card")}
+                className={`p-2 rounded-md transition-all ${viewMode === "card"
+                  ? "bg-blue-900 text-white"
+                  : "text-gray-500 hover:bg-gray-200"
+                  }`}
+              >
+                Card
+              </button>
+            </div>
             <button
               onClick={() => setShowAddPopup(true)}
               className="bg-blue-900 text-white font-semibold py-2 px-4 rounded-lg flex items-center justify-center gap-2 hover:bg-blue-800 transition shadow-sm cursor-pointer whitespace-nowrap"
@@ -330,178 +372,239 @@ const ProductKeywords = () => {
           </div>
         </div>
 
-          <div className="hidden md:block overflow-x-auto shadow rounded-lg">
+        {(!isMobile && viewMode === "table") && (
+          <div className="overflow-x-auto shadow rounded-lg">
             <table className="w-full text-sm text-left">
               <thead className="bg-gray-800 text-white">
+                <tr>
+                  <th className="py-3 px-3 font-semibold text-center">Home</th>
+                  <th className="py-3 px-3 font-semibold text-center">Order</th>
+                  <th className="py-3 px-4 font-semibold">Keyword Name</th>
+                  <th className="py-3 px-4 font-semibold text-center">Status</th>
+                  <th className="py-3 px-4 font-semibold text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {currentItems.length === 0 ? (
                   <tr>
-                    <th className="py-3 px-3 font-semibold text-center">Home</th>
-                    <th className="py-3 px-3 font-semibold text-center">Order</th>
-                    <th className="py-3 px-4 font-semibold">Keyword Name</th>
-                    <th className="py-3 px-4 font-semibold text-center">Status</th>
-                    <th className="py-3 px-4 font-semibold text-right">Actions</th>
+                    <td colSpan="5" className="py-6 text-center text-gray-400">No keywords found.</td>
                   </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {currentItems.length === 0 ? (
-                    <tr>
-                      <td colSpan="5" className="py-6 text-center text-gray-400">No keywords found.</td>
-                    </tr>
-                  ) : (
-                    currentItems.map(kw => (
-                      <tr key={kw.keyword_id} className={`hover:bg-gray-50 ${kw.show_on_home ? 'bg-blue-50/50' : ''}`}>
-                        {/* Home Checkbox */}
-                        <td className="py-3 px-3 text-center">
-                          <input
-                            type="checkbox"
-                            checked={!!kw.show_on_home}
-                            onChange={() => handleToggleHome(kw)}
-                            className="w-4 h-4 accent-blue-600 cursor-pointer"
-                            title="Show on Home"
-                          />
-                        </td>
-                        {/* Order (Roman numeral) */}
-                        <td className="py-3 px-3 text-center">
-                          {kw.show_on_home ? (
-                            <select
-                              value={kw.display_order || 1}
-                              onChange={(e) => handleOrderChange(kw, e.target.value)}
-                              className="border border-gray-300 rounded px-1 py-1 text-xs font-bold text-blue-900 bg-blue-50 w-16 text-center cursor-pointer"
-                            >
-                              {Array.from({ length: 20 }, (_, i) => i + 1).map(n => (
-                                <option key={n} value={n}>{toRoman(n)}</option>
-                              ))}
-                            </select>
-                          ) : (
-                            <span className="text-gray-300">—</span>
-                          )}
-                        </td>
-                        {/* Keyword Name */}
-                        <td className="py-3 px-4 font-medium text-gray-800">
-                          {editingId === kw.keyword_id ? (
-                            <input
-                              type="text"
-                              value={editKeywordName}
-                              onChange={(e) => setEditKeywordName(e.target.value)}
-                              className="border border-blue-400 rounded px-2 py-1 w-full text-sm"
-                            />
-                          ) : (
-                            <div className="flex items-center gap-2">
-                              {kw.keyword_name}
-                              {kw.show_on_home ? (
-                                <span className="bg-blue-100 text-blue-700 text-[10px] font-bold px-2 py-0.5 rounded-full">HOME</span>
-                              ) : null}
-                            </div>
-                          )}
-                        </td>
-                        {/* Status */}
-                        <td className="py-3 px-4 text-center">
-                          <button
-                            onClick={() => handleToggleStatus(kw.keyword_id, kw.status)}
-                            className={`px-3 py-1 rounded-full text-xs font-bold cursor-pointer ${kw.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}
+                ) : (
+                  currentItems.map(kw => (
+                    <tr key={kw.keyword_id} className={`hover:bg-gray-50 ${kw.show_on_home ? 'bg-blue-50/50' : ''}`}>
+                      {/* Home Checkbox */}
+                      <td className="py-3 px-3 text-center">
+                        <input
+                          type="checkbox"
+                          checked={!!kw.show_on_home}
+                          onChange={() => handleToggleHome(kw)}
+                          className="w-4 h-4 accent-blue-600 cursor-pointer"
+                          title="Show on Home"
+                        />
+                      </td>
+                      {/* Order (Roman numeral) */}
+                      <td className="py-3 px-3 text-center">
+                        {kw.show_on_home ? (
+                          <select
+                            value={kw.display_order || 1}
+                            onChange={(e) => handleOrderChange(kw, e.target.value)}
+                            className="border border-gray-300 rounded px-1 py-1 text-xs font-bold text-blue-900 bg-blue-50 w-16 text-center cursor-pointer"
                           >
-                            {kw.status.toUpperCase()}
-                          </button>
-                        </td>
-                        {/* Actions */}
-                        <td className="py-3 px-4 flex justify-end gap-2">
-                          {editingId === kw.keyword_id ? (
-                            <>
-                              <button onClick={() => saveEdit(kw.keyword_id)} className="p-1.5 bg-green-500 text-white rounded hover:bg-green-600 transition cursor-pointer" title="Save">
-                                <FaCheck size={12} />
-                              </button>
-                              <button onClick={() => setEditingId(null)} className="p-1.5 bg-gray-500 text-white rounded hover:bg-gray-600 transition cursor-pointer" title="Cancel">
-                                <FaTimes size={12} />
-                              </button>
-                            </>
-                          ) : (
-                            <>
-                              <button onClick={() => startEdit(kw)} className="p-1.5 bg-blue-100 text-blue-600 rounded hover:bg-blue-200 transition cursor-pointer" title="Edit">
-                                <FaEdit size={14} />
-                              </button>
-                              <button onClick={() => handleDelete(kw.keyword_id)} className="p-1.5 bg-red-100 text-red-600 rounded hover:bg-red-200 transition cursor-pointer" title="Delete">
-                                <FaTrash size={14} />
-                              </button>
-                            </>
-                          )}
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-            
-            {totalPages > 0 && (
-              <div className="flex flex-col sm:flex-row justify-between items-center px-5 py-4 mt-6 bg-white border border-gray-200 rounded-xl shadow-sm gap-4">
-                <div className="flex flex-wrap items-center gap-4">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm text-gray-500 font-medium">Rows per page:</span>
-                    <select
-                      value={itemsPerPage}
-                      onChange={(e) => {
-                        setItemsPerPage(Number(e.target.value));
-                        setCurrentPage(1);
-                      }}
-                      className="border border-gray-300 rounded-md text-sm py-1 px-2 text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                      <option value={10}>10</option>
-                      <option value={20}>20</option>
-                      <option value={50}>50</option>
-                      <option value={100}>100</option>
-                    </select>
-                  </div>
-                  <p className="text-sm text-gray-600 font-medium">
-                    Showing {filteredKeywords.length === 0 ? 0 : indexOfFirst + 1} to {Math.min(indexOfLast, filteredKeywords.length)} of {filteredKeywords.length} items
-                  </p>
-                </div>
-                
-                {totalPages > 1 && (
-                <div className="flex justify-center items-center gap-2 flex-wrap">
-                  <button
-                    onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                    disabled={currentPage === 1}
-                    className="px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 text-sm font-medium transition-colors"
-                  >
-                    Prev
-                  </button>
-                  <div className="flex items-center gap-1">
-                    {Array.from({ length: totalPages }, (_, idx) => {
-                      const page = idx + 1;
-                      const shouldShow = page === 1 || page === totalPages || Math.abs(page - currentPage) <= 2;
-                      
-                      if (!shouldShow) {
-                        if ((page === 2 && currentPage > 4) || (page === totalPages - 1 && currentPage < totalPages - 3)) {
-                          return <span key={page} className="px-2 text-gray-400 font-medium">...</span>;
-                        }
-                        return null;
-                      }
-
-                      return (
+                            {Array.from({ length: 20 }, (_, i) => i + 1).map(n => (
+                              <option key={n} value={n}>{toRoman(n)}</option>
+                            ))}
+                          </select>
+                        ) : (
+                          <span className="text-gray-300">—</span>
+                        )}
+                      </td>
+                      {/* Keyword Name */}
+                      <td className="py-3 px-4 font-medium text-gray-800">
+                        {editingId === kw.keyword_id ? (
+                          <input
+                            type="text"
+                            value={editKeywordName}
+                            onChange={(e) => setEditKeywordName(e.target.value)}
+                            className="border border-blue-400 rounded px-2 py-1 w-full text-sm"
+                          />
+                        ) : (
+                          <div className="flex items-center gap-2">
+                            {kw.keyword_name}
+                            {kw.show_on_home ? (
+                              <span className="bg-blue-100 text-blue-700 text-[10px] font-bold px-2 py-0.5 rounded-full">HOME</span>
+                            ) : null}
+                          </div>
+                        )}
+                      </td>
+                      {/* Status */}
+                      <td className="py-3 px-4 text-center">
                         <button
-                          key={page}
-                          onClick={() => setCurrentPage(page)}
-                          className={`w-8 h-8 flex items-center justify-center rounded-md text-sm font-medium transition-colors ${
-                            currentPage === page
-                              ? "bg-blue-600 text-white shadow-sm"
-                              : "bg-gray-50 border border-gray-200 hover:bg-gray-100 text-gray-700"
-                          }`}
+                          onClick={() => handleToggleStatus(kw.keyword_id, kw.status)}
+                          className={`px-3 py-1 rounded-full text-xs font-bold cursor-pointer ${kw.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}
                         >
-                          {page}
+                          {kw.status.toUpperCase()}
                         </button>
-                      );
-                    })}
-                  </div>
+                      </td>
+                      {/* Actions */}
+                      <td className="py-3 px-4 flex justify-end gap-2">
+                        {editingId === kw.keyword_id ? (
+                          <>
+                            <button onClick={() => saveEdit(kw.keyword_id)} className="p-1.5 bg-green-500 text-white rounded hover:bg-green-600 transition cursor-pointer" title="Save">
+                              <FaCheck size={12} />
+                            </button>
+                            <button onClick={() => setEditingId(null)} className="p-1.5 bg-gray-500 text-white rounded hover:bg-gray-600 transition cursor-pointer" title="Cancel">
+                              <FaTimes size={12} />
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <button onClick={() => startEdit(kw)} className="p-1.5 bg-blue-100 text-blue-600 rounded hover:bg-blue-200 transition cursor-pointer" title="Edit">
+                              <FaEdit size={14} />
+                            </button>
+                            <button onClick={() => handleDelete(kw.keyword_id)} className="p-1.5 bg-red-100 text-red-600 rounded hover:bg-red-200 transition cursor-pointer" title="Delete">
+                              <FaTrash size={14} />
+                            </button>
+                          </>
+                        )}
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {(isMobile || viewMode === "card") && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {currentItems.map((kw) => (
+              <div
+                key={kw.keyword_id}
+                className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm"
+              >
+                <div className="flex justify-between items-start mb-3">
+                  <h3 className="font-semibold text-gray-800">
+                    {kw.keyword_name}
+                  </h3>
+
+                  <input
+                    type="checkbox"
+                    checked={!!kw.show_on_home}
+                    onChange={() => handleToggleHome(kw)}
+                    className="w-4 h-4 accent-blue-600"
+                  />
+                </div>
+
+                <div className="space-y-2 text-sm">
+                  <p>
+                    Status:
+                    <span
+                      className={`ml-2 px-2 py-1 rounded-full text-xs font-bold ${kw.status === "active"
+                        ? "bg-green-100 text-green-700"
+                        : "bg-red-100 text-red-700"
+                        }`}
+                    >
+                      {kw.status}
+                    </span>
+                  </p>
+
+                  {kw.show_on_home && (
+                    <p>
+                      Order: {toRoman(kw.display_order || 1)}
+                    </p>
+                  )}
+                </div>
+
+                <div className="flex justify-end gap-2 mt-3">
                   <button
-                    onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-                    disabled={currentPage === totalPages}
-                    className="px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 text-sm font-medium transition-colors"
+                    onClick={() => startEdit(kw)}
+                    className="w-8 h-8 bg-blue-100 text-blue-700 rounded-md flex items-center justify-center hover:bg-blue-200 transition"
                   >
-                    Next
+                    <FaEdit size={12} />
+                  </button>
+
+                  <button
+                    onClick={() => handleDelete(kw.keyword_id)}
+                    className="w-8 h-8 bg-red-100 text-red-700 rounded-md flex items-center justify-center hover:bg-red-200 transition"
+                  >
+                    <FaTrash size={12} />
                   </button>
                 </div>
-                )}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {totalPages > 0 && (
+          <div className="flex flex-col sm:flex-row justify-between items-center px-5 py-4 mt-6 bg-white border border-gray-200 rounded-xl shadow-sm gap-4">
+            <div className="flex flex-wrap items-center gap-4">
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-500 font-medium">Rows per page:</span>
+                <select
+                  value={itemsPerPage}
+                  onChange={(e) => {
+                    setItemsPerPage(Number(e.target.value));
+                    setCurrentPage(1);
+                  }}
+                  className="border border-gray-300 rounded-md text-sm py-1 px-2 text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value={10}>10</option>
+                  <option value={20}>20</option>
+                  <option value={50}>50</option>
+                  <option value={100}>100</option>
+                </select>
+              </div>
+              <p className="text-sm text-gray-600 font-medium">
+                Showing {filteredKeywords.length === 0 ? 0 : indexOfFirst + 1} to {Math.min(indexOfLast, filteredKeywords.length)} of {filteredKeywords.length} items
+              </p>
+            </div>
+
+            {totalPages > 1 && (
+              <div className="flex justify-center items-center gap-2 flex-wrap">
+                <button
+                  onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                  className="px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 text-sm font-medium transition-colors"
+                >
+                  Prev
+                </button>
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: totalPages }, (_, idx) => {
+                    const page = idx + 1;
+                    const shouldShow = page === 1 || page === totalPages || Math.abs(page - currentPage) <= 2;
+
+                    if (!shouldShow) {
+                      if ((page === 2 && currentPage > 4) || (page === totalPages - 1 && currentPage < totalPages - 3)) {
+                        return <span key={page} className="px-2 text-gray-400 font-medium">...</span>;
+                      }
+                      return null;
+                    }
+
+                    return (
+                      <button
+                        key={page}
+                        onClick={() => setCurrentPage(page)}
+                        className={`w-8 h-8 flex items-center justify-center rounded-md text-sm font-medium transition-colors ${currentPage === page
+                          ? "bg-blue-600 text-white shadow-sm"
+                          : "bg-gray-50 border border-gray-200 hover:bg-gray-100 text-gray-700"
+                          }`}
+                      >
+                        {page}
+                      </button>
+                    );
+                  })}
+                </div>
+                <button
+                  onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                  disabled={currentPage === totalPages}
+                  className="px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 text-sm font-medium transition-colors"
+                >
+                  Next
+                </button>
               </div>
             )}
+          </div>
+        )}
 
       </div>
     </div>

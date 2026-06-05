@@ -27,6 +27,7 @@ const Category = () => {
   const [subcatInput, setSubcatInput] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
   // ── Filter state ────────────────────────────────────────────────────────────
   const [search, setSearch] = useState("");
@@ -62,6 +63,22 @@ const Category = () => {
       setCategory((p) => ({ ...p, category_id: generateNextCatId(list) }));
     })();
   }, []);
+
+  useEffect(() => {
+  const handleResize = () => {
+    const mobile = window.innerWidth < 768;
+    setIsMobile(mobile);
+
+    if (mobile) {
+      setViewMode("card");
+    }
+  };
+
+  handleResize();
+  window.addEventListener("resize", handleResize);
+
+  return () => window.removeEventListener("resize", handleResize);
+}, []);
 
   // ── Filtered & sorted categories ────────────────────────────────────────────
   const filtered = useMemo(() => {
@@ -263,7 +280,7 @@ const Category = () => {
           </select>
 
           {/* View toggle */}
-          <div className="flex items-center bg-gray-100 rounded-xl p-1 gap-1">
+          <div className="hidden md:flex items-center bg-gray-100 rounded-xl p-1 gap-1">
             <button
               onClick={() => setViewMode("card")}
               className={`p-2.5 rounded-lg cursor-pointer transition-all ${viewMode === "card" ? "bg-white text-blue-900 shadow-sm" : "text-gray-400 hover:text-gray-600"}`}
@@ -326,7 +343,7 @@ const Category = () => {
       </p>
 
       {/* ════════════════════ CARD MODE ════════════════════ */}
-      {viewMode === "card" && (
+      {(isMobile || viewMode === "card") && (
         <>
           {currentItems.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -439,7 +456,7 @@ const Category = () => {
       )}
 
       {/* ════════════════════ TABLE MODE ════════════════════ */}
-      {viewMode === "table" && (
+      {(!isMobile && viewMode === "table") && (
         <div className="overflow-x-auto rounded-2xl border border-gray-200 shadow-sm bg-white">
           <table className="min-w-[750px] w-full text-sm text-left">
             <thead className="bg-gray-800 text-white">
