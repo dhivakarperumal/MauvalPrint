@@ -2,7 +2,7 @@ import React, { useContext, useEffect, useState, useMemo } from "react";
 import { AuthContext } from "../Context/AuthContext";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { FaStar, FaHeart, FaShoppingCart, FaEye } from "react-icons/fa";
-import { IoIosArrowDown } from "react-icons/io";
+import { IoIosArrowDown, IoMdOptions } from "react-icons/io";
 import AOS from "aos";
 import PageContainer from "../Components/PageContainer";
 import "aos/dist/aos.css";
@@ -163,7 +163,7 @@ function Products() {
   const [selectedSize, setSelectedSize] = useState("all");
   const [selectedColor, setSelectedColor] = useState("all");
   const [minRating, setMinRating] = useState(0);
-  const [showFilters, setShowFilters] = useState(false);
+  const [showFilters, setShowFilters] = useState(true);
   const [cardSize, setCardSize] = useState({});
 
   const allContextProducts = useMemo(() => {
@@ -418,6 +418,17 @@ function Products() {
 
       <Head title="Our Products" subtitle="Products" />
       <PageContainer>
+         <div className="flex items-center justify-between mb-4">
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg shadow-md hover:opacity-90"
+            >
+              <IoMdOptions size={18} />
+              {showFilters ? "Hide Filters" : "Show Filters"}
+            </button>
+
+            
+          </div>
         {/* Mobile Filter Dropdown */}
         <div className="md:hidden p-4 bg-white border-b border-gray-200">
           <button
@@ -432,8 +443,8 @@ function Products() {
         <section className="py-4 md:py-8 bg-white">
           <div className="flex flex-col md:flex-row gap-6">
             {/* Filters */}
-            {(showFilters || window.innerWidth >= 768) && (
-              <div className="w-full md:w-1/4 h-full border border-gray-200 rounded-xl p-4 shadow-sm bg-primary/5">
+            {showFilters && (
+              <div className="w-[280px] flex-shrink-0 h-full border border-gray-200 rounded-xl p-4 shadow-sm bg-primary/5">
                 <h3 className="text-lg font-semibold mb-4">Filter By</h3>
 
                 {/* Category */}
@@ -560,9 +571,17 @@ function Products() {
             )}
 
             {/* Products Grid */}
-            <div className="w-full md:w-3/4">
+            <div
+              className={`min-w-0 transition-all duration-300 ${showFilters ? "flex-1" : "w-full"
+                }`}
+            >
               {paginatedProducts.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div
+                  className={`grid gap-4 ${showFilters
+                      ? "grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+                      : "grid-cols-2 md:grid-cols-4 xl:grid-cols-5"
+                    }`}
+                >
                   {paginatedProducts.map((product, index) => (
                     <ProductCard
                       key={product.id || index}
