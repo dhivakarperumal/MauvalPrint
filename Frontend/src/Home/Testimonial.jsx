@@ -126,7 +126,16 @@ function Testimonial() {
 
                   {/* Content */}
                   <div className="h-full px-5 pt-14 pb-4 flex flex-col justify-between relative z-10">
+ {/* User Info */}
+                    <div>
+                      <h3 className="font-bold text-gray-800 text-lg truncate">
+                        {name}
+                      </h3>
 
+                      <p className="text-primary text-sm font-medium truncate">
+                        {product}
+                      </p>
+                    </div>
                     {/* Rating */}
                     <div className="flex justify-center">
                       {[...Array(Math.round(rating || 5))].map((_, j) => (
@@ -142,16 +151,7 @@ function Testimonial() {
                       "{comment}"
                     </p>
 
-                    {/* User Info */}
-                    <div>
-                      <h3 className="font-bold text-gray-800 text-lg truncate">
-                        {name}
-                      </h3>
-
-                      <p className="text-primary text-sm font-medium truncate">
-                        {product}
-                      </p>
-                    </div>
+                   
 
                   </div>
                 </div>
