@@ -350,7 +350,7 @@ function Products() {
     });
   }, [products, category, priceRange, minRating, selectedSize, selectedColor, selectedSubcategory]);
 
-  const productsPerPage = 6;
+  const productsPerPage = showFilters ? 8 : 10;
   const totalPages = Math.max(1, Math.ceil(filteredProducts.length / productsPerPage));
 
   useEffect(() => {
@@ -362,7 +362,7 @@ function Products() {
   const paginatedProducts = useMemo(() => {
     const start = (currentPage - 1) * productsPerPage;
     return filteredProducts.slice(start, start + productsPerPage);
-  }, [filteredProducts, currentPage]);
+  }, [filteredProducts, currentPage, productsPerPage]);
 
   const handlePageChange = (page) => {
     if (page >= 1 && page <= totalPages) {
@@ -584,7 +584,7 @@ function Products() {
                 >
                   {paginatedProducts.map((product, index) => (
                     <ProductCard
-                      key={product.id || index}
+                      key={`${product.id}-${showFilters}`}
                       product={product}
                       index={index}
                       addToCart={addToCart}
