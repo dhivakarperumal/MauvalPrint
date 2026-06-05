@@ -19,7 +19,8 @@ const GetOrdersDetails = () => {
   const [editingId, setEditingId] = useState(null);
   
   const [search, setSearch] = useState("");
-  const [viewMode, setViewMode] = useState("table");
+  const [viewMode, setViewMode] = useState(window.innerWidth < 768 ? "card" : "table");
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -54,6 +55,17 @@ const GetOrdersDetails = () => {
   useEffect(() => {
     if (currentPage > totalPages && totalPages > 0) setCurrentPage(totalPages);
   }, [filteredOrders, currentPage, totalPages]);
+
+  useEffect(() => {
+    const handleResize = () => {
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+      if (mobile) setViewMode("card");
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -234,7 +246,7 @@ const GetOrdersDetails = () => {
       </div>
 
       {/* Main Content */}
-      {viewMode === "table" ? (
+      {!isMobile && viewMode === "table" ? (
         <div className="overflow-x-auto bg-white rounded-xl shadow-sm border border-gray-200">
           <table className="min-w-full text-sm text-left">
             <thead className="bg-gray-800 text-white">

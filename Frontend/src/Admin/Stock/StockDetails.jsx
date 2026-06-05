@@ -7,12 +7,13 @@ import AddStock from "./AddStock"; // We will import and render this in a modal
 const StockDetails = () => {
   const [products, setProducts] = useState([]);
   const [search, setSearch] = useState("");
-  const [viewMode, setViewMode] = useState("table");
-  
+  const [viewMode, setViewMode] = useState(window.innerWidth < 768 ? "card" : "table");
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
   const [selectedVariant, setSelectedVariant] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [expandedRows, setExpandedRows] = useState(new Set());
-  
+
   const [showAddStockModal, setShowAddStockModal] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const productsPerPage = 8;
@@ -59,44 +60,56 @@ const StockDetails = () => {
     return "";
   };
 
+  useEffect(() => {
+    const handleResize = () => {
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+      if (mobile) setViewMode("card");
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   const fetchStock = async () => {
-    try {
-      const { data } = await api.get("/products");
-      const productList = [];
+    const { data } = await api.get("/products");
+    const productList = [];
 
-      (data.products || []).forEach((product) => {
-        let stockByVariant = product.stock_by_variant || {};
-        if (typeof stockByVariant === "string") {
-          try {
-            stockByVariant = JSON.parse(stockByVariant);
-          } catch {
-            stockByVariant = {};
-          }
+    (data.products || []).forEach((product) => {
+      let stockByVariant = product.stock_by_variant || {};
+      if (typeof stockByVariant === "string") {
+        try {
+          stockByVariant = JSON.parse(stockByVariant);
+        } catch {
+          stockByVariant = {};
         }
+      }
 
-        const variants = [];
-        let totalStock = 0;
+      const variants = [];
+      let totalStock = 0;
 
-        Object.entries(stockByVariant).forEach(([key, qty]) => {
-          const [color, size] = key.split("-");
-          variants.push({ key, color, size, qty });
-          totalStock += qty || 0;
-        });
-
-        productList.push({
-          productId: product.product_id || product.id || "",
-          name: product.name || "",
-          image: getProductImage(product),
-          variants,
-          totalStock,
-        });
+      Object.entries(stockByVariant).forEach(([key, qty]) => {
+        const [color, size] = key.split("-");
+        variants.push({ key, color, size, qty });
+        totalStock += qty || 0;
       });
 
-      productList.sort((a, b) =>
-        a.productId.localeCompare(b.productId, undefined, { numeric: true })
-      );
+      productList.push({
+        productId: product.product_id || product.id || "",
+        name: product.name || "",
+        image: getProductImage(product),
+        variants,
+        totalStock,
+      });
+    });
 
-      setProducts(productList);
+    productList.sort((a, b) =>
+      a.productId.localeCompare(b.productId, undefined, { numeric: true })
+    );
+
+    setProducts(productList);
+    try {
+
     } catch (error) {
       toast.error("Failed to fetch stock");
       console.error(error);
@@ -185,7 +198,7 @@ const StockDetails = () => {
       {/* Top Bar: Search, View Toggles, Add Button */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-6">
         <div className="flex flex-col md:flex-row gap-3 items-center">
-          
+
           {/* Search */}
           <div className="relative w-full md:w-1/3">
             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
@@ -206,22 +219,20 @@ const StockDetails = () => {
               <button
                 onClick={() => setViewMode("table")}
                 title="Table View"
-                className={`p-2 rounded-md transition-all cursor-pointer ${
-                  viewMode === "table"
+                className={`p-2 rounded-md transition-all cursor-pointer ${viewMode === "table"
                     ? "bg-blue-900 text-white shadow-sm"
                     : "text-gray-500 hover:text-gray-700 hover:bg-gray-200"
-                }`}
+                  }`}
               >
                 <FaList size={14} />
               </button>
               <button
                 onClick={() => setViewMode("card")}
                 title="Card View"
-                className={`p-2 rounded-md transition-all cursor-pointer ${
-                  viewMode === "card"
+                className={`p-2 rounded-md transition-all cursor-pointer ${viewMode === "card"
                     ? "bg-blue-900 text-white shadow-sm"
                     : "text-gray-500 hover:text-gray-700 hover:bg-gray-200"
-                }`}
+                  }`}
               >
                 <FaTh size={14} />
               </button>
@@ -241,7 +252,7 @@ const StockDetails = () => {
       </div>
 
       {/* Main Content Area */}
-      {viewMode === "table" ? (
+      {!isMobile && viewMode === "table" ? (
         <div className="overflow-x-auto bg-white rounded-xl shadow-sm border border-gray-200">
           <table className="min-w-full text-sm text-left">
             <thead className="bg-gray-800 text-white">
@@ -264,8 +275,8 @@ const StockDetails = () => {
                       </td>
                       <td className="px-4 py-4 text-center">
                         {product.image ? (
-                          <img 
-                            src={product.image} 
+                          <img
+                            src={product.image}
                             alt={product.name}
                             className="w-16 h-16 object-cover rounded-lg border border-gray-200"
                             onError={(e) => { e.target.src = "https://via.placeholder.com/80?text=No+Image"; }}
@@ -355,7 +366,7 @@ const StockDetails = () => {
             paginatedProducts.map((product) => (
               <div key={product.productId} className="bg-white rounded-xl shadow-sm hover:shadow-md border border-gray-200 p-5 transition-shadow">
                 {product.image && (
-                  <img 
+                  <img
                     src={product.image}
                     alt={product.name}
                     className="w-full h-48 object-cover rounded-lg mb-4 border border-gray-200"
@@ -380,14 +391,14 @@ const StockDetails = () => {
                 <div className="mt-4 pt-4 border-t border-gray-100">
                   <div className="flex justify-between items-center mb-2">
                     <span className="text-sm font-semibold text-gray-700">Variants ({product.variants.length})</span>
-                    <button 
+                    <button
                       onClick={() => toggleExpand(product.productId)}
                       className="text-xs font-bold text-blue-600 hover:text-blue-800 cursor-pointer"
                     >
                       {expandedRows.has(product.productId) ? "Hide Details" : "Show Details"}
                     </button>
                   </div>
-                  
+
                   {expandedRows.has(product.productId) && (
                     <div className="mt-3 space-y-2 max-h-60 overflow-y-auto pr-1 custom-scrollbar">
                       {product.variants.length > 0 ? (
@@ -545,7 +556,7 @@ const StockDetails = () => {
                 <h3 className="text-xl font-bold">Add New Stock</h3>
                 <p className="text-blue-200 text-sm mt-1">Select variants to add stock</p>
               </div>
-              <button 
+              <button
                 onClick={() => {
                   setShowAddStockModal(false);
                   fetchStock(); // Refresh stock after closing modal in case it was updated
@@ -555,7 +566,7 @@ const StockDetails = () => {
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
               </button>
             </div>
-            
+
             <div className="flex-1 overflow-y-auto bg-gray-50">
               {/* We embed AddStock but hide its headers via CSS since it renders its own full page styling normally */}
               <div className="add-stock-modal-wrapper">

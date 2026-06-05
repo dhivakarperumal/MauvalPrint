@@ -28,7 +28,8 @@ const Reviews = () => {
   // New States
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [viewMode, setViewMode] = useState("table"); // "card" or "table"
+  const [viewMode, setViewMode] = useState(window.innerWidth < 768 ? "card" : "table"); // "card" or "table"
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -179,6 +180,17 @@ const Reviews = () => {
   useEffect(() => {
     if (currentPage > totalPages && totalPages > 0) setCurrentPage(totalPages);
   }, [filteredReviews, currentPage, totalPages]);
+
+  useEffect(() => {
+    const handleResize = () => {
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+      if (mobile) setViewMode('card');
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   return (
     <div className="p-4 sm:p-6 bg-gray-50 min-h-screen space-y-6">
@@ -382,7 +394,7 @@ const Reviews = () => {
       )}
 
       {/* Reviews Display */}
-      {viewMode === 'card' ? (
+      {(viewMode === 'card' || isMobile) ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {currentItems.length > 0 ? currentItems.map((review) => (
             <div

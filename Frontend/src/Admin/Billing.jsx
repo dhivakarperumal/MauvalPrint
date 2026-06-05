@@ -30,13 +30,25 @@ const Billing = ({ setActiveTab }) => {
   const [shopOrders, setShopOrders] = useState([]);
   
   const [searchTerm, setSearchTerm] = useState("");
-  const [viewMode, setViewMode] = useState("table");
+  const [viewMode, setViewMode] = useState(window.innerWidth < 768 ? "card" : "table");
   const [filterType, setFilterType] = useState("All");
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
 
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+  useEffect(() => {
+    const handleResize = () => {
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+      if (mobile) setViewMode("card");
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   const filteredOrders = useMemo(() => {
     const today = new Date();
@@ -513,7 +525,7 @@ const Billing = ({ setActiveTab }) => {
           <p className="text-gray-500">No shop customer bills found.</p>
           <button onClick={() => setShowPopup(true)} className="mt-2 text-blue-600 hover:underline text-sm font-medium cursor-pointer">Create one now</button>
         </div>
-      ) : viewMode === "table" ? (
+      ) : !isMobile && viewMode === "table" ? (
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-8">
           <div className="overflow-x-auto">
             <table className="w-full text-sm text-left">

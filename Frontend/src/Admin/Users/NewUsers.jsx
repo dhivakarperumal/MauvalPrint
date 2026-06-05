@@ -9,12 +9,24 @@ const NewUsers = () => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [editMode, setEditMode] = useState(false);
-  const [viewMode, setViewMode] = useState("table"); // "table" | "card"
+  const [viewMode, setViewMode] = useState(window.innerWidth < 768 ? "card" : "table"); // "table" | "card"
 
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("today"); 
   const [customFrom, setCustomFrom] = useState("");
   const [customTo, setCustomTo] = useState("");
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+  useEffect(() => {
+    const handleResize = () => {
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+      if (mobile) setViewMode("card");
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
@@ -318,7 +330,7 @@ const NewUsers = () => {
       </div>
 
       {/* Desktop Table View */}
-      {viewMode === "table" && (
+      {!isMobile && viewMode === "table" && (
         <div className="hidden md:block bg-white shadow rounded-lg overflow-x-auto">
           <table className="min-w-full text-sm text-left">
             <thead className="bg-gray-800 text-white">
@@ -360,7 +372,7 @@ const NewUsers = () => {
       )}
 
       {/* Desktop Card View */}
-      {viewMode === "card" && (
+      {!isMobile && viewMode === "card" && (
         <div className="hidden md:block">
           {currentUsers.length > 0 ? (
             <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">

@@ -9,7 +9,19 @@ const OldUsers = () => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [editMode, setEditMode] = useState(false);
   const [addMode, setAddMode] = useState(false);
-  const [viewMode, setViewMode] = useState("table"); // "table" | "card"
+  const [viewMode, setViewMode] = useState(window.innerWidth < 768 ? "card" : "table"); // "table" | "card"
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+  useEffect(() => {
+    const handleResize = () => {
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+      if (mobile) setViewMode("card");
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   // Filters & Pagination
   const [search, setSearch] = useState("");
@@ -365,7 +377,7 @@ const OldUsers = () => {
       </div>
 
       {/* Desktop Table View */}
-      {viewMode === "table" && (
+      {!isMobile && viewMode === "table" && (
         <div className="hidden md:block overflow-x-auto bg-white rounded-lg shadow">
           <table className="min-w-full text-sm text-left">
             <thead className="bg-gray-800 text-white">
@@ -434,7 +446,7 @@ const OldUsers = () => {
       )}
 
       {/* Desktop Card View */}
-      {viewMode === "card" && (
+      {!isMobile && viewMode === "card" && (
         <div className="hidden md:grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {currentUsers.map((user, ind) => (
             <div
