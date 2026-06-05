@@ -96,12 +96,12 @@ const DesignCard = memo(({ id, name, rating, images, mrp, salePrice, size = [] }
 
   return (
     <div
-      className="w-full max-w-sm rounded-2xl overflow-hidden shadow-lg group relative bg-white cursor-pointer min-h-[430px] md:h-[420px] flex flex-col"
+      className="w-full max-w-sm rounded-2xl overflow-hidden shadow-lg group relative bg-white cursor-pointer flex flex-col h-auto md:h-[430px]"
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
       {/* Image Container */}
-      <div className="w-full h-[220px] sm:h-[260px] md:h-[300px] relative overflow-hidden bg-primary/10 flex items-center justify-center">
+      <div className="w-full h-[220px] sm:h-[260px] md:h-[300px]  relative overflow-hidden bg-primary/10 flex items-center justify-center">
         <OptimizedImage
           src={mainImage}
           alt={name}
@@ -139,14 +139,32 @@ const DesignCard = memo(({ id, name, rating, images, mrp, salePrice, size = [] }
       </div>
 
       {/* Sizes */}
+      {/* Sizes */}
       {sortedSizes && sortedSizes.length > 0 && (
-        <div className="mt-2 mb-2 px-2 text-sm text-gray-600 flex flex-wrap items-center justify-center gap-1 md:gap-2">
+        <div
+          className="
+      mt-2 mb-2 px-2
+      flex items-center gap-2
+      overflow-x-auto
+      whitespace-nowrap
+      scrollbar-hide
+    "
+        >
           {sortedSizes.map((sz, i) => (
             <span
               key={i}
-              className="px-2 md:px-3 py-1 rounded-full text-[10px] md:text-xs border bg-white text-gray-700 border-gray-300"
+              className="
+          flex-shrink-0
+          px-3 py-1
+          rounded-full
+          text-[10px] md:text-xs
+          border
+          bg-white
+          text-gray-700
+          border-gray-300
+        "
             >
-              {sz}
+              {sz.toUpperCase()}
             </span>
           ))}
         </div>
@@ -172,7 +190,7 @@ const DesignCard = memo(({ id, name, rating, images, mrp, salePrice, size = [] }
               MRP : <del>{mrp}</del>
             </p>
 
-            <p className="text-lg md:text-xl font-bold">
+            <p className="text-sm md:text-lg font-bold">
               {salePrice}
             </p>
           </div>
@@ -425,9 +443,9 @@ const RecentDesigns = () => {
               <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-6">
 
                 {/* Left Side Hide Button */}
-          <button
-  onClick={() => setShowFilters(false)}
-  className="
+                <button
+                  onClick={() => setShowFilters(false)}
+                  className="
     flex
     items-center
     gap-2
@@ -443,7 +461,7 @@ const RecentDesigns = () => {
     duration-300
     w-fit
   "
->
+                >
                   <IoClose className="text-primary text-xs" />
                   <span className="font-medium text-xs text-gray-700">
                     Hide Filters

@@ -434,7 +434,7 @@ export default function Navbar() {
                 Designs
               </Link>
             </li>
-            <li>
+            {/* <li>
               <button
                 onClick={() => setIsMobilePagesOpen(!isMobilePagesOpen)}
                 className="flex items-center gap-2"
@@ -460,7 +460,7 @@ export default function Navbar() {
               <Link to="/services" onClick={() => setIsOpen(false)}>
                 Services
               </Link>
-            </li>
+            </li> */}
             <li className="flex gap-4">
               <a href="#" className="text-gray-300 text-xl hover:text-white">
                 <FaFacebookF />
