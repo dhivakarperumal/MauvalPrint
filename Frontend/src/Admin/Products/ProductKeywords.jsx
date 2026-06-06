@@ -197,7 +197,7 @@ const ProductKeywords = () => {
   }, [filteredKeywords, currentPage, totalPages]);
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
+    <div className="p-4 md:p-6 max-w-7xl mx-auto">
 
 
       {/* Stats Cards */}
@@ -310,7 +310,7 @@ const ProductKeywords = () => {
       )}
 
       {/* List & Search (Full Width) */}
-      <div className="bg-white p-6 rounded-xl shadow border border-gray-200 min-h-[400px]">
+      <div className="bg-white p-3 md:p-6 rounded-xl shadow border border-gray-200 min-h-[400px]">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4  pb-4">
           <div className="flex gap-3 overflow-x-auto w-full sm:w-auto pb-1 sm:pb-0">
             <button
@@ -486,7 +486,7 @@ const ProductKeywords = () => {
                 className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm"
               >
                 <div className="flex justify-between items-start mb-3">
-                  <h3 className="font-semibold text-gray-800">
+                  <h3 className="font-semibold text-gray-800 text-sm break-words flex-1 min-w-0">
                     {kw.keyword_name}
                   </h3>
 
