@@ -145,11 +145,11 @@ const DesignCard = memo(({ id, name, rating, images, mrp, salePrice, size = [] }
       </div>
 
       {/* Sizes */}
-      {/* Sizes */}
       {sortedSizes && sortedSizes.length > 0 && (
         <div
           className="
-      mt-2 mb-2 px-2
+      mt-1.5 mb-1.5 px-2 py-1
+      min-h-[30px]
       flex items-center gap-2
       overflow-x-auto
       whitespace-nowrap
