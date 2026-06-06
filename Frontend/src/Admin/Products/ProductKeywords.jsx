@@ -531,7 +531,16 @@ const ProductKeywords = () => {
 
                   {kw.show_on_home && (
                     <p>
-                      Order: {toRoman(kw.display_order || 1)}
+                      Order: 
+                      <select
+                        value={kw.display_order || 1}
+                        onChange={(e) => handleOrderChange(kw, e.target.value)}
+                        className="ml-2 border border-gray-300 rounded px-1 py-1 text-xs font-bold text-blue-900 bg-blue-50 w-20 text-center cursor-pointer"
+                      >
+                        {Array.from({ length: 20 }, (_, i) => i + 1).map(n => (
+                          <option key={n} value={n}>{toRoman(n)}</option>
+                        ))}
+                      </select>
                     </p>
                   )}
                 </div>
