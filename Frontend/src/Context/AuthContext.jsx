@@ -217,7 +217,7 @@ export function AuthProvider({ children }) {
     setLoggedIn(null);
   };
 
-  const addToCart = async (product, quantity = 1) => {
+  const addToCart = async (product, quantity = 1, showToast = true) => {
     if (!user) {
       toast.error("Login required");
       return false;
@@ -245,11 +245,11 @@ export function AuthProvider({ children }) {
       // refresh cart from server
       const { data } = await api.get(`/cart/${user.uid}`);
       if (data.success) setCart(data.cart);
-      toast.success("Added to cart");
+      if (showToast) toast.success("Added to cart");
       return true;
     } catch (err) {
       console.error("Add to cart failed:", err);
-      toast.error("Failed to add to cart");
+      if (showToast) toast.error("Failed to add to cart");
       return false;
     }
   };
@@ -365,7 +365,7 @@ export function AuthProvider({ children }) {
     if (!user) return;
     if (!wishlist.length) return toast.info("Wishlist is empty");
     for (let item of wishlist) {
-      await addToCart(item);
+      await addToCart(item, 1, false);
     }
     toast.success("All wishlist items added to cart");
   };

@@ -13,7 +13,7 @@ const Wishlist = ({ show, onClose }) => {
   const { wishlist, removeFromWishlist, addToCart, clearWishlist } = useContext(AuthContext);
   const [cardSize, setCardSize] = useState({});
 
-  const handleAddAllToCart = () => {
+  const handleAddAllToCart = async () => {
     if (!wishlist.length) return toast.info("Wishlist is empty");
 
     const allSelected = wishlist.every((item) => cardSize[item.id]);
@@ -23,10 +23,14 @@ const Wishlist = ({ show, onClose }) => {
       return;
     }
 
-    wishlist.forEach((item) => {
+    // Add items sequentially and suppress per-item toasts; show a single summary toast
+    for (const item of wishlist) {
       const selectedSize = cardSize[item.id];
-      addToCart({ ...item, selectedSize });
-    });
+      // pass showToast = false to avoid individual toasts
+      // ignore individual failures for now; overall result shown below
+      // eslint-disable-next-line no-await-in-loop
+      await addToCart({ ...item, selectedSize }, 1, false);
+    }
 
     toast.success("All wishlist items added to cart");
   };

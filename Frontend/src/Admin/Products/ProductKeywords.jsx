@@ -163,8 +163,14 @@ const ProductKeywords = () => {
   };
 
   const saveEdit = async (id) => {
+    const trimmedName = editKeywordName.trim();
+    if (!trimmedName) {
+      toast.error("Keyword name cannot be empty.");
+      return;
+    }
+
     try {
-      const res = await api.put(`/keywords/${id}`, { keywordName: editKeywordName.trim() });
+      const res = await api.put(`/keywords/${id}`, { keywordName: trimmedName });
       if (res.data.success) {
         toast.success("Keyword updated");
         setEditingId(null);
@@ -485,16 +491,28 @@ const ProductKeywords = () => {
                 key={kw.keyword_id}
                 className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm"
               >
-                <div className="flex justify-between items-start mb-3">
-                  <h3 className="font-semibold text-gray-800">
-                    {kw.keyword_name}
-                  </h3>
+                <div className="flex justify-between items-start mb-3 gap-3">
+                  <div className="min-w-0 flex-1">
+                    {editingId === kw.keyword_id ? (
+                      <input
+                        type="text"
+                        value={editKeywordName}
+                        onChange={(e) => setEditKeywordName(e.target.value)}
+                        className="w-full border border-blue-400 rounded-lg px-3 py-2 text-sm"
+                      />
+                    ) : (
+                      <h3 className="font-semibold text-gray-800 truncate">
+                        {kw.keyword_name}
+                      </h3>
+                    )}
+                  </div>
 
                   <input
                     type="checkbox"
                     checked={!!kw.show_on_home}
                     onChange={() => handleToggleHome(kw)}
                     className="w-4 h-4 accent-blue-600"
+                    title="Show on Home"
                   />
                 </div>
 
@@ -519,19 +537,41 @@ const ProductKeywords = () => {
                 </div>
 
                 <div className="flex justify-end gap-2 mt-3">
-                  <button
-                    onClick={() => startEdit(kw)}
-                    className="w-8 h-8 bg-blue-100 text-blue-700 rounded-md flex items-center justify-center hover:bg-blue-200 transition"
-                  >
-                    <FaEdit size={12} />
-                  </button>
-
-                  <button
-                    onClick={() => handleDelete(kw.keyword_id)}
-                    className="w-8 h-8 bg-red-100 text-red-700 rounded-md flex items-center justify-center hover:bg-red-200 transition"
-                  >
-                    <FaTrash size={12} />
-                  </button>
+                  {editingId === kw.keyword_id ? (
+                    <>
+                      <button
+                        onClick={() => saveEdit(kw.keyword_id)}
+                        className="w-8 h-8 bg-green-500 text-white rounded-md flex items-center justify-center hover:bg-green-600 transition"
+                        title="Save"
+                      >
+                        <FaCheck size={12} />
+                      </button>
+                      <button
+                        onClick={() => setEditingId(null)}
+                        className="w-8 h-8 bg-gray-200 text-gray-700 rounded-md flex items-center justify-center hover:bg-gray-300 transition"
+                        title="Cancel"
+                      >
+                        <FaTimes size={12} />
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <button
+                        onClick={() => startEdit(kw)}
+                        className="w-8 h-8 bg-blue-100 text-blue-700 rounded-md flex items-center justify-center hover:bg-blue-200 transition"
+                        title="Edit"
+                      >
+                        <FaEdit size={12} />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(kw.keyword_id)}
+                        className="w-8 h-8 bg-red-100 text-red-700 rounded-md flex items-center justify-center hover:bg-red-200 transition"
+                        title="Delete"
+                      >
+                        <FaTrash size={12} />
+                      </button>
+                    </>
+                  )}
                 </div>
               </div>
             ))}
