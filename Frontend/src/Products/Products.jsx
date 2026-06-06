@@ -163,7 +163,7 @@ function Products() {
   const [selectedSize, setSelectedSize] = useState("all");
   const [selectedColor, setSelectedColor] = useState("all");
   const [minRating, setMinRating] = useState(0);
-  const [showFilters, setShowFilters] = useState(true);
+  const [showFilters, setShowFilters] = useState(false);
   const [cardSize, setCardSize] = useState({});
 
   const allContextProducts = useMemo(() => {
