@@ -804,23 +804,33 @@ const Dashboard = () => {
         </div>
       </div>
 
-      <div className="bg-white p-6 sm:p-8 rounded-3xl shadow-sm border border-slate-100 mb-6 relative overflow-hidden group">
+      {/* Weekly Income */}
+      <div className="bg-white p-2.5 md:p-6 rounded-3xl shadow-sm border border-slate-100 mb-6 relative overflow-hidden group">
         <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-50 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none group-hover:bg-indigo-100 transition-colors duration-500"></div>
-        <div className="relative z-10 flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
-          <div>
-            <h3 className="text-xl font-black text-slate-800 tracking-tight">
+
+        <div className="relative z-10 flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
+          <div className="w-full sm:w-auto">
+            <h3 className="text-lg sm:text-xl font-black text-slate-800 tracking-tight">
               Weekly Income
             </h3>
-            <p className="text-sm font-medium text-slate-500 mt-1">
+
+            <p className="text-xs sm:text-sm font-medium text-slate-500 mt-1">
               Revenue from delivered orders over the past 7 days
             </p>
           </div>
-          <div className="bg-indigo-50 text-indigo-700 px-4 py-2 rounded-xl border border-indigo-100 flex items-center gap-3 shadow-inner">
-            <span className="text-xs font-bold uppercase tracking-widest opacity-80">7-Day Total</span>
-            <span className="text-xl font-black">₹{weeklyIncome.reduce((a, b) => a + b, 0).toLocaleString()}</span>
+
+          <div className="w-full sm:w-auto bg-indigo-50 text-indigo-700 px-3 sm:px-4 py-2 rounded-xl border border-indigo-100 flex items-center justify-between sm:justify-start gap-2 sm:gap-3 shadow-inner">
+            <span className="text-[10px] sm:text-xs font-bold uppercase tracking-widest opacity-80">
+              7-Day Total
+            </span>
+
+            <span className="text-lg sm:text-xl font-black whitespace-nowrap">
+              ₹{weeklyIncome.reduce((a, b) => a + b, 0).toLocaleString()}
+            </span>
           </div>
         </div>
-        <div className="relative z-10 h-[350px] w-full">
+
+        <div className="relative z-10 h-[220px] sm:h-[260px] md:h-[320px] w-full">
           <Bar data={weeklyIncomeData} options={weeklyIncomeOptions} />
         </div>
       </div>
