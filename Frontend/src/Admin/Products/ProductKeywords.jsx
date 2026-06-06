@@ -315,19 +315,19 @@ const ProductKeywords = () => {
           <div className="flex gap-3 overflow-x-auto w-full sm:w-auto pb-1 sm:pb-0">
             <button
               onClick={() => setActiveTab("all")}
-              className={`px-5 py-2 text-sm font-bold rounded-lg transition-colors whitespace-nowrap ${activeTab === "all" ? "bg-blue-900 text-white shadow-sm" : "bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-800"}`}
+              className={`px-5 py-2 text-xs md:text-sm font-bold rounded-lg transition-colors whitespace-nowrap ${activeTab === "all" ? "bg-blue-900 text-white shadow-sm" : "bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-800"}`}
             >
               All 
             </button>
             <button
               onClick={() => setActiveTab("selected")}
-              className={`px-5 py-2 text-sm font-bold rounded-lg transition-colors whitespace-nowrap ${activeTab === "selected" ? "bg-blue-900 text-white shadow-sm" : "bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-800"}`}
+              className={`px-5 py-2 text-xs md:text-sm font-bold rounded-lg transition-colors whitespace-nowrap ${activeTab === "selected" ? "bg-blue-900 text-white shadow-sm" : "bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-800"}`}
             >
               Selected
             </button>
             <button
               onClick={() => setActiveTab("unselected")}
-              className={`px-5 py-2 text-sm font-bold rounded-lg transition-colors whitespace-nowrap ${activeTab === "unselected" ? "bg-blue-900 text-white shadow-sm" : "bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-800"}`}
+              className={`px-5 py-2 text-xs md:text-sm font-bold rounded-lg transition-colors whitespace-nowrap ${activeTab === "unselected" ? "bg-blue-900 text-white shadow-sm" : "bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-800"}`}
             >
               Unselected
             </button>
@@ -368,7 +368,7 @@ const ProductKeywords = () => {
             </div>
             <button
               onClick={() => setShowAddPopup(true)}
-              className="bg-blue-900 text-white font-semibold py-2 px-4 rounded-lg flex items-center justify-center gap-2 hover:bg-blue-800 transition shadow-sm cursor-pointer whitespace-nowrap"
+              className="bg-blue-900 text-white text-xs md:text-sm font-semibold py-2 px-4 rounded-lg flex items-center justify-center gap-2 hover:bg-blue-800 transition shadow-sm cursor-pointer whitespace-nowrap"
             >
               <FaPlus size={14} /> Add New
             </button>
