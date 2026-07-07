@@ -69,6 +69,11 @@ const getInstagramEmbedUrl = (url) => {
     const urlObj = new URL(url);
     // Remove query params like ?igsh=...
     let cleanPath = urlObj.pathname;
+    
+    // Instagram iframe embeds officially require /p/ format.
+    // If it's a /reel/ or /tv/, we must convert it to /p/ for the iframe to work.
+    cleanPath = cleanPath.replace(/^\/(?:reel|tv|reels)\//, '/p/');
+    
     if (!cleanPath.endsWith('/')) cleanPath += '/';
     return `https://www.instagram.com${cleanPath}embed/`;
   } catch (e) {
