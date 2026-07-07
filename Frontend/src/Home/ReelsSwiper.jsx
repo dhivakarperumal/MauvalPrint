@@ -129,7 +129,7 @@ const ReelCard = ({ reel }) => {
               } catch (e) {}
             }
             return (
-              <div className="w-full h-full relative overflow-hidden bg-black">
+              <div className="w-full h-full relative overflow-hidden bg-black flex items-center justify-center">
                 <iframe
                   src={embedUrl}
                   title="Video player"
@@ -138,8 +138,8 @@ const ReelCard = ({ reel }) => {
                   allowTransparency="true"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
-                  className="absolute left-0 w-full max-w-none"
-                  style={{ top: "-65px", height: "calc(100% + 260px)" }}
+                  className="w-full h-full"
+                  style={{ clipPath: "inset(55px 0 155px 0)", transform: "scale(1.3)" }}
                 />
               </div>
             );
