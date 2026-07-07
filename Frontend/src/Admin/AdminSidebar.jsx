@@ -18,6 +18,7 @@ import {
   FiStar,
   FiBriefcase,
   FiHome,
+  FiPlay,
 } from "react-icons/fi";
 import logo from "/Image/logo.png";
 
@@ -67,6 +68,7 @@ const tabLabels = {
       "/admin/invoice": { label: "Invoice", icon: <FiFileText /> },
     },
   },
+  "/admin/videomanagement": { label: "Video Management", icon: <FiPlay /> },
 };
 
 const SidebarItem = ({ icon, label, to, active, onClick, count, isChild, isParentActive }) => (
