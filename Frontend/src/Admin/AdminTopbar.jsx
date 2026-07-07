@@ -9,6 +9,7 @@ const getTabLabel = (path) => {
     "/admin/category": "Category",
     "/admin/productkeywords": "Product Keywords",
     "/admin/addproducts": "Add Product",
+    "/admin/videomanagement": "Video Management",
     "/admin/orders": "Orders",
     "/admin/neworders": "New Orders",
     "/admin/allorders": "All Orders",

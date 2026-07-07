@@ -15,6 +15,10 @@ import {
   FaYoutube,
   FaVideo,
   FaInstagram,
+  FaEye,
+  FaFileVideo,
+  FaList,
+  FaTh
 } from "react-icons/fa";
 import api from "../api";
 import toast from "react-hot-toast";
@@ -180,6 +184,7 @@ const UploadedVideoPlayer = ({ src }) => (
 const VideoManagement = () => {
   const [videos, setVideos] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [viewMode, setViewMode] = useState(() => window.innerWidth < 768 ? "card" : "table"); // auto card on mobile
   const [isPlayerOpen, setIsPlayerOpen] = useState(false);
   const [selectedVideo, setSelectedVideo] = useState(null);
   const [editingId, setEditingId] = useState(null);
@@ -193,6 +198,15 @@ const VideoManagement = () => {
   const [videoUploadMode, setVideoUploadMode] = useState("link"); // "upload" | "link"
 
   const videoFileInputRef = useRef(null);
+
+  // Auto-switch to card on mobile
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 768) setViewMode("card");
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   const [form, setForm] = useState({
     title: "",
@@ -409,6 +423,36 @@ const VideoManagement = () => {
     }
   };
 
+  const handleToggleActive = async (video) => {
+    const videoId = video.id || video.video_id || video._id;
+    const newStatus = !video.isActive;
+    // Optimistic update
+    setVideos((prev) =>
+      prev.map((v) =>
+        (v.id || v.video_id || v._id) === videoId ? { ...v, isActive: newStatus } : v
+      )
+    );
+    try {
+      await api.put(`/videos/${videoId}`, {
+        title: video.title,
+        description: video.description,
+        videoUrl: video.videoUrl,
+        thumbnail: video.thumbnail,
+        category: video.category,
+        isActive: newStatus,
+      });
+      toast.success(`Video ${newStatus ? "activated" : "deactivated"} successfully`);
+    } catch (error) {
+      // Revert on failure
+      setVideos((prev) =>
+        prev.map((v) =>
+          (v.id || v.video_id || v._id) === videoId ? { ...v, isActive: !newStatus } : v
+        )
+      );
+      toast.error("Failed to update status");
+    }
+  };
+
   const resetForm = () => {
     setForm({
       title: "",
@@ -461,7 +505,7 @@ const VideoManagement = () => {
     const url = video.videoUrl;
     if (!url) {
       return (
-        <div className="flex items-center justify-center h-64 bg-gray-900 text-gray-400">
+        <div className="flex items-center justify-center h-64 bg-gray-100 text-gray-500">
           <FaFilm size={40} className="mr-3" /> No video source
         </div>
       );
@@ -514,40 +558,54 @@ const VideoManagement = () => {
 
   // ─── Render ─────────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-6">
+    <div className="min-h-screen bg-white p-6">
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-4xl font-bold text-white mb-2 flex items-center gap-3">
-              <FaPlay className="text-cyan-400" /> Video Management
-            </h1>
-            <p className="text-gray-400">Manage your video content</p>
+
+        
+
+        {/* Search & View Toggle */}
+        <div className="mb-6 flex flex-col md:flex-row items-center gap-4 justify-between">
+          <div className="relative w-full md:max-w-md">
+            <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search videos by title or category..."
+              value={searchQuery}
+              onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
+              className="w-full pl-12 pr-4 py-3 bg-gray-100 border border-gray-200 rounded-lg text-gray-800 placeholder-gray-400 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500"
+            />
           </div>
+          
+          <div className="flex bg-gray-100 border border-gray-200 rounded-lg p-1 self-end md:self-auto">
+            <button
+              onClick={() => setViewMode("table")}
+              className={`flex items-center gap-2 px-4 py-2 rounded-md transition-all ${
+                viewMode === "table" ? "bg-cyan-500/20 text-cyan-400" : "text-gray-400 hover:text-black"
+              }`}
+            >
+              <FaList /> 
+            </button>
+            <button
+              onClick={() => setViewMode("card")}
+              className={`flex items-center gap-2 px-4 py-2 rounded-md transition-all ${
+                viewMode === "card" ? "bg-cyan-500/20 text-cyan-400" : "text-gray-400 hover:text-black"
+              }`}
+            >
+              <FaTh />
+            </button>
+
+                  
           <button
             onClick={() => { resetForm(); setIsModalOpen(true); }}
             className="flex items-center gap-2 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white px-6 py-3 rounded-lg font-semibold transition-all shadow-lg hover:shadow-cyan-500/50"
           >
             <FaPlus /> Add Video
           </button>
-        </div>
-
-        {/* Search */}
-        <div className="mb-6">
-          <div className="relative">
-            <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" />
-            <input
-              type="text"
-              placeholder="Search videos by title or category..."
-              value={searchQuery}
-              onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
-              className="w-full pl-12 pr-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500"
-            />
           </div>
         </div>
 
         {/* Stats bar */}
-        <div className="flex items-center gap-4 mb-6 text-sm text-gray-400">
+        <div className="flex items-center gap-4 mb-6 text-sm text-gray-500">
           <span>{videos.length} total videos</span>
           <span>•</span>
           <span>{videos.filter((v) => v.isActive).length} active</span>
@@ -559,15 +617,15 @@ const VideoManagement = () => {
           )}
         </div>
 
-        {/* Videos Grid */}
+        {/* Videos Grid/Table */}
         {loading && paginatedVideos.length === 0 ? (
           <div className="flex justify-center items-center h-64">
             <FaSpinner className="animate-spin text-cyan-400 text-4xl" />
           </div>
         ) : paginatedVideos.length === 0 ? (
-          <div className="text-center py-16 bg-white/5 rounded-xl border border-white/10">
-            <FaFilm className="text-gray-500 text-6xl mx-auto mb-4" />
-            <p className="text-gray-400 text-lg">No videos found</p>
+          <div className="text-center py-16 bg-gray-50 rounded-xl border border-gray-200">
+            <FaFilm className="text-gray-300 text-6xl mx-auto mb-4" />
+            <p className="text-gray-500 text-lg">No videos found</p>
             <button
               onClick={() => { resetForm(); setIsModalOpen(true); }}
               className="mt-4 px-6 py-2 bg-cyan-500 hover:bg-cyan-600 text-white rounded-lg font-semibold transition-colors"
@@ -576,89 +634,188 @@ const VideoManagement = () => {
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-            {paginatedVideos.map((video) => (
-              <div
-                key={video._id}
-                className="bg-white/5 rounded-xl border border-white/10 overflow-hidden hover:border-cyan-500/50 transition-all group shadow-lg"
-              >
-                {/* Thumbnail */}
-                <div
-                  className="relative h-44 bg-gray-800 overflow-hidden cursor-pointer"
-                  onClick={() => handlePlayVideo(video)}
-                >
-                  <VideoThumbnail
-                    video={video}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
-                  {/* Overlay */}
-                  <div className="absolute inset-0 bg-black/40 group-hover:bg-black/50 transition-all flex items-center justify-center">
-                    <div className="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all scale-75 group-hover:scale-100">
-                      <FaPlay className="text-white text-xl ml-1" />
+          <div className="mb-8">
+            {viewMode === "table" ? (
+             <div className="overflow-x-auto bg-white rounded-lg shadow-sm border border-gray-200">
+              <table className="w-full text-left border-collapse">
+                <thead className="bg-gray-800 text-white">
+                 
+                    <tr className=" capi tracking-wide text-white">
+                      <th className="px-6 py-4 font-semibold">S No</th>
+                      <th className="px-6 py-4 font-semibold">Video</th>
+                      <th className="px-6 py-4 font-semibold">Category</th>
+                      <th className="px-6 py-4 font-semibold">Source</th>
+                      <th className="px-6 py-4 font-semibold">Status</th>
+                      <th className="px-6 py-4 font-semibold text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {paginatedVideos.map((video,ind) => (
+                      <tr key={video._id} className="hover:bg-gray-50 transition-colors group">
+                        <td className="px-6 py-4">
+                          
+                            {ind+1}
+                          
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-4">
+                            <div 
+                              className="relative w-24 h-16 bg-gray-800 rounded-lg overflow-hidden shrink-0 cursor-pointer"
+                              onClick={() => handlePlayVideo(video)}
+                            >
+                              <VideoThumbnail video={video} className="w-full h-full object-cover" />
+                              <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                <FaPlay className="text-white text-xs ml-0.5" />
+                              </div>
+                            </div>
+                            <div>
+                              <p className="font-semibold text-gray-900 line-clamp-1 max-w-[200px]" title={video.title}>{video.title}</p>
+                              <p className="text-xs text-gray-400 line-clamp-1 max-w-[200px]">{video.description}</p>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className="text-xs bg-cyan-500/20 text-black px-2 py-1 rounded-full whitespace-nowrap">
+                            {video.category}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4">
+                          {isYouTubeUrl(video.videoUrl) ? (
+                            <span className="flex items-center gap-1.5 text-gray-600 text-sm whitespace-nowrap"><FaYoutube className="text-red-500" /> YouTube</span>
+                          ) : isVimeoUrl(video.videoUrl) ? (
+                            <span className="flex items-center gap-1.5 text-gray-600 text-sm whitespace-nowrap"><FaVideo className="text-blue-500" /> Vimeo</span>
+                          ) : video.videoUrl ? (
+                            <span className="flex items-center gap-1.5 text-gray-600 text-sm whitespace-nowrap"><FaFilm className="text-green-500" /> File</span>
+                          ) : (
+                            <span className="text-gray-400 text-sm">-</span>
+                          )}
+                        </td>
+                        <td className="px-6 py-4">
+                          <button
+                            onClick={() => handleToggleActive(video)}
+                            title="Click to toggle status"
+                            className="cursor-pointer"
+                          >
+                            {video.isActive ? (
+                              <span className="text-xs bg-green-500/20 text-black px-2 py-1 rounded-full flex items-center gap-1 w-max hover:bg-green-500/40 transition-colors">
+                                <FaCheck size={8} /> Active
+                              </span>
+                            ) : (
+                              <span className="text-xs bg-red-500/20 text-red-800 px-2 py-1 rounded-full w-max block hover:bg-red-500/40 transition-colors">Inactive</span>
+                            )}
+                          </button>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center justify-end gap-3">
+                            <button onClick={() => handlePlayVideo(video)} className="text-cyan-400 hover:text-cyan-300 p-2 rounded-lg hover:bg-cyan-500/10 transition-colors" title="Play">
+                              <FaPlay />
+                            </button>
+                            <button onClick={() => handleEdit(video)} className="text-blue-400 hover:text-blue-300 p-2 rounded-lg hover:bg-blue-500/10 transition-colors" title="Edit">
+                              <FaEdit />
+                            </button>
+                            <button onClick={() => handleDelete(video)} className="text-red-400 hover:text-red-300 p-2 rounded-lg hover:bg-red-500/10 transition-colors" title="Delete">
+                              <FaTrash />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {paginatedVideos.map((video) => (
+                  <div
+                    key={video._id}
+                    className="bg-white rounded-xl border border-gray-200 overflow-hidden hover:border-cyan-500/50 hover:shadow-md transition-all group shadow-sm flex flex-col"
+                  >
+                    {/* Thumbnail */}
+                    <div
+                      className="relative h-44 bg-gray-800 overflow-hidden cursor-pointer shrink-0"
+                      onClick={() => handlePlayVideo(video)}
+                    >
+                      <VideoThumbnail
+                        video={video}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                      {/* Overlay */}
+                      <div className="absolute inset-0 bg-black/40 group-hover:bg-black/50 transition-all flex items-center justify-center">
+                        <div className="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all scale-75 group-hover:scale-100">
+                          <FaPlay className="text-white text-xl ml-1" />
+                        </div>
+                      </div>
+                      {/* Badge: YouTube / Vimeo / File */}
+                      <div className="absolute top-2 left-2">
+                        {isYouTubeUrl(video.videoUrl) ? (
+                          <span className="flex items-center gap-1 bg-red-600/90 text-white text-xs px-2 py-1 rounded-full shadow-md">
+                            <FaYoutube size={10} /> YouTube
+                          </span>
+                        ) : isVimeoUrl(video.videoUrl) ? (
+                          <span className="flex items-center gap-1 bg-blue-600/90 text-white text-xs px-2 py-1 rounded-full shadow-md">
+                            <FaVideo size={10} /> Vimeo
+                          </span>
+                        ) : video.videoUrl ? (
+                          <span className="flex items-center gap-1 bg-green-600/90 text-white text-xs px-2 py-1 rounded-full shadow-md">
+                            <FaFilm size={10} /> File
+                          </span>
+                        ) : null}
+                      </div>
+                      {/* Active/inactive indicator */}
+                      <div className="absolute top-2 right-2">
+                        <span className={`w-2.5 h-2.5 rounded-full block shadow-md ${video.isActive ? "bg-green-400" : "bg-gray-500"}`} title={video.isActive ? "Active" : "Inactive"} />
+                      </div>
+                    </div>
+
+                    {/* Content */}
+                    <div className="p-4 flex flex-col flex-1">
+                      <h3 className="font-semibold text-gray-900 mb-1 line-clamp-1" title={video.title}>{video.title}</h3>
+                      <p className="text-sm text-gray-500 mb-3 line-clamp-2 flex-1">{video.description}</p>
+                      <div className="flex items-center justify-between mb-4 mt-auto">
+                        <span className="text-xs bg-cyan-500/20 text-black px-2 py-1 rounded-full">
+                          {video.category}
+                        </span>
+                        <button
+                          onClick={() => handleToggleActive(video)}
+                          title="Click to toggle status"
+                          className="cursor-pointer"
+                        >
+                          {video.isActive ? (
+                            <span className="text-xs bg-green-500/20 text-black px-2 py-1 rounded-full flex items-center gap-1 hover:bg-green-500/40 transition-colors">
+                              <FaCheck size={8} /> Active
+                            </span>
+                          ) : (
+                            <span className="text-xs bg-red-500/20 text-red-800 px-2 py-1 rounded-full hover:bg-red-500/40 transition-colors block">Inactive</span>
+                          )}
+                        </button>
+                      </div>
+                      {/* Actions */}
+                      <div className="flex gap-2 shrink-0">
+                        <button
+                          onClick={() => handlePlayVideo(video)}
+                          className="flex-1 flex items-center justify-center gap-1.5 bg-cyan-600/80 hover:bg-cyan-600 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors"
+                        >
+                          <FaPlay size={12} /> Play
+                        </button>
+                        <button
+                          onClick={() => handleEdit(video)}
+                          className="flex items-center justify-center gap-1.5 bg-blue-600/80 hover:bg-blue-600 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors"
+                        >
+                          <FaEdit size={12} />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(video)}
+                          className="flex items-center justify-center gap-1.5 bg-red-600/80 hover:bg-red-600 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors"
+                        >
+                          <FaTrash size={12} />
+                        </button>
+                      </div>
                     </div>
                   </div>
-                  {/* Badge: YouTube / Vimeo / File */}
-                  <div className="absolute top-2 left-2">
-                    {isYouTubeUrl(video.videoUrl) ? (
-                      <span className="flex items-center gap-1 bg-red-600/90 text-white text-xs px-2 py-1 rounded-full">
-                        <FaYoutube size={10} /> YouTube
-                      </span>
-                    ) : isVimeoUrl(video.videoUrl) ? (
-                      <span className="flex items-center gap-1 bg-blue-600/90 text-white text-xs px-2 py-1 rounded-full">
-                        <FaVideo size={10} /> Vimeo
-                      </span>
-                    ) : video.videoUrl ? (
-                      <span className="flex items-center gap-1 bg-green-600/90 text-white text-xs px-2 py-1 rounded-full">
-                        <FaFilm size={10} /> File
-                      </span>
-                    ) : null}
-                  </div>
-                  {/* Active/inactive indicator */}
-                  <div className="absolute top-2 right-2">
-                    <span className={`w-2.5 h-2.5 rounded-full block ${video.isActive ? "bg-green-400" : "bg-gray-500"}`} title={video.isActive ? "Active" : "Inactive"} />
-                  </div>
-                </div>
-
-                {/* Content */}
-                <div className="p-4">
-                  <h3 className="font-semibold text-white mb-1 line-clamp-1">{video.title}</h3>
-                  <p className="text-sm text-gray-400 mb-3 line-clamp-2">{video.description}</p>
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="text-xs bg-cyan-500/20 text-cyan-300 px-2 py-1 rounded-full">
-                      {video.category}
-                    </span>
-                    {video.isActive ? (
-                      <span className="text-xs bg-green-500/20 text-green-300 px-2 py-1 rounded-full flex items-center gap-1">
-                        <FaCheck size={8} /> Active
-                      </span>
-                    ) : (
-                      <span className="text-xs bg-red-500/20 text-red-300 px-2 py-1 rounded-full">Inactive</span>
-                    )}
-                  </div>
-                  {/* Actions */}
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => handlePlayVideo(video)}
-                      className="flex-1 flex items-center justify-center gap-1.5 bg-cyan-600/80 hover:bg-cyan-600 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors"
-                    >
-                      <FaPlay size={12} /> Play
-                    </button>
-                    <button
-                      onClick={() => handleEdit(video)}
-                      className="flex items-center justify-center gap-1.5 bg-blue-600/80 hover:bg-blue-600 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors"
-                    >
-                      <FaEdit size={12} />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(video)}
-                      className="flex items-center justify-center gap-1.5 bg-red-600/80 hover:bg-red-600 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors"
-                    >
-                      <FaTrash size={12} />
-                    </button>
-                  </div>
-                </div>
+                ))}
               </div>
-            ))}
+            )}
           </div>
         )}
 
@@ -668,67 +825,92 @@ const VideoManagement = () => {
             <button
               onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
               disabled={currentPage === 1}
-              className="px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white hover:bg-white/10 disabled:opacity-40 disabled:cursor-not-allowed"
+              className="px-3 py-2 rounded-lg border border-gray-200 text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
             >
-              Previous
+              Prev
             </button>
-            <span className="text-gray-400">Page {currentPage} of {totalPages}</span>
+
+            {Array.from({ length: totalPages }, (_, index) => (
+              <button
+                key={index + 1}
+                onClick={() => setCurrentPage(index + 1)}
+                className={`px-3 py-2 rounded-lg border transition-all ${
+                  currentPage === index + 1
+                    ? "bg-cyan-500 text-white border-cyan-500"
+                    : "border-gray-200 text-gray-600 hover:bg-gray-50"
+                }`}
+              >
+                {index + 1}
+              </button>
+            ))}
+
             <button
               onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
               disabled={currentPage === totalPages}
-              className="px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white hover:bg-white/10 disabled:opacity-40 disabled:cursor-not-allowed"
+              className="px-3 py-2 rounded-lg border border-gray-200 text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
             >
               Next
             </button>
           </div>
         )}
 
-        {/* ── Add/Edit Modal ─────────────────────────────────────────────── */}
+        {/* Add/Edit Video Modal */}
         {isModalOpen && (
-          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-            <div className="bg-slate-800 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-white/10">
-              {/* Header */}
-              <div className="flex items-center justify-between p-6 border-b border-white/10 sticky top-0 bg-slate-800 z-10 rounded-t-2xl">
-                <h2 className="text-2xl font-bold text-white">
-                  {editingId ? "Edit Video" : "Add New Video"}
-                </h2>
-                <button onClick={handleCloseModal} className="text-gray-400 hover:text-white text-2xl transition-colors">
-                  <FaTimes />
+          <div
+            className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            onClick={(e) => e.target === e.currentTarget && handleCloseModal()}
+          >
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto border border-gray-200">
+              <div className="flex items-center justify-between p-6 border-b border-gray-200">
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900">
+                    {editingId ? "Edit Video" : "Add New Video"}
+                  </h2>
+                  <p className="text-sm text-gray-500 mt-1">
+                    {editingId ? "Update the video details below." : "Fill in the details to publish a new video."}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleCloseModal}
+                  className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+                >
+                  <FaTimes className="text-gray-500" />
                 </button>
               </div>
 
               <form onSubmit={handleSubmit} className="p-6 space-y-5">
                 {/* Title */}
                 <div>
-                  <label className="block text-sm font-semibold text-gray-300 mb-2">Video Title *</label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Video Title *</label>
                   <input
                     type="text"
                     name="title"
                     value={form.title}
                     onChange={handleInputChange}
                     placeholder="Enter video title"
-                    className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500"
+                    className="w-full px-4 py-2.5 bg-gray-50 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500"
                     required
                   />
                 </div>
 
                 {/* Description */}
                 <div>
-                  <label className="block text-sm font-semibold text-gray-300 mb-2">Description *</label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Description *</label>
                   <textarea
                     name="description"
                     value={form.description}
                     onChange={handleInputChange}
                     placeholder="Enter video description"
                     rows="3"
-                    className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 resize-none"
+                    className="w-full px-4 py-2.5 bg-gray-50 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 resize-none"
                     required
                   />
                 </div>
 
                 {/* Video Source */}
                 <div>
-                  <label className="block text-sm font-semibold text-gray-300 mb-3">Video Source *</label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-3">Video Source *</label>
                   {/* Toggle buttons */}
                   <div className="grid grid-cols-2 gap-3 mb-4">
                     <button
@@ -736,8 +918,8 @@ const VideoManagement = () => {
                       onClick={() => { setVideoUploadMode("link"); setForm((p) => ({ ...p, videoFile: null })); }}
                       className={`flex items-center justify-center gap-2 px-4 py-3 rounded-xl border font-medium transition-all ${
                         videoUploadMode === "link"
-                          ? "bg-cyan-500/20 border-cyan-500 text-cyan-300"
-                          : "bg-white/5 border-white/10 text-gray-400 hover:bg-white/10"
+                          ? "bg-cyan-500/20 border-cyan-500 text-cyan-600"
+                          : "bg-gray-100 border-gray-200 text-gray-500 hover:bg-gray-200"
                       }`}
                     >
                       <FaLink /> External Link
@@ -747,8 +929,8 @@ const VideoManagement = () => {
                       onClick={() => { setVideoUploadMode("upload"); setForm((p) => ({ ...p, videoUrl: "" })); }}
                       className={`flex items-center justify-center gap-2 px-4 py-3 rounded-xl border font-medium transition-all ${
                         videoUploadMode === "upload"
-                          ? "bg-cyan-500/20 border-cyan-500 text-cyan-300"
-                          : "bg-white/5 border-white/10 text-gray-400 hover:bg-white/10"
+                          ? "bg-cyan-500/20 border-cyan-500 text-cyan-600"
+                          : "bg-gray-100 border-gray-200 text-gray-500 hover:bg-gray-200"
                       }`}
                     >
                       <FaCloudUploadAlt /> Upload File
@@ -764,15 +946,15 @@ const VideoManagement = () => {
                         value={form.videoUrl}
                         onChange={handleInputChange}
                         placeholder="https://www.youtube.com/watch?v=... or https://vimeo.com/..."
-                        className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500"
+                        className="w-full px-4 py-2.5 bg-gray-50 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500"
                       />
                       {/* Live YouTube thumbnail preview */}
                       {form.videoUrl && isYouTubeUrl(form.videoUrl) && (
                         <div className="mt-3 flex items-center gap-3 p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
                           <FaYoutube className="text-red-400 text-2xl shrink-0" />
                           <div className="flex-1 min-w-0">
-                            <p className="text-xs text-gray-400">YouTube video detected</p>
-                            <p className="text-xs text-green-400 mt-0.5">✓ Thumbnail will be auto-generated</p>
+                            <p className="text-xs text-gray-500">YouTube video detected</p>
+                            <p className="text-xs text-green-600 mt-0.5">✓ Thumbnail will be auto-generated</p>
                           </div>
                           {getYouTubeThumbnail(form.videoUrl) && (
                             <img
@@ -798,20 +980,20 @@ const VideoManagement = () => {
                       >
                         {form.videoFile ? (
                           <>
-                            <FaCheck className="text-green-400 text-3xl" />
+                            <FaCheck className="text-green-500 text-3xl" />
                             <div className="text-center">
-                              <p className="text-green-300 font-medium">{form.videoFile.name}</p>
-                              <p className="text-gray-400 text-sm mt-1">
+                              <p className="text-green-600 font-medium">{form.videoFile.name}</p>
+                              <p className="text-gray-500 text-sm mt-1">
                                 {(form.videoFile.size / (1024 * 1024)).toFixed(1)} MB
                               </p>
-                              <p className="text-cyan-400 text-xs mt-1">Click to change</p>
+                              <p className="text-cyan-600 text-xs mt-1">Click to change</p>
                             </div>
                           </>
                         ) : (
                           <>
-                            <FaCloudUploadAlt className="text-cyan-400 text-4xl" />
+                            <FaCloudUploadAlt className="text-cyan-500 text-4xl" />
                             <div className="text-center">
-                              <p className="text-white font-medium">Click to select video file</p>
+                              <p className="text-gray-700 font-medium">Click to select video file</p>
                               <p className="text-gray-400 text-sm mt-1">MP4, WebM, MOV up to 500 MB</p>
                             </div>
                           </>
@@ -829,11 +1011,11 @@ const VideoManagement = () => {
                       {/* Upload progress bar */}
                       {uploadingVideo && (
                         <div className="mt-3">
-                          <div className="flex justify-between text-xs text-gray-400 mb-1">
+                          <div className="flex justify-between text-xs text-gray-500 mb-1">
                             <span>Uploading video...</span>
                             <span>{uploadProgress}%</span>
                           </div>
-                          <div className="w-full bg-white/10 rounded-full h-2">
+                          <div className="w-full bg-gray-200 rounded-full h-2">
                             <div
                               className="bg-gradient-to-r from-cyan-500 to-blue-500 h-2 rounded-full transition-all duration-300"
                               style={{ width: `${uploadProgress}%` }}
@@ -847,29 +1029,29 @@ const VideoManagement = () => {
 
                 {/* Category */}
                 <div>
-                  <label className="block text-sm font-semibold text-gray-300 mb-2">Category *</label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Category *</label>
                   <select
                     name="category"
                     value={form.category}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-2.5 bg-slate-700 border border-white/10 rounded-lg text-white focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500"
+                    className="w-full px-4 py-2.5 bg-gray-50 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500"
                     required
                   >
-                    <option value="" className="bg-slate-700">Select a category</option>
-                    <option value="Tutorial" className="bg-slate-700">Tutorial</option>
-                    <option value="Product Demo" className="bg-slate-700">Product Demo</option>
-                    <option value="How-to" className="bg-slate-700">How-to</option>
-                    <option value="Testimonial" className="bg-slate-700">Testimonial</option>
-                    <option value="Behind the Scenes" className="bg-slate-700">Behind the Scenes</option>
-                    <option value="Other" className="bg-slate-700">Other</option>
+                    <option value="">Select a category</option>
+                    <option value="Tutorial">Tutorial</option>
+                    <option value="Product Demo">Product Demo</option>
+                    <option value="How-to">How-to</option>
+                    <option value="Testimonial">Testimonial</option>
+                    <option value="Behind the Scenes">Behind the Scenes</option>
+                    <option value="Other">Other</option>
                   </select>
                 </div>
 
                 {/* Thumbnail */}
                 <div>
-                  <label className="block text-sm font-semibold text-gray-300 mb-2">
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
                     Thumbnail{" "}
-                    <span className="text-gray-500 font-normal">
+                    <span className="text-gray-400 font-normal">
                       (optional – auto-generated for YouTube)
                     </span>
                   </label>
@@ -879,7 +1061,7 @@ const VideoManagement = () => {
                         <img
                           src={form.thumbnail}
                           alt="Thumbnail Preview"
-                          className="h-20 w-32 object-cover rounded-lg border border-white/10"
+                          className="h-20 w-32 object-cover rounded-lg border border-gray-200"
                           onError={(e) => (e.target.style.display = "none")}
                         />
                         <button
@@ -891,7 +1073,7 @@ const VideoManagement = () => {
                         </button>
                       </div>
                     )}
-                    <label className="flex items-center gap-2 px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-white cursor-pointer hover:bg-white/10 transition-colors">
+                    <label className="flex items-center gap-2 px-4 py-2.5 bg-gray-100 border border-gray-300 rounded-lg text-gray-700 cursor-pointer hover:bg-gray-200 transition-colors">
                       {uploadingThumbnail ? (
                         <FaSpinner className="animate-spin" />
                       ) : (
@@ -909,7 +1091,7 @@ const VideoManagement = () => {
                 </div>
 
                 {/* Active Status */}
-                <div className="flex items-center gap-3 p-3 bg-white/5 rounded-lg">
+                <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
                   <input
                     type="checkbox"
                     id="isActive"
@@ -918,13 +1100,13 @@ const VideoManagement = () => {
                     onChange={handleInputChange}
                     className="w-5 h-5 accent-cyan-500"
                   />
-                  <label htmlFor="isActive" className="text-gray-300 font-medium cursor-pointer">
+                  <label htmlFor="isActive" className="text-gray-700 font-medium cursor-pointer">
                     Make this video active (visible to users)
                   </label>
                 </div>
 
                 {/* Footer */}
-                <div className="flex gap-3 pt-4 border-t border-white/10">
+                <div className="flex gap-3 pt-4 border-t border-gray-200">
                   <button
                     type="submit"
                     disabled={loading || uploadingVideo || uploadingThumbnail}
@@ -945,7 +1127,7 @@ const VideoManagement = () => {
                     type="button"
                     onClick={handleCloseModal}
                     disabled={loading || uploadingVideo}
-                    className="flex-1 bg-white/10 hover:bg-white/20 text-white font-semibold py-3 rounded-xl transition-all border border-white/20 disabled:opacity-50"
+                    className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-3 rounded-xl transition-all border border-gray-300 disabled:opacity-50"
                   >
                     Cancel
                   </button>
@@ -991,54 +1173,6 @@ const VideoManagement = () => {
               <div className="p-5">
                 <div className="bg-black rounded-xl overflow-hidden mb-5">
                   {renderPlayer(selectedVideo)}
-                </div>
-
-                {/* Details */}
-                <div className="space-y-4">
-                  <div>
-                    <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Description</h3>
-                    <p className="text-gray-300 text-sm leading-relaxed">{selectedVideo.description || "—"}</p>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Category</h3>
-                      <span className="text-xs bg-cyan-500/20 text-cyan-300 px-3 py-1 rounded-full inline-block">
-                        {selectedVideo.category}
-                      </span>
-                    </div>
-                    <div>
-                      <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Status</h3>
-                      {selectedVideo.isActive ? (
-                        <span className="text-xs bg-green-500/20 text-green-300 px-3 py-1 rounded-full inline-flex items-center gap-1">
-                          <FaCheck size={9} /> Active
-                        </span>
-                      ) : (
-                        <span className="text-xs bg-red-500/20 text-red-300 px-3 py-1 rounded-full inline-block">Inactive</span>
-                      )}
-                    </div>
-                  </div>
-                  {selectedVideo.videoUrl && (
-                    <div>
-                      <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Video URL</h3>
-                      <p className="text-xs text-gray-500 break-all">{selectedVideo.videoUrl}</p>
-                    </div>
-                  )}
-                </div>
-
-                {/* Footer */}
-                <div className="flex gap-3 pt-5 mt-4 border-t border-white/10">
-                  <button
-                    onClick={() => handleEdit(selectedVideo)}
-                    className="flex-1 flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-xl font-semibold transition-colors"
-                  >
-                    <FaEdit /> Edit
-                  </button>
-                  <button
-                    onClick={() => setIsPlayerOpen(false)}
-                    className="flex-1 bg-white/10 hover:bg-white/20 text-white font-semibold py-2.5 rounded-xl transition-all border border-white/20"
-                  >
-                    Close
-                  </button>
                 </div>
               </div>
             </div>
