@@ -27,9 +27,16 @@ const upload = multer({ storage });
 router.post('/upload', upload.array('files[]', 10), (req, res) => {
   try {
     const files = req.files || [];
-    const category = req.body.category || 'products';
     const baseUrl = `${req.protocol}://${req.get('host')}`;
-    const urls = files.map((f) => `${baseUrl}/uploads/${encodeURIComponent(category)}/${encodeURIComponent(path.basename(f.path))}`);
+    // Build URLs from the ACTUAL saved path (not req.body.category) because
+    // multer's destination() runs before req.body is parsed — category would
+    // be undefined there, so files always land in /products/ regardless of
+    // what category was sent. We derive the URL from f.path instead.
+    const publicDir = path.join(__dirname, '..', '..', 'public');
+    const urls = files.map((f) => {
+      const relPath = path.relative(publicDir, f.path).split(path.sep).join('/');
+      return `${baseUrl}/${relPath}`;
+    });
     return res.json({ success: true, urls });
   } catch (err) {
     console.error('Upload error:', err);

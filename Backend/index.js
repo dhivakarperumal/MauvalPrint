@@ -121,24 +121,43 @@ app.get('/api/proxy-image', async (req, res) => {
 const uploadRoutes = require('./src/routers/uploadRoutes');
 app.use('/api', uploadRoutes);
 
-// ─── Video streaming endpoint with Range request support ─────────────────────
-// GET /api/stream/videos/<filename>
+// ─── File streaming endpoint with Range request support ──────────────────────
+// GET /api/stream/<category>/<filename>
 // Supports HTTP 206 Partial Content so browsers can seek/scrub video files.
-// Uses app.use() because Express 5 / path-to-regexp v8 dropped wildcard (*) support.
+// Also serves images (thumbnails). Uses app.use() because Express 5 dropped
+// wildcard (*) route support.
+//
+// FALLBACK: if the exact path doesn't exist (legacy records with wrong
+// category in DB), we search all upload subdirectories by filename.
 const fs   = require('fs');
 const mime = require('mime-types');
 app.use('/api/stream', (req, res) => {
-  // req.path = "/videos/filename.mp4" (everything after /api/stream)
-  const relativePath = req.path.replace(/^\//, ''); // strip leading slash
-  const filePath = path.join(__dirname, 'public', 'uploads', relativePath);
+  const relativePath   = req.path.replace(/^\//, ''); // strip leading /
+  const uploadsDir     = path.join(__dirname, 'public', 'uploads');
+  let   filePath       = path.join(uploadsDir, relativePath);
 
+  // ── Fallback: search every subdir for the filename ──────────────────────
   if (!relativePath || !fs.existsSync(filePath)) {
-    return res.status(404).json({ success: false, message: 'File not found' });
+    const filename = path.basename(relativePath);
+    if (!filename) return res.status(404).json({ success: false, message: 'File not found' });
+
+    let found = false;
+    if (fs.existsSync(uploadsDir)) {
+      for (const subdir of fs.readdirSync(uploadsDir)) {
+        const candidate = path.join(uploadsDir, subdir, filename);
+        if (fs.existsSync(candidate)) {
+          filePath = candidate;
+          found = true;
+          break;
+        }
+      }
+    }
+    if (!found) return res.status(404).json({ success: false, message: 'File not found' });
   }
 
   const stat     = fs.statSync(filePath);
   const fileSize = stat.size;
-  const mimeType = mime.lookup(filePath) || 'video/mp4';
+  const mimeType = mime.lookup(filePath) || 'application/octet-stream';
 
   // CORS + range support headers
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -151,7 +170,6 @@ app.use('/api/stream', (req, res) => {
     const start     = parseInt(parts[0], 10);
     const end       = parts[1] ? parseInt(parts[1], 10) : Math.min(start + 1024 * 1024 - 1, fileSize - 1);
     const chunkSize = end - start + 1;
-
     res.writeHead(206, {
       'Content-Range':  `bytes ${start}-${end}/${fileSize}`,
       'Content-Length': chunkSize,
@@ -166,6 +184,7 @@ app.use('/api/stream', (req, res) => {
     fs.createReadStream(filePath).pipe(res);
   }
 });
+
 
 // Request logging
 app.use((req, res, next) => {

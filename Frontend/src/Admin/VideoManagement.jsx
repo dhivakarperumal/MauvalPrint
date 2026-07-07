@@ -87,14 +87,17 @@ const toStreamUrl = (url) => {
 };
 
 /**
- * Convert a backend /uploads/ URL to use Vite's /proxy-uploads path
- * (used for thumbnails/images — no range requests needed there).
+ * Convert a backend /uploads/ URL to use the streaming endpoint.
+ * (Used for thumbnails/images too, because the stream endpoint has
+ * the directory-fallback logic for legacy records).
  */
 const toProxyUrl = (url) => {
   if (!url) return url;
-  if (!url.startsWith('http')) return url; // already relative
-  const match = url.match(/^https?:\/\/[^/]+\/uploads\/(.+)$/);
-  if (match) return `/proxy-uploads/${match[1]}`;
+  if (url.startsWith('/api/stream/')) return url;
+  const absMatch = url.match(/^https?:\/\/[^/]+\/uploads\/(.+)$/);
+  if (absMatch) return `/api/stream/${absMatch[1]}`;
+  const proxyMatch = url.match(/^\/proxy-uploads\/(.+)$/);
+  if (proxyMatch) return `/api/stream/${proxyMatch[1]}`;
   return url;
 };
 
