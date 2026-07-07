@@ -3,7 +3,7 @@ import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 
 // Vite plugin: image proxy middleware for canvas customizer.
-// Proxies /proxy-image/<path> → https://product2.qtechx.com/<path>
+// Proxies /proxy-image/<path> → https://printmy.qtechx.com/<path>
 // This avoids CORS / tainted canvas issues when drawing external images.
 function imageProxyPlugin() {
   return {
@@ -11,7 +11,7 @@ function imageProxyPlugin() {
     configureServer(server) {
       server.middlewares.use('/proxy-image', async (req, res) => {
         // req.url will be the path AFTER /proxy-image, e.g. /uploads/foo.jpg
-        const targetUrl = 'https://product2.qtechx.com' + req.url;
+        const targetUrl = 'https://printmy.qtechx.com' + req.url;
         try {
           const response = await fetch(targetUrl);
           if (!response.ok) {

@@ -247,6 +247,20 @@ async function ensureTables() {
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
     `,
+    `
+      CREATE TABLE IF NOT EXISTS videos (
+        id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+        video_id VARCHAR(36) NOT NULL UNIQUE,
+        title VARCHAR(255) NOT NULL,
+        description TEXT,
+        video_url LONGTEXT NOT NULL,
+        thumbnail LONGTEXT,
+        category VARCHAR(100),
+        is_active TINYINT(1) DEFAULT 1,
+        created_at DATETIME NOT NULL,
+        updated_at DATETIME NULL
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    `,
   ];
 
   for (const statement of statements) {

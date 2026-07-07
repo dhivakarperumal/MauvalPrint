@@ -264,13 +264,21 @@ const CustomizerLayout = () => {
     let customizedImage = product.images?.[0];
     if (canvas) {
       try {
+        const clipObj = canvas.getObjects().find(obj => obj.id === 'clip-path');
+        if (clipObj) clipObj.set('visible', false);
+        canvas.requestRenderAll();
         customizedImage = canvas.toDataURL({
           format: 'png',
           quality: 1,
           multiplier: 2 // High res
         });
+        if (clipObj) clipObj.set('visible', true);
+        canvas.requestRenderAll();
       } catch (err) {
         console.error("Canvas export error:", err);
+        const clipObj = canvas.getObjects().find(obj => obj.id === 'clip-path');
+        if (clipObj) clipObj.set('visible', true);
+        canvas.requestRenderAll();
       }
     }
 
@@ -300,12 +308,17 @@ const CustomizerLayout = () => {
     }
 
     try {
+      const clipObj = canvas.getObjects().find(obj => obj.id === 'clip-path');
+      if (clipObj) clipObj.set('visible', false);
+      canvas.requestRenderAll();
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
       const dataUrl = canvas.toDataURL({
         format: 'png',
         quality: 1,
         multiplier: 2
       });
+      if (clipObj) clipObj.set('visible', true);
+      canvas.requestRenderAll();
       const link = document.createElement('a');
       link.href = dataUrl;
       link.download = `CustomDesign_${product?.name || productId}_${timestamp}.png`;
@@ -314,6 +327,9 @@ const CustomizerLayout = () => {
       document.body.removeChild(link);
     } catch (err) {
       console.error("Save export error:", err);
+      const clipObj = canvas.getObjects().find(obj => obj.id === 'clip-path');
+      if (clipObj) clipObj.set('visible', true);
+      canvas.requestRenderAll();
       alert("Could not save image due to security restrictions on external images.");
     }
   };
@@ -329,15 +345,15 @@ const CustomizerLayout = () => {
           >
             <IoArrowBack size={20} />
           </button>
-          <h1 className="text-xs md:text-sm font-semibold tracking-wide">
+          <h1 className="text-xs md:text-sm font-semibold tracking-wide text-white">
             <span className="hidden sm:inline">Product Customizer</span>
             <span className="sm:hidden">Customizer</span>
-            <span className="text-gray-500 font-normal ml-1">| {productId}</span>
+            <span className="text-gray-300 font-normal ml-1">| {productId}</span>
           </h1>
         </div>
         
         <div className="flex items-center gap-2 md:gap-3 w-full sm:w-auto overflow-x-auto">
-          <span className="text-xs md:text-sm font-medium mr-1 md:mr-4">₹{product.salePrice || product.price || 0}</span>
+          <span className="text-xs md:text-sm font-semibold mr-1 md:mr-4 text-white">₹{product.salePrice || product.price || 0}</span>
           <div className="flex flex-row items-center gap-2 flex-nowrap">
             <button onClick={handleSave} className="px-2 md:px-3 py-2 text-xs md:text-sm font-medium border border-gray-700 hover:bg-gray-800 rounded transition flex items-center gap-2 justify-center">
               <IoDownloadOutline size={16} /> <span className="hidden md:inline">Save</span>
@@ -363,14 +379,14 @@ const CustomizerLayout = () => {
 
         {/* Expanded Tool Panel */}
         <div className={`order-2 md:order-2 w-full md:w-80 ${activeTab ? 'h-40' : 'h-0 hidden'} md:h-full md:flex bg-gray-900 border-t md:border-t-0 border-b md:border-b-0 md:border-r border-gray-800 p-6 overflow-y-auto z-20 flex-col shadow-2xl relative shrink-0 transition-all`}>
-          <h2 className="text-xl font-bold mb-6 capitalize tracking-wide bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">{activeTab}</h2>
+          <h2 className="text-xl font-bold mb-6 capitalize tracking-wide bg-gradient-to-r from-white to-gray-200 bg-clip-text text-transparent">{activeTab}</h2>
           
           {activeTab === 'templates' && (
             <div className="grid grid-cols-2 gap-3">
               {[1, 2, 3, 4, 5, 6].map(i => (
                 <div key={i} className="aspect-square bg-gray-800 rounded-xl border border-gray-700 hover:border-indigo-500 cursor-pointer overflow-hidden group relative">
                   <div className="absolute inset-0 bg-indigo-500/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                  <div className="w-full h-full flex items-center justify-center text-gray-500 text-xs">Template {i}</div>
+                  <div className="w-full h-full flex items-center justify-center text-gray-300 text-xs">Template {i}</div>
                 </div>
               ))}
             </div>
@@ -383,7 +399,7 @@ const CustomizerLayout = () => {
                   <span>Upload Image</span>
                   <input type="file" accept="image/*" className="hidden" onChange={handleUpload} />
                 </label>
-                <p className="text-xs text-gray-400 text-center">Supports JPG, PNG, SVG</p>
+                <p className="text-xs text-gray-300 text-center">Supports JPG, PNG, SVG</p>
              </div>
           )}
 
@@ -410,8 +426,8 @@ const CustomizerLayout = () => {
           )}
 
           {activeTab !== 'templates' && activeTab !== 'text' && activeTab !== 'elements' && activeTab !== 'uploads' && (
-            <div className="flex-1 border-2 border-dashed border-gray-800 rounded-2xl flex flex-col items-center justify-center text-sm text-gray-500 p-6 text-center">
-              <span className="mb-2 text-2xl opacity-50">✨</span>
+            <div className="flex-1 border-2 border-dashed border-gray-700 rounded-2xl flex flex-col items-center justify-center text-sm text-gray-300 p-6 text-center">
+              <span className="mb-2 text-2xl opacity-80">✨</span>
               <p>More tools coming soon.</p>
             </div>
           )}
@@ -461,19 +477,19 @@ const CustomizerLayout = () => {
         <aside className={`order-4 md:order-4 shrink-0 w-full md:w-96 bg-gray-950 border-t border-gray-800 md:border-t-0 md:border-l p-5 overflow-y-auto transition-transform duration-300 z-50 ${showRightPanelMobile ? 'translate-y-0 fixed bottom-0 left-0 right-0 h-[45vh] rounded-t-xl md:static md:translate-y-0 md:h-auto md:rounded-none' : 'translate-y-full fixed bottom-0 left-0 right-0 h-[45vh] rounded-t-xl md:static md:translate-y-0 md:h-auto md:rounded-none'}`}>
           {/* close handle for mobile */}
           <div className="md:hidden flex items-center justify-between mb-3">
-            <h2 className="text-lg font-semibold tracking-wide">Customizer</h2>
+            <h2 className="text-lg font-semibold tracking-wide text-white">Customizer</h2>
             <button onClick={() => setShowRightPanelMobile(false)} className="p-2 bg-gray-800 rounded-md"><IoClose /></button>
           </div>
           <div className="flex flex-col gap-5">
             <div>
-              <h2 className="text-lg font-semibold tracking-wide">Customizer</h2>
-              <p className="text-sm text-gray-400 mt-1">Right-side controls and variant images.</p>
+              <h2 className="text-lg font-semibold tracking-wide text-white">Customizer</h2>
+              <p className="text-sm text-gray-300 mt-1">Right-side controls and variant images.</p>
             </div>
 
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-sm font-semibold text-gray-300">Selected Color</span>
-                <span className="text-xs text-gray-500">{selectedProductColor}</span>
+                <span className="text-sm font-semibold text-white">Selected Color</span>
+                <span className="text-xs text-gray-300">{selectedProductColor}</span>
               </div>
               <div className="flex flex-wrap gap-2">
                 {((product?.color && product.color.length > 0) ? product.color : ['#ffffff', '#000000', '#f87171', '#60a5fa', '#34d399', '#fbbf24']).map((color, idx) => {
@@ -493,8 +509,8 @@ const CustomizerLayout = () => {
 
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-sm font-semibold text-gray-300">Product Images</span>
-                <span className="text-xs text-gray-500">{productImages.length} items</span>
+                <span className="text-sm font-semibold text-white">Product Images</span>
+                <span className="text-xs text-gray-300">{productImages.length} items</span>
               </div>
               <div className="grid grid-cols-3 gap-3">
                 {productImages.length > 0 ? productImages.map((src, idx) => (
@@ -509,15 +525,15 @@ const CustomizerLayout = () => {
                     <img src={src} alt={`Variant ${idx + 1}`} className="w-full h-full object-cover" />
                   </button>
                 )) : (
-                  <div className="col-span-3 rounded-xl bg-gray-900 border border-dashed border-gray-700 p-4 text-center text-sm text-gray-400">No images available.</div>
+                  <div className="col-span-3 rounded-xl bg-gray-900 border border-dashed border-gray-700 p-4 text-center text-sm text-gray-300">No images available.</div>
                 )}
               </div>
             </div>
 
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-sm font-semibold text-gray-300">Zoom</span>
-                <span className="text-xs text-gray-500">{Math.round(zoomLevel * 100)}%</span>
+                <span className="text-sm font-semibold text-white">Zoom</span>
+                <span className="text-xs text-gray-300">{Math.round(zoomLevel * 100)}%</span>
               </div>
               <div className="flex items-center gap-2">
                 <button onClick={handleZoomOut} className="flex-1 px-3 py-2 rounded-2xl bg-gray-800 hover:bg-gray-700 text-white">-</button>
@@ -526,7 +542,7 @@ const CustomizerLayout = () => {
             </div>
 
             <div className="space-y-2">
-              <h3 className="text-sm font-semibold text-gray-300">Views</h3>
+              <h3 className="text-sm font-semibold text-white">Views</h3>
               <div className="grid gap-2">
                 {views.map((viewName, idx) => (
                   <button

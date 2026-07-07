@@ -14,6 +14,7 @@ const invoiceRoutes = require("./src/routers/invoiceRoutes");
 const keywordRoutes = require("./src/routers/keywordRoutes");
 const wishlistRouter = require("./src/routers/wishlist");
 const cartRouter = require("./src/routers/cart");
+const videoRoutes = require("./src/routers/videoRoutes");
 require("dotenv").config();
 
 const app = express();
@@ -120,6 +121,71 @@ app.get('/api/proxy-image', async (req, res) => {
 const uploadRoutes = require('./src/routers/uploadRoutes');
 app.use('/api', uploadRoutes);
 
+// ─── File streaming endpoint with Range request support ──────────────────────
+// GET /api/stream/<category>/<filename>
+// Supports HTTP 206 Partial Content so browsers can seek/scrub video files.
+// Also serves images (thumbnails). Uses app.use() because Express 5 dropped
+// wildcard (*) route support.
+//
+// FALLBACK: if the exact path doesn't exist (legacy records with wrong
+// category in DB), we search all upload subdirectories by filename.
+const fs   = require('fs');
+const mime = require('mime-types');
+app.use('/api/stream', (req, res) => {
+  const relativePath   = req.path.replace(/^\//, ''); // strip leading /
+  const uploadsDir     = path.join(__dirname, 'public', 'uploads');
+  let   filePath       = path.join(uploadsDir, relativePath);
+
+  // ── Fallback: search every subdir for the filename ──────────────────────
+  if (!relativePath || !fs.existsSync(filePath)) {
+    const filename = path.basename(relativePath);
+    if (!filename) return res.status(404).json({ success: false, message: 'File not found' });
+
+    let found = false;
+    if (fs.existsSync(uploadsDir)) {
+      for (const subdir of fs.readdirSync(uploadsDir)) {
+        const candidate = path.join(uploadsDir, subdir, filename);
+        if (fs.existsSync(candidate)) {
+          filePath = candidate;
+          found = true;
+          break;
+        }
+      }
+    }
+    if (!found) return res.status(404).json({ success: false, message: 'File not found' });
+  }
+
+  const stat     = fs.statSync(filePath);
+  const fileSize = stat.size;
+  const mimeType = mime.lookup(filePath) || 'application/octet-stream';
+
+  // CORS + range support headers
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Headers', 'Range');
+  res.setHeader('Accept-Ranges', 'bytes');
+
+  const rangeHeader = req.headers.range;
+  if (rangeHeader) {
+    const parts     = rangeHeader.replace(/bytes=/, '').split('-');
+    const start     = parseInt(parts[0], 10);
+    const end       = parts[1] ? parseInt(parts[1], 10) : Math.min(start + 1024 * 1024 - 1, fileSize - 1);
+    const chunkSize = end - start + 1;
+    res.writeHead(206, {
+      'Content-Range':  `bytes ${start}-${end}/${fileSize}`,
+      'Content-Length': chunkSize,
+      'Content-Type':   mimeType,
+    });
+    fs.createReadStream(filePath, { start, end }).pipe(res);
+  } else {
+    res.writeHead(200, {
+      'Content-Length': fileSize,
+      'Content-Type':   mimeType,
+    });
+    fs.createReadStream(filePath).pipe(res);
+  }
+});
+
+
 // Request logging
 app.use((req, res, next) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
@@ -137,6 +203,7 @@ app.use("/api/invoices", invoiceRoutes);
 app.use("/api/keywords", keywordRoutes);
 app.use("/api/wishlist", wishlistRouter);
 app.use("/api/cart", cartRouter);
+app.use("/api/videos", videoRoutes);
 
 // Health Check
 app.get("/api/health", (req, res) => {

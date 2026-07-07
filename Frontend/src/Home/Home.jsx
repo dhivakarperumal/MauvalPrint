@@ -7,6 +7,7 @@ import Testimonial from './Testimonial'
 import OfferBanner from './OfferBaner'
 import OfferBannerLeftImage from './OfferBannerLeftImage'
 import TrendingDesigns from './TrendingDesigns'
+import ReelsSwiper from './ReelsSwiper'
 
 const Home = () => {
   return (
@@ -16,6 +17,7 @@ const Home = () => {
         <Product/>
         <Category/>     
         <Testimonial/>
+        <ReelsSwiper />
     </section>
   )
 }

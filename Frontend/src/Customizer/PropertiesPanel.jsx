@@ -66,7 +66,7 @@ const PropertiesPanel = ({ activeObject, canvas, setActiveObject }) => {
 
   return (
     <div className="mt-6 pt-6 border-t border-gray-800 flex flex-col gap-4">
-      <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">Properties</h3>
+      <h3 className="text-sm font-semibold text-gray-200 uppercase tracking-wider">Properties</h3>
 
       {/* Common Controls: Layers & Duplicate */}
       <div className="flex gap-2 mb-2">
@@ -83,7 +83,7 @@ const PropertiesPanel = ({ activeObject, canvas, setActiveObject }) => {
 
       {/* Opacity */}
       <div className="flex flex-col gap-1">
-        <span className="text-xs font-medium text-gray-300">Opacity: {Math.round((activeObject.opacity || 1) * 100)}%</span>
+        <span className="text-xs font-medium text-gray-200">Opacity: {Math.round((activeObject.opacity || 1) * 100)}%</span>
         <input 
           type="range" 
           min="0.1" max="1" step="0.1" 
@@ -110,7 +110,7 @@ const PropertiesPanel = ({ activeObject, canvas, setActiveObject }) => {
       {isText && (
         <>
           <div className="flex flex-col gap-1">
-            <span className="text-xs font-medium text-gray-300">Font Family</span>
+            <span className="text-xs font-medium text-gray-200">Font Family</span>
             <select 
               value={activeObject.fontFamily} 
               onChange={(e) => handlePropertyChange('fontFamily', e.target.value)}
@@ -140,19 +140,19 @@ const PropertiesPanel = ({ activeObject, canvas, setActiveObject }) => {
           </div>
 
           <div className="flex flex-col gap-1">
-            <span className="text-xs font-medium text-gray-300">Letter Spacing</span>
+            <span className="text-xs font-medium text-gray-200">Letter Spacing</span>
             <input type="range" min="-50" max="500" value={activeObject.charSpacing || 0} onChange={(e) => handlePropertyChange('charSpacing', parseInt(e.target.value))} className="w-full accent-indigo-500" />
           </div>
 
           <div className="flex flex-col gap-1">
-            <span className="text-xs font-medium text-gray-300">Line Height</span>
+            <span className="text-xs font-medium text-gray-200">Line Height</span>
             <input type="range" min="0.5" max="3" step="0.1" value={activeObject.lineHeight || 1.16} onChange={(e) => handlePropertyChange('lineHeight', parseFloat(e.target.value))} className="w-full accent-indigo-500" />
           </div>
       
           <div className="flex flex-col gap-1">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-gray-300">Font Size</span>
-              <span className="text-xs text-gray-400">{Math.round(activeObject.fontSize || 24)} px</span>
+              <span className="text-xs font-medium text-gray-200">Font Size</span>
+              <span className="text-xs text-gray-300">{Math.round(activeObject.fontSize || 24)} px</span>
             </div>
             <div className="flex items-center gap-2">
               <input
@@ -184,9 +184,9 @@ const PropertiesPanel = ({ activeObject, canvas, setActiveObject }) => {
       {isImage && (
         <>
           <div className="flex flex-col gap-2">
-            <span className="text-xs font-medium text-gray-300">Image Position</span>
+            <span className="text-xs font-medium text-gray-200">Image Position</span>
             <div className="grid grid-cols-2 gap-2">
-              <label className="flex flex-col text-xs text-gray-300">
+              <label className="flex flex-col text-xs text-gray-200">
                 X
                 <input
                   type="range"
@@ -198,7 +198,7 @@ const PropertiesPanel = ({ activeObject, canvas, setActiveObject }) => {
                   className="w-full accent-indigo-500"
                 />
               </label>
-              <label className="flex flex-col text-xs text-gray-300">
+              <label className="flex flex-col text-xs text-gray-200">
                 Y
                 <input
                   type="range"
@@ -214,7 +214,7 @@ const PropertiesPanel = ({ activeObject, canvas, setActiveObject }) => {
           </div>
 
           <div className="flex flex-col gap-1">
-            <span className="text-xs font-medium text-gray-300">Image Scale</span>
+            <span className="text-xs font-medium text-gray-200">Image Scale</span>
             <input
               type="range"
               min="0.3"
@@ -224,7 +224,7 @@ const PropertiesPanel = ({ activeObject, canvas, setActiveObject }) => {
               onChange={(e) => handleImageScaleChange(parseFloat(e.target.value))}
               className="w-full accent-indigo-500"
             />
-            <div className="flex justify-between text-xs text-gray-400">
+            <div className="flex justify-between text-xs text-gray-300">
               <span>{Math.round((activeObject.scaleX || 1) * 100)}%</span>
               <button
                 onClick={() => {
@@ -239,7 +239,7 @@ const PropertiesPanel = ({ activeObject, canvas, setActiveObject }) => {
           </div>
 
           <div className="flex flex-col gap-2">
-            <span className="text-xs font-medium text-gray-300">Image Filters</span>
+            <span className="text-xs font-medium text-gray-200">Image Filters</span>
             <div className="grid grid-cols-2 gap-2">
               <button className="py-1.5 bg-gray-800 hover:bg-gray-700 rounded text-xs">Grayscale</button>
               <button className="py-1.5 bg-gray-800 hover:bg-gray-700 rounded text-xs">Vintage</button>

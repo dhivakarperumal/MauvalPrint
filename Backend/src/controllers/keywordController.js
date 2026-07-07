@@ -35,43 +35,94 @@ const createKeyword = async (req, res) => {
 const updateKeyword = async (req, res) => {
   const { id } = req.params;
   const { keywordName, status, show_on_home, display_order } = req.body;
-
   try {
     const pool = req.app.locals.pool;
+
+    // Fetch current keyword to determine existing state
+    const [rows] = await pool.query("SELECT * FROM keyword_master WHERE keyword_id = ?", [id]);
+    if (rows.length === 0) {
+      return res.status(404).json({ success: false, message: "Keyword not found." });
+    }
+    const current = rows[0];
+
+    // Normalize incoming values
+    const wantsHome = show_on_home !== undefined ? (show_on_home ? 1 : 0) : current.show_on_home;
+    const wantsOrder = display_order !== undefined ? parseInt(display_order, 10) || 0 : current.display_order;
+
+    // If toggling show_on_home or changing display_order, we must adjust other rows to keep ordering sequential
+    if (show_on_home !== undefined) {
+      if (wantsHome === 1 && current.show_on_home === 0) {
+        // Enabling home display: assign order (either requested or append to end)
+        let assignedOrder = wantsOrder && wantsOrder > 0 ? wantsOrder : null;
+        if (!assignedOrder) {
+          const [m] = await pool.query("SELECT COALESCE(MAX(display_order),0) as maxo FROM keyword_master WHERE show_on_home = 1");
+          assignedOrder = m[0].maxo + 1;
+        } else {
+          // Shift existing items at and after assignedOrder
+          await pool.query("UPDATE keyword_master SET display_order = display_order + 1 WHERE show_on_home = 1 AND display_order >= ?", [assignedOrder]);
+        }
+
+        // Set new order in the update payload
+        await pool.query("UPDATE keyword_master SET show_on_home = 1, display_order = ? WHERE keyword_id = ?", [assignedOrder, id]);
+      } else if (wantsHome === 0 && current.show_on_home === 1) {
+        // Disabling home display: remove its order and decrement following orders
+        const curOrder = current.display_order || 0;
+        if (curOrder > 0) {
+          await pool.query("UPDATE keyword_master SET display_order = display_order - 1 WHERE show_on_home = 1 AND display_order > ?", [curOrder]);
+        }
+        await pool.query("UPDATE keyword_master SET show_on_home = 0, display_order = 0 WHERE keyword_id = ?", [id]);
+      }
+      // Apply other simple fields (keywordName, status) if provided
+      const fields = [];
+      const values = [];
+      if (keywordName !== undefined) { fields.push("keyword_name = ?"); values.push(keywordName); }
+      if (status !== undefined) { fields.push("status = ?"); values.push(status); }
+      if (fields.length > 0) {
+        values.push(id);
+        await pool.query(`UPDATE keyword_master SET ${fields.join(", ")} WHERE keyword_id = ?`, values);
+      }
+      return res.status(200).json({ success: true, message: "Keyword updated." });
+    }
+
+    // If not toggling show_on_home but changing display_order while item is already on home, adjust ordering
+    if (display_order !== undefined && current.show_on_home === 1 && wantsOrder !== current.display_order) {
+      const newOrder = wantsOrder > 0 ? wantsOrder : 0;
+      const curOrder = current.display_order || 0;
+      if (newOrder > 0) {
+        if (newOrder < curOrder) {
+          // moving up: increment items in [newOrder, curOrder-1]
+          await pool.query("UPDATE keyword_master SET display_order = display_order + 1 WHERE show_on_home = 1 AND display_order >= ? AND display_order < ?", [newOrder, curOrder]);
+        } else if (newOrder > curOrder) {
+          // moving down: decrement items in (curOrder, newOrder]
+          await pool.query("UPDATE keyword_master SET display_order = display_order - 1 WHERE show_on_home = 1 AND display_order <= ? AND display_order > ?", [newOrder, curOrder]);
+        }
+      }
+      // set the target's order below along with any other simple fields
+      const fields = [];
+      const values = [];
+      if (keywordName !== undefined) { fields.push("keyword_name = ?"); values.push(keywordName); }
+      if (status !== undefined) { fields.push("status = ?"); values.push(status); }
+      fields.push("display_order = ?"); values.push(newOrder);
+      values.push(id);
+      await pool.query(`UPDATE keyword_master SET ${fields.join(", ")} WHERE keyword_id = ?`, values);
+      return res.status(200).json({ success: true, message: "Keyword updated." });
+    }
+
+    // Otherwise, perform a simple update for provided fields
     const fields = [];
     const values = [];
-
-    if (keywordName !== undefined) {
-      fields.push("keyword_name = ?");
-      values.push(keywordName);
-    }
-    if (status !== undefined) {
-      fields.push("status = ?");
-      values.push(status);
-    }
-    if (show_on_home !== undefined) {
-      fields.push("show_on_home = ?");
-      values.push(show_on_home ? 1 : 0);
-    }
-    if (display_order !== undefined) {
-      fields.push("display_order = ?");
-      values.push(display_order);
-    }
-
+    if (keywordName !== undefined) { fields.push("keyword_name = ?"); values.push(keywordName); }
+    if (status !== undefined) { fields.push("status = ?"); values.push(status); }
+    if (display_order !== undefined) { fields.push("display_order = ?"); values.push(display_order); }
     if (fields.length === 0) {
       return res.status(400).json({ success: false, message: "No fields to update." });
     }
     values.push(id);
-
-    const [result] = await pool.query(
-      `UPDATE keyword_master SET ${fields.join(", ")} WHERE keyword_id = ?`,
-      values
-    );
-
+    const [result] = await pool.query(`UPDATE keyword_master SET ${fields.join(", ")} WHERE keyword_id = ?`, values);
     if (result.affectedRows === 0) {
       return res.status(404).json({ success: false, message: "Keyword not found." });
     }
-    res.status(200).json({ success: true, message: "Keyword updated." });
+    return res.status(200).json({ success: true, message: "Keyword updated." });
   } catch (error) {
     console.error("Update keyword error:", error);
     if (error.code === 'ER_DUP_ENTRY') {

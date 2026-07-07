@@ -41,6 +41,7 @@ import Invoice from "./Admin/Invoice.jsx";
 import Dealers from "./Admin/Delears.jsx";
 import Profile from "./Admin/Profile/Profile.jsx";
 import GetOrdersDetails from "./Admin/GetOrdersDetails.jsx";
+import VideoManagement from "./Admin/VideoManagement.jsx";
 import FlimLogoPrint from "./Products/FlimLogoPrint.jsx";
 import PrivateRoute from "./PrivateRoute.jsx";
 import Login from "./Components/Login.jsx";
@@ -140,6 +141,7 @@ const router = createBrowserRouter([
       { path: "invoice", element: <Invoice /> },
       { path: "profile", element: <Profile /> },
       { path: "getorders", element: <GetOrdersDetails /> },
+      { path: "videomanagement", element: <VideoManagement /> },
     ]
   },
   {

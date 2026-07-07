@@ -52,7 +52,7 @@ const OptimizedImage = memo(({ src, alt, ...props }) => {
       alt={alt}
       onLoad={() => setIsLoading(false)}
       onError={() => setHasError(true)}
-      loading="lazy"
+      loading="eager"
       decoding="async"
       {...props}
     />
@@ -65,7 +65,7 @@ OptimizedImage.displayName = 'OptimizedImage';
 const DesignCard = memo(({ id, name, rating, images, mrp, salePrice, size = [] }) => {
   const navigate = useNavigate();
   const [hovered, setHovered] = useState(false);
-  const [hoverImageLoaded, setHoverImageLoaded] = useState(false);
+  // const [hoverImageLoaded, setHoverImageLoaded] = useState(false);
   const [mainImageLoaded, setMainImageLoaded] = useState(false);
 
   const sizeOrder = ['xs', 's', 'm', 'l', 'xl', 'xxl', 'xxxl'];
@@ -82,10 +82,10 @@ const DesignCard = memo(({ id, name, rating, images, mrp, salePrice, size = [] }
 
   const handleMouseEnter = useCallback(() => {
     setHovered(true);
-    if (!hoverImageLoaded) {
-      setHoverImageLoaded(true);
-    }
-  }, [hoverImageLoaded]);
+    // if (!hoverImageLoaded) {
+    //   setHoverImageLoaded(true);
+    // }
+  }, []);
 
   const handleMouseLeave = useCallback(() => {
     setHovered(false);
@@ -93,6 +93,12 @@ const DesignCard = memo(({ id, name, rating, images, mrp, salePrice, size = [] }
 
   const mainImage = useMemo(() => optimizeImageUrl(images?.[0]), [images]);
   const hoverImage = useMemo(() => optimizeImageUrl(images?.[1] || images?.[0]), [images]);
+  useEffect(() => {
+    if (hoverImage) {
+      const img = new Image();
+      img.src = hoverImage;
+    }
+  }, [hoverImage]);
 
   return (
     <div
@@ -111,7 +117,7 @@ const DesignCard = memo(({ id, name, rating, images, mrp, salePrice, size = [] }
       absolute inset-0
       w-full h-full
       object-contain p-4
-      transition-opacity duration-300
+      transition-opacity
       z-10
       ${hovered ? "opacity-0" : "opacity-100"}
     `}
@@ -119,23 +125,23 @@ const DesignCard = memo(({ id, name, rating, images, mrp, salePrice, size = [] }
           height={350}
         />
 
-        {hoverImageLoaded && (
-          <OptimizedImage
-            src={hoverImage}
-            alt={`${name} hover`}
-            onClick={() => navigate(`/designdetails/${id}`)}
-            className={`
-        absolute inset-0
-        w-full h-full
-        object-contain p-4
-        transition-opacity duration-300
-        z-20
-        ${hovered ? "opacity-100" : "opacity-0"}
-      `}
-            width={400}
-            height={350}
-          />
-        )}
+
+        <OptimizedImage
+          src={hoverImage}
+          alt={`${name} hover`}
+          onClick={() => navigate(`/designdetails/${id}`)}
+          className={`
+    absolute inset-0
+    w-full h-full
+    object-contain p-4
+    transition-opacity duration-200
+    z-20
+    ${hovered ? "opacity-100" : "opacity-0"}
+  `}
+          width={400}
+          height={350}
+        />
+
       </div>
 
       {/* Sizes */}
