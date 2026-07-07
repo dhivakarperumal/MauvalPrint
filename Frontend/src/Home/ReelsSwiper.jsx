@@ -56,7 +56,7 @@ const normalizeVideo = (video) => {
 };
 
 // ─── Reel Card (Inline Slide) ───────────────────────────────────────────────
-const ReelCard = ({ reel, onExpand }) => {
+const ReelCard = ({ reel }) => {
   const videoRef = useRef(null);
   const [playing, setPlaying] = useState(false);
   const [muted, setMuted] = useState(true);
@@ -75,7 +75,10 @@ const ReelCard = ({ reel, onExpand }) => {
   }, []);
 
   const togglePlay = (e) => {
-    if (reel.isExternal) return; // Cannot control iframes natively this way
+    if (reel.isExternal) {
+      setPlaying(!playing);
+      return;
+    }
     const video = videoRef.current;
     if (!video) return;
     if (playing) {
@@ -102,7 +105,45 @@ const ReelCard = ({ reel, onExpand }) => {
     >
       {/* Video element */}
       {reel.isExternal ? (
-        <img src={reel.thumbnail} className="w-full h-full object-cover" alt="Thumbnail" />
+        <div className="w-full h-full bg-white flex items-center justify-center">
+          {(() => {
+            const url = reel.videoUrl;
+            let embedUrl = url;
+            if (url.includes("instagram.com")) {
+              try {
+                const urlObj = new URL(url);
+                let cleanPath = urlObj.pathname.replace(/^\/(?:reel|tv|reels)\//, '/p/');
+                if (!cleanPath.endsWith('/')) cleanPath += '/';
+                embedUrl = `https://www.instagram.com${cleanPath}embed/`;
+              } catch (e) {}
+            } else if (url.includes("youtube.com") || url.includes("youtu.be")) {
+              try {
+                let id = null;
+                const shortMatch = url.match(/youtu\.be\/([a-zA-Z0-9_-]{11})/);
+                const shortsMatch = url.match(/\/shorts\/([a-zA-Z0-9_-]{11})/);
+                const watchMatch = url.match(/[?&]v=([a-zA-Z0-9_-]{11})/);
+                if (shortMatch) id = shortMatch[1];
+                else if (shortsMatch) id = shortsMatch[1];
+                else if (watchMatch) id = watchMatch[1];
+                if (id) embedUrl = `https://www.youtube.com/embed/${id}?autoplay=1`;
+              } catch (e) {}
+            }
+            return (
+              <iframe
+                width="100%"
+                height="100%"
+                src={embedUrl}
+                title="Video player"
+                frameBorder="0"
+                scrolling="no"
+                allowTransparency="true"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                className="w-full h-full object-cover"
+              />
+            );
+          })()}
+        </div>
       ) : (
         <video
           ref={videoRef}
@@ -118,111 +159,116 @@ const ReelCard = ({ reel, onExpand }) => {
       )}
 
       {/* Dark overlay — lighter when playing */}
-      <div
-        className={`absolute inset-0 transition-all duration-500 ${
-          playing
-            ? "bg-gradient-to-t from-black/70 via-transparent to-black/30"
-            : "bg-gradient-to-t from-black/80 via-black/20 to-black/40"
-        }`}
-      />
+      {!reel.isExternal && (
+        <div
+          className={`absolute inset-0 transition-all duration-500 ${
+            playing
+              ? "bg-gradient-to-t from-black/70 via-transparent to-black/30"
+              : "bg-gradient-to-t from-black/80 via-black/20 to-black/40"
+          }`}
+        />
+      )}
 
       {/* ── Top bar ── */}
-      <div className="absolute top-4 left-4 right-4 flex items-center justify-between z-10">
-        <div className="flex items-center gap-2 bg-black/40 backdrop-blur-md border border-white/10 rounded-full px-3 py-1.5">
-          <FaInstagram className="text-pink-400 text-sm" />
-          <span className="text-white text-xs font-bold tracking-wide">
-            @ozone.official
-          </span>
+      {!reel.isExternal && (
+        <div className="absolute top-4 left-4 right-4 flex items-center justify-between z-10">
+          <div className="flex items-center gap-2 bg-black/40 backdrop-blur-md border border-white/10 rounded-full px-3 py-1.5">
+            <FaInstagram className="text-pink-400 text-sm" />
+            <span className="text-white text-xs font-bold tracking-wide">
+              @ozone.official
+            </span>
+          </div>
+          {/* Expand / mute buttons */}
+          <div className="flex items-center gap-2">
+            {!reel.isExternal && (
+              <button
+                onClick={toggleMute}
+                className="w-8 h-8 rounded-full bg-black/40 backdrop-blur-md border border-white/10 flex items-center justify-center text-white hover:bg-white/20 transition"
+              >
+                {muted ? <FaVolumeMute size={12} /> : <FaVolumeUp size={12} />}
+              </button>
+            )}
+          </div>
         </div>
-        {/* Expand / mute buttons */}
-        <div className="flex items-center gap-2">
-          {!reel.isExternal && (
-            <button
-              onClick={toggleMute}
-              className="w-8 h-8 rounded-full bg-black/40 backdrop-blur-md border border-white/10 flex items-center justify-center text-white hover:bg-white/20 transition"
-            >
-              {muted ? <FaVolumeMute size={12} /> : <FaVolumeUp size={12} />}
-            </button>
-          )}
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onExpand(reel);
-            }}
-            className="w-8 h-8 rounded-full bg-black/40 backdrop-blur-md border border-white/10 flex items-center justify-center text-white hover:bg-white/20 transition"
-          >
-            <FaExpand size={11} />
-          </button>
-        </div>
-      </div>
+      )}
 
       {/* ── Center play/pause indicator ── */}
-      <div
-        className={`absolute inset-0 flex items-center justify-center z-10 pointer-events-none transition-opacity duration-300 ${
-          playing ? "opacity-0 group-hover:opacity-100" : "opacity-100"
-        }`}
-      >
-        <div className="w-16 h-16 rounded-full bg-white/20 border-2 border-white/60 backdrop-blur-sm flex items-center justify-center shadow-2xl">
-          {playing ? (
-            <FaPause className="text-white text-lg" />
-          ) : (
-            <FaPlay className="text-white text-lg ml-1" />
-          )}
+      {!reel.isExternal && (
+        <div
+          className={`absolute inset-0 flex items-center justify-center z-10 pointer-events-none transition-opacity duration-300 ${
+            playing ? "opacity-0 group-hover:opacity-100" : "opacity-100"
+          }`}
+        >
+          <div className="w-16 h-16 rounded-full bg-white/20 border-2 border-white/60 backdrop-blur-sm flex items-center justify-center shadow-2xl">
+            {playing ? (
+              <FaPause className="text-white text-lg" />
+            ) : (
+              <FaPlay className="text-white text-lg ml-1" />
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* ── Right action buttons ── */}
-      <div
-        className="absolute right-4 bottom-24 flex flex-col items-center gap-5 z-10"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <button
-          onClick={() => setLiked((v) => !v)}
-          className="flex flex-col items-center gap-1"
+      {!reel.isExternal && (
+        <div
+          className="absolute right-4 bottom-24 flex flex-col items-center gap-5 z-10"
+          onClick={(e) => e.stopPropagation()}
         >
-          <div
-            className={`w-10 h-10 rounded-full flex items-center justify-center backdrop-blur-sm transition-all duration-300 ${
-              liked
-                ? "bg-red-500 scale-110"
-                : "bg-white/20 border border-white/30 hover:bg-white/30"
-            }`}
-          >
-            <FaHeart className="text-white text-sm" />
+          {/* Likes */}
+          <div className="flex flex-col items-center gap-1 group/btn cursor-pointer">
+            <button
+              onClick={() => setLiked(!liked)}
+              className={`w-10 h-10 rounded-full bg-black/40 backdrop-blur-md border border-white/10 flex items-center justify-center transition-all duration-300 ${
+                liked ? "text-pink-500 bg-pink-500/20" : "text-white group-hover/btn:bg-white/20"
+              }`}
+            >
+              <FaHeart size={16} />
+            </button>
+            <span className="text-white text-[10px] font-bold drop-shadow-md">
+              {reel.likes}
+            </span>
           </div>
-          <span className="text-white text-[10px] font-bold">{reel.likes}</span>
-        </button>
-
-        <button className="flex flex-col items-center gap-1">
-          <div className="w-10 h-10 rounded-full bg-white/20 border border-white/30 flex items-center justify-center backdrop-blur-sm hover:bg-white/30 transition-all">
-            <FaComment className="text-white text-sm" />
+          {/* Comments */}
+          <div className="flex flex-col items-center gap-1 group/btn cursor-pointer">
+            <button className="w-10 h-10 rounded-full bg-black/40 backdrop-blur-md border border-white/10 flex items-center justify-center text-white group-hover/btn:bg-white/20 transition-all duration-300">
+              <FaComment size={16} />
+            </button>
+            <span className="text-white text-[10px] font-bold drop-shadow-md">
+              {reel.comments}
+            </span>
           </div>
-          <span className="text-white text-[10px] font-bold">
-            {reel.comments}
-          </span>
-        </button>
-
-        <a
-          href={reel.instagramUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex flex-col items-center gap-1"
-        >
-          <div className="w-10 h-10 rounded-full bg-white/20 border border-white/30 flex items-center justify-center backdrop-blur-sm hover:bg-white/30 transition-all">
-            <FaShare className="text-white text-sm" />
+          {/* Share */}
+          <div className="flex flex-col items-center gap-1 group/btn cursor-pointer">
+            <a
+              href={reel.instagramUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-10 h-10 rounded-full bg-black/40 backdrop-blur-md border border-white/10 flex items-center justify-center text-white group-hover/btn:bg-white/20 transition-all duration-300"
+            >
+              <FaShare size={16} />
+            </a>
+            <span className="text-white text-[10px] font-bold drop-shadow-md">
+              Share
+            </span>
           </div>
-          <span className="text-white text-[10px] font-bold">Share</span>
-        </a>
-      </div>
+        </div>
+      )}
 
       {/* ── Bottom caption ── */}
-      <div className="absolute bottom-5 left-4 right-16 z-10">
-        <span className="text-pink-400 text-[10px] font-bold tracking-widest uppercase block mb-1">
-          {reel.tag}
-        </span>
-        <p className="text-white font-bold text-sm leading-tight drop-shadow-lg line-clamp-2">
-          {reel.caption}
-        </p>
-      </div>
+      {!reel.isExternal && (
+        <div
+          className="absolute bottom-6 left-4 right-16 z-10"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <span className="text-pink-400 text-[10px] font-bold tracking-widest uppercase block mb-1">
+            {reel.tag}
+          </span>
+          <p className="text-white font-bold text-sm leading-snug drop-shadow-lg line-clamp-2">
+            {reel.caption}
+          </p>
+        </div>
+      )}
 
       {/* ── Progress bar ── */}
       <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-white/20 z-20">
@@ -235,218 +281,10 @@ const ReelCard = ({ reel, onExpand }) => {
   );
 };
 
-// ─── Fullscreen Modal ───────────────────────────────────────────────────────
-const ReelModal = ({ reel, onClose }) => {
-  const videoRef = useRef(null);
-  const [playing, setPlaying] = useState(true);
-  const [muted, setMuted] = useState(false);
-  const [progress, setProgress] = useState(0);
-
-  useEffect(() => {
-    if (reel.isExternal) return;
-    const video = videoRef.current;
-    if (video) {
-      video.play().catch(() => {});
-    }
-    const handleKey = (e) => e.key === "Escape" && onClose();
-    window.addEventListener("keydown", handleKey);
-    return () => window.removeEventListener("keydown", handleKey);
-  }, [onClose, reel.isExternal]);
-
-  useEffect(() => {
-    if (reel.isExternal) return;
-    const video = videoRef.current;
-    if (!video) return;
-    const onTimeUpdate = () => {
-      if (video.duration)
-        setProgress((video.currentTime / video.duration) * 100);
-    };
-    video.addEventListener("timeupdate", onTimeUpdate);
-    return () => video.removeEventListener("timeupdate", onTimeUpdate);
-  }, [reel.isExternal]);
-
-  const togglePlay = () => {
-    if (reel.isExternal) return;
-    const video = videoRef.current;
-    if (!video) return;
-    playing ? video.pause() : video.play();
-    setPlaying(!playing);
-  };
-
-  const toggleMute = () => {
-    if (reel.isExternal) return;
-    const video = videoRef.current;
-    if (!video) return;
-    video.muted = !muted;
-    setMuted(!muted);
-  };
-
-  // Convert external URLs to embed formats if necessary (simplified for the modal)
-  const renderExternalVideo = (url) => {
-    let embedUrl = url;
-    if (url.includes("instagram.com")) {
-      try {
-        const urlObj = new URL(url);
-        let cleanPath = urlObj.pathname.replace(/^\/(?:reel|tv|reels)\//, '/p/');
-        if (!cleanPath.endsWith('/')) cleanPath += '/';
-        embedUrl = `https://www.instagram.com${cleanPath}embed/`;
-      } catch (e) {}
-    } else if (url.includes("youtube.com") || url.includes("youtu.be")) {
-      try {
-        const match = url.match(/[?&]v=([a-zA-Z0-9_-]{11})/);
-        if (match) embedUrl = `https://www.youtube.com/embed/${match[1]}?autoplay=1`;
-      } catch (e) {}
-    }
-    return (
-      <iframe
-        width="100%"
-        height="100%"
-        src={embedUrl}
-        title="Video player"
-        frameBorder="0"
-        scrolling="no"
-        allowTransparency="true"
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-        allowFullScreen
-        className="bg-white w-full h-full object-cover"
-      />
-    );
-  };
-
-  return (
-    <div
-      className="fixed inset-0 z-[999] bg-black/95 backdrop-blur-xl flex items-center justify-center p-4"
-      onClick={onClose}
-    >
-      {/* Close */}
-      <button
-        onClick={onClose}
-        className="absolute top-5 right-5 w-11 h-11 bg-white/10 hover:bg-white/20 border border-white/20 rounded-full flex items-center justify-center text-white transition z-10"
-      >
-        <FaTimes size={20} />
-      </button>
-
-      {/* Modal card */}
-      <div
-        className="relative w-full max-w-sm rounded-3xl overflow-hidden shadow-2xl bg-black"
-        style={{ height: "85vh", maxHeight: "700px" }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Video */}
-        {reel.isExternal ? (
-          renderExternalVideo(reel.videoUrl)
-        ) : (
-          <video
-            ref={videoRef}
-            src={reel.videoUrl}
-            poster={reel.thumbnail}
-            loop
-            muted={muted}
-            playsInline
-            className="w-full h-full object-cover"
-          />
-        )}
-
-        {/* Gradient */}
-        {!reel.isExternal && (
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/30 pointer-events-none" />
-        )}
-
-        {/* Top */}
-        <div className="absolute top-4 left-4 right-4 flex items-center justify-between z-10 pointer-events-none">
-          <div className="flex items-center gap-2 bg-black/40 backdrop-blur-md border border-white/10 rounded-full px-3 py-1.5 pointer-events-auto">
-            <FaInstagram className="text-pink-400 text-sm" />
-            <span className="text-white text-xs font-bold">@ozone.official</span>
-          </div>
-          <div className="flex gap-2 pointer-events-auto">
-            {!reel.isExternal && (
-              <button
-                onClick={toggleMute}
-                className="w-9 h-9 rounded-full bg-black/40 backdrop-blur-md border border-white/10 flex items-center justify-center text-white hover:bg-white/20 transition"
-              >
-                {muted ? <FaVolumeMute size={13} /> : <FaVolumeUp size={13} />}
-              </button>
-            )}
-          </div>
-        </div>
-
-        {/* Center play/pause */}
-        {!reel.isExternal && (
-          <button
-            onClick={togglePlay}
-            className="absolute inset-0 flex items-center justify-center z-10 pointer-events-auto"
-          >
-            <div
-              className={`w-18 h-18 rounded-full bg-white/20 border-2 border-white/60 backdrop-blur-sm flex items-center justify-center shadow-2xl transition-opacity duration-300 ${
-                playing ? "opacity-0 hover:opacity-100" : "opacity-100"
-              }`}
-              style={{ width: 72, height: 72 }}
-            >
-              {playing ? (
-                <FaPause className="text-white text-2xl" />
-              ) : (
-                <FaPlay className="text-white text-2xl ml-1" />
-              )}
-            </div>
-          </button>
-        )}
-
-        {/* Right actions */}
-        <div className="absolute right-4 bottom-28 flex flex-col items-center gap-5 z-10 pointer-events-auto">
-          <div className="flex flex-col items-center gap-1">
-            <div className="w-11 h-11 rounded-full bg-white/20 border border-white/30 flex items-center justify-center">
-              <FaHeart className="text-white" />
-            </div>
-            <span className="text-white text-xs font-bold">{reel.likes}</span>
-          </div>
-          <div className="flex flex-col items-center gap-1">
-            <div className="w-11 h-11 rounded-full bg-white/20 border border-white/30 flex items-center justify-center">
-              <FaComment className="text-white" />
-            </div>
-            <span className="text-white text-xs font-bold">{reel.comments}</span>
-          </div>
-          <a
-            href={reel.instagramUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex flex-col items-center gap-1 hover:text-white"
-          >
-            <div className="w-11 h-11 rounded-full bg-white/20 border border-white/30 flex items-center justify-center hover:bg-white/30 transition-colors">
-              <FaShare className="text-white" />
-            </div>
-            <span className="text-white text-xs font-bold">Share</span>
-          </a>
-        </div>
-
-        {/* Bottom caption */}
-        <div className="absolute bottom-8 left-4 right-16 z-10 pointer-events-none">
-          <span className="text-pink-400 text-xs font-bold tracking-widest uppercase block mb-1">
-            {reel.tag}
-          </span>
-          <p className="text-white font-bold text-base leading-snug drop-shadow-lg pointer-events-auto">
-            {reel.caption}
-          </p>
-        </div>
-
-        {/* Progress bar */}
-        {!reel.isExternal && (
-          <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/20 z-20 pointer-events-none">
-            <div
-              className="h-full bg-gradient-to-r from-pink-500 to-yellow-400 transition-all duration-100"
-              style={{ width: `${progress}%` }}
-            />
-          </div>
-        )}
-      </div>
-    </div>
-  );
-};
-
 // ─── Main Section ───────────────────────────────────────────────────────────
 const ReelsSwiper = () => {
   const prevRef = useRef(null);
   const nextRef = useRef(null);
-  const [expandedReel, setExpandedReel] = useState(null);
   const [reels, setReels] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -566,7 +404,7 @@ const ReelsSwiper = () => {
         >
           {reels.map((reel) => (
             <SwiperSlide key={reel.id}>
-              <ReelCard reel={reel} onExpand={setExpandedReel} />
+              <ReelCard reel={reel} />
             </SwiperSlide>
           ))}
         </Swiper>
@@ -579,11 +417,6 @@ const ReelsSwiper = () => {
           </p>
         </div>
       </div>
-
-      {/* Fullscreen modal */}
-      {expandedReel && (
-        <ReelModal reel={expandedReel} onClose={() => setExpandedReel(null)} />
-      )}
     </section>
   );
 };
