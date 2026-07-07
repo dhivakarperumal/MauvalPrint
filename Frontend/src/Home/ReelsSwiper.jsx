@@ -362,9 +362,9 @@ const ReelsSwiper = () => {
 
         {/* Swiper */}
         <style>{`
-          .reels-swiper .swiper-slide { height: 500px; }
+          .reels-swiper .swiper-slide { height: 80vh; min-height: 500px; max-height: 850px; }
           @media (min-width: 640px) {
-            .reels-swiper .swiper-slide { height: 560px; }
+            .reels-swiper .swiper-slide { height: 85vh; min-height: 600px; max-height: 950px; }
           }
         `}</style>
 
