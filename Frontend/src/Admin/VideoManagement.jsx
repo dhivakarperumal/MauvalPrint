@@ -14,6 +14,7 @@ import {
   FaCloudUploadAlt,
   FaYoutube,
   FaVideo,
+  FaInstagram,
 } from "react-icons/fa";
 import api from "../api";
 import toast from "react-hot-toast";
@@ -58,6 +59,22 @@ const isYouTubeUrl = (url) =>
 
 /** Check if URL is a Vimeo URL */
 const isVimeoUrl = (url) => url && url.includes("vimeo.com");
+
+/** Check if URL is an Instagram URL */
+const isInstagramUrl = (url) => url && url.includes("instagram.com");
+
+/** Convert Instagram URL to embed URL */
+const getInstagramEmbedUrl = (url) => {
+  try {
+    const urlObj = new URL(url);
+    // Remove query params like ?igsh=...
+    let cleanPath = urlObj.pathname;
+    if (!cleanPath.endsWith('/')) cleanPath += '/';
+    return `https://www.instagram.com${cleanPath}embed/`;
+  } catch (e) {
+    return url;
+  }
+};
 
 /** Placeholder SVG for missing thumbnails */
 const PLACEHOLDER_THUMB =
@@ -469,6 +486,20 @@ const VideoManagement = () => {
           allow="autoplay; fullscreen; picture-in-picture"
           allowFullScreen
           className="rounded-lg"
+        />
+      );
+    }
+    if (isInstagramUrl(url)) {
+      return (
+        <iframe
+          width="100%"
+          height="450"
+          src={getInstagramEmbedUrl(url)}
+          title={video.title}
+          frameBorder="0"
+          allowTransparency="true"
+          allow="encrypted-media"
+          className="rounded-lg bg-white"
         />
       );
     }
@@ -935,7 +966,10 @@ const VideoManagement = () => {
                   {isVimeoUrl(selectedVideo.videoUrl) && (
                     <FaVideo className="text-blue-400 text-xl shrink-0" />
                   )}
-                  {!isYouTubeUrl(selectedVideo.videoUrl) && !isVimeoUrl(selectedVideo.videoUrl) && (
+                  {isInstagramUrl(selectedVideo.videoUrl) && (
+                    <FaInstagram className="text-pink-500 text-xl shrink-0" />
+                  )}
+                  {!isYouTubeUrl(selectedVideo.videoUrl) && !isVimeoUrl(selectedVideo.videoUrl) && !isInstagramUrl(selectedVideo.videoUrl) && (
                     <FaFilm className="text-cyan-400 text-xl shrink-0" />
                   )}
                   <h2 className="text-xl font-bold text-white truncate">{selectedVideo.title}</h2>
