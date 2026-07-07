@@ -105,46 +105,50 @@ const ReelCard = ({ reel }) => {
     >
       {/* Video element */}
       {reel.isExternal ? (
-        <div className="w-full h-full bg-white flex items-center justify-center">
-          {(() => {
-            const url = reel.videoUrl;
-            let embedUrl = url;
-            if (url.includes("instagram.com")) {
-              try {
-                const urlObj = new URL(url);
-                let cleanPath = urlObj.pathname.replace(/^\/(?:reel|tv|reels)\//, '/p/');
-                if (!cleanPath.endsWith('/')) cleanPath += '/';
-                embedUrl = `https://www.instagram.com${cleanPath}embed/`;
-              } catch (e) {}
-            } else if (url.includes("youtube.com") || url.includes("youtu.be")) {
-              try {
-                let id = null;
-                const shortMatch = url.match(/youtu\.be\/([a-zA-Z0-9_-]{11})/);
-                const shortsMatch = url.match(/\/shorts\/([a-zA-Z0-9_-]{11})/);
-                const watchMatch = url.match(/[?&]v=([a-zA-Z0-9_-]{11})/);
-                if (shortMatch) id = shortMatch[1];
-                else if (shortsMatch) id = shortsMatch[1];
-                else if (watchMatch) id = watchMatch[1];
-                if (id) embedUrl = `https://www.youtube.com/embed/${id}?autoplay=1`;
-              } catch (e) {}
-            }
-            return (
-              <div className="w-full h-full relative overflow-hidden bg-black flex items-center justify-center">
-                <iframe
-                  src={embedUrl}
-                  title="Video player"
-                  frameBorder="0"
-                  scrolling="no"
-                  allowTransparency="true"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                  className="w-full h-full"
-                  style={{ clipPath: "inset(55px 0 155px 0)", transform: "scale(1.3)" }}
-                />
-              </div>
-            );
-          })()}
-        </div>
+        playing ? (
+          <div className="w-full h-full bg-white flex items-center justify-center">
+            {(() => {
+              const url = reel.videoUrl;
+              let embedUrl = url;
+              if (url.includes("instagram.com")) {
+                try {
+                  const urlObj = new URL(url);
+                  let cleanPath = urlObj.pathname.replace(/^\/(?:reel|tv|reels)\//, '/p/');
+                  if (!cleanPath.endsWith('/')) cleanPath += '/';
+                  embedUrl = `https://www.instagram.com${cleanPath}embed/`;
+                } catch (e) {}
+              } else if (url.includes("youtube.com") || url.includes("youtu.be")) {
+                try {
+                  let id = null;
+                  const shortMatch = url.match(/youtu\.be\/([a-zA-Z0-9_-]{11})/);
+                  const shortsMatch = url.match(/\/shorts\/([a-zA-Z0-9_-]{11})/);
+                  const watchMatch = url.match(/[?&]v=([a-zA-Z0-9_-]{11})/);
+                  if (shortMatch) id = shortMatch[1];
+                  else if (shortsMatch) id = shortsMatch[1];
+                  else if (watchMatch) id = watchMatch[1];
+                  if (id) embedUrl = `https://www.youtube.com/embed/${id}?autoplay=1`;
+                } catch (e) {}
+              }
+              return (
+                <div className="w-full h-full relative overflow-hidden bg-black flex items-center justify-center">
+                  <iframe
+                    src={embedUrl}
+                    title="Video player"
+                    frameBorder="0"
+                    scrolling="no"
+                    allowTransparency="true"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    className="w-full h-full"
+                    style={url.includes("instagram.com") ? { clipPath: "inset(55px 0 155px 0)", transform: "scale(1.3)" } : {}}
+                  />
+                </div>
+              );
+            })()}
+          </div>
+        ) : (
+          <img src={reel.thumbnail} className="w-full h-full object-cover" alt="Thumbnail" />
+        )
       ) : (
         <video
           ref={videoRef}
