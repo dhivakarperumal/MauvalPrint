@@ -129,18 +129,19 @@ const ReelCard = ({ reel }) => {
               } catch (e) {}
             }
             return (
-              <iframe
-                width="100%"
-                height="100%"
-                src={embedUrl}
-                title="Video player"
-                frameBorder="0"
-                scrolling="no"
-                allowTransparency="true"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-                className="w-full h-full object-cover"
-              />
+              <div className="w-full h-full relative overflow-hidden bg-black">
+                <iframe
+                  src={embedUrl}
+                  title="Video player"
+                  frameBorder="0"
+                  scrolling="no"
+                  allowTransparency="true"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  className="absolute left-0 w-full max-w-none"
+                  style={{ top: "-65px", height: "calc(100% + 260px)" }}
+                />
+              </div>
             );
           })()}
         </div>
@@ -172,14 +173,9 @@ const ReelCard = ({ reel }) => {
       {/* ── Top bar ── */}
       {!reel.isExternal && (
         <div className="absolute top-4 left-4 right-4 flex items-center justify-between z-10">
-          <div className="flex items-center gap-2 bg-black/40 backdrop-blur-md border border-white/10 rounded-full px-3 py-1.5">
-            <FaInstagram className="text-pink-400 text-sm" />
-            <span className="text-white text-xs font-bold tracking-wide">
-              @ozone.official
-            </span>
-          </div>
+          <div /> {/* Empty div to keep flex space-between if needed, or just remove */}
           {/* Expand / mute buttons */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 ml-auto">
             {!reel.isExternal && (
               <button
                 onClick={toggleMute}
@@ -408,14 +404,6 @@ const ReelsSwiper = () => {
             </SwiperSlide>
           ))}
         </Swiper>
-
-        {/* Bottom CTA strip */}
-        <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4 bg-white border border-gray-200 shadow-sm rounded-2xl px-8 py-5">
-          <FaInstagram className="text-pink-500 text-2xl hidden sm:block" />
-          <p className="text-gray-900 text-sm font-semibold text-center">
-            Watch more content like this on our social media!
-          </p>
-        </div>
       </div>
     </section>
   );
