@@ -140,7 +140,7 @@ const ReelCard = ({ reel }) => {
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     allowFullScreen
                     className="w-full h-full"
-                    style={url.includes("instagram.com") ? { clipPath: "inset(55px 0 155px 0)", transform: "scale(1.3)" } : {}}
+                    style={url.includes("instagram.com") ? { transform: "scale(1.65)", transformOrigin: "center center" } : {}}
                   />
                 </div>
               );
@@ -360,11 +360,11 @@ const ReelsSwiper = () => {
           </div>
         </div>
 
-        {/* Swiper */}
+        {/* Swiper layout */}
         <style>{`
-          .reels-swiper .swiper-slide { height: 80vh; min-height: 500px; max-height: 850px; }
+          .reels-swiper .swiper-slide { height: 300px; }
           @media (min-width: 640px) {
-            .reels-swiper .swiper-slide { height: 85vh; min-height: 600px; max-height: 950px; }
+            .reels-swiper .swiper-slide { height: 350px; }
           }
         `}</style>
 
@@ -396,10 +396,10 @@ const ReelsSwiper = () => {
             }, 0);
           }}
           breakpoints={{
-            480:  { slidesPerView: 1.8, spaceBetween: 16 },
-            640:  { slidesPerView: 2.2, spaceBetween: 20, centeredSlides: true },
-            1024: { slidesPerView: 3.2, spaceBetween: 24, centeredSlides: false },
-            1280: { slidesPerView: 4,   spaceBetween: 24, centeredSlides: false },
+            480:  { slidesPerView: 3, spaceBetween: 12 },
+            640:  { slidesPerView: 4, spaceBetween: 16, centeredSlides: false },
+            768:  { slidesPerView: 5, spaceBetween: 16, centeredSlides: false },
+            1024: { slidesPerView: 5, spaceBetween: 20, centeredSlides: false },
           }}
         >
           {reels.map((reel) => (
