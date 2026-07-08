@@ -268,49 +268,6 @@ const handleImageUpload = async (e) => {
   }
 };
 
-const handleVariantImageUpload = async (e, color, size) => {
-  const files = Array.from(e.target.files).slice(0, 5);
-  if (files.length === 0) return;
-
-  const key = `${color}-${size}`;
-
-  try {
-    const compressedFiles = await Promise.all(
-      files.map((file) =>
-        imageCompression(file, {
-          maxSizeMB: 2 * 1024 * 1024,
-          maxWidthOrHeight: 1080,
-          useWebWorker: true,
-          initialQuality: 0.9,
-        })
-      )
-    );
-
-    const urls = await uploadToGoDaddy(compressedFiles, "products");
-
-    if (urls.length > 0) {
-      setVariantImages((prev) => {
-        const existing = Array.isArray(prev[key]) ? prev[key] : [];
-        const merged = [...existing, ...urls].slice(0, 5);
-        return { ...prev, [key]: merged };
-      });
-      toast.success(`Uploaded ${urls.length} image(s) for ${key}`);
-    } else {
-      toast.error("Variant image upload failed: no URLs returned");
-    }
-  } catch (err) {
-    console.error("Variant image upload error:", err);
-    toast.error("Variant image upload error");
-  }
-};
-
-const handleRemoveVariantImage = (variantKey, index) => {
-  setVariantImages((prev) => {
-    const arr = Array.isArray(prev[variantKey]) ? prev[variantKey] : [];
-    const updated = arr.filter((_, i) => i !== index);
-    return { ...prev, [variantKey]: updated };
-  });
-};
 
 
 
@@ -450,6 +407,27 @@ const handleRemoveVariantImage = (variantKey, index) => {
   const colors = ["Black", "White", "Red", "Green", "Yellow", "Pink","Navy","Dark Imperial Blue"];
   const sizes = ["XS", "S", "M", "L", "XL", "XXL","XXXL"];
 
+  const buildDefaultVariantStock = (colorsList, sizesList, existing = {}) => {
+    const next = { ...existing };
+    colorsList.forEach((color) => {
+      sizesList.forEach((size) => {
+        const key = `${color}-${size}`;
+        if (next[key] === undefined) next[key] = 5;
+      });
+    });
+    return next;
+  };
+
+  const removeVariantStock = (colorsList, sizesList, existing = {}) => {
+    const next = { ...existing };
+    colorsList.forEach((color) => {
+      sizesList.forEach((size) => {
+        delete next[`${color}-${size}`];
+      });
+    });
+    return next;
+  };
+
   // Add this function to handle variant stock changes
   const handleVariantStockChange = (color, size, value) => {
     setStockByVariant((prev) => ({
@@ -569,14 +547,35 @@ const handleRemoveVariantImage = (variantKey, index) => {
         {/* Sizes */}
         {getAvailableSizes().length > 0 && (
           <div className="md:col-span-2">
-            <label className="block mb-1">Sizes *</label>
-            <div className="grid grid-cols-4 gap-2">
+            <div className="flex flex-col gap-3">
+              <label className="block mb-1">Sizes *</label>
+              <label className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-gray-50 px-4 py-3 text-sm text-gray-700">
+                <input
+                  type="checkbox"
+                  checked={getAvailableSizes().length > 0 && getAvailableSizes().every((s) => product.size.includes(s))}
+                  onChange={(e) => {
+                    const checked = e.target.checked;
+                    const availableSizes = getAvailableSizes();
+                    setProduct((prev) => ({
+                      ...prev,
+                      size: checked ? availableSizes : [],
+                    }));
+                    setStockByVariant((prevStock) =>
+                      checked
+                        ? buildDefaultVariantStock(product.color, availableSizes, prevStock)
+                        : removeVariantStock(product.color, availableSizes, prevStock)
+                    );
+                  }}
+                />
+                Select All Sizes
+              </label>
+            </div>
+            <div className="grid grid-cols-4 gap-2 mt-2">
               {getAvailableSizes().map((s) => (
-                <label key={s} className="flex items-center gap-2">
+                <label key={s} className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-3">
                   <input
                     type="checkbox"
                     value={s}
-                    required
                     checked={product.size.includes(s)}
                     onChange={(e) => {
                       const checked = e.target.checked;
@@ -586,6 +585,11 @@ const handleRemoveVariantImage = (variantKey, index) => {
                           ? [...prev.size, s]
                           : prev.size.filter((item) => item !== s),
                       }));
+                      setStockByVariant((prevStock) =>
+                        checked
+                          ? buildDefaultVariantStock(product.color, [s], prevStock)
+                          : removeVariantStock(product.color, [s], prevStock)
+                      );
                     }}
                   />
                   {s}
@@ -711,37 +715,12 @@ const handleRemoveVariantImage = (variantKey, index) => {
                             type="number"
                             value={stockByVariant[key] || ""}
                             min="0"
-                            
                             placeholder="0"
                             onChange={(e) =>
                               handleVariantStockChange(c, s, e.target.value)
                             }
-                            className="w-1/4 px-2 py-1 border-2 border-b border-gray-300 rounded"
+                            className="w-full px-2 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                           />
-                          <div className="mt-2">
-                            <input
-                              type="file"
-                              accept="image/*"
-                              multiple
-                              onChange={(e) => handleVariantImageUpload(e, c, s)}
-                              className="w-1/4 text-xs mt-1 p-2 border border-gray-200"
-                            />
-
-                            <div className="flex gap-2 mt-2 flex-wrap">
-                              {(variantImages[key] || []).map((imgUrl, idx) => (
-                                <div key={idx} className="relative">
-                                  <img src={imgUrl} alt={key} className="w-12 h-12 object-cover rounded border" />
-                                  <button
-                                    type="button"
-                                    onClick={() => handleRemoveVariantImage(key, idx)}
-                                    className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
-                                  >
-                                    ×
-                                  </button>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
                         </td>
                       );
                     })}

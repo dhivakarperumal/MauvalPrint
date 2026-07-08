@@ -4,6 +4,8 @@ import api from "../api";
 import PageContainer from "../Components/PageContainer";
 import { motion } from "framer-motion";
 
+const MotionDiv = motion.div;
+
 const Category = () => {
   const [categories, setCategories] = useState([]);
 
@@ -45,33 +47,30 @@ const Category = () => {
   };
 
   return (
-    <div className="bg-gradient-to-br from-white via-gray-50/80 to-primary/5 px-6 py-16 md:py-20 relative overflow-hidden">
-      {/* Decorative Elements */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <motion.div
-          className="absolute top-20 right-10 w-72 h-72 bg-primary/5 rounded-full blur-3xl"
-          animate={{ scale: [1, 1.2, 1] }}
-          transition={{ duration: 8, repeat: Infinity }}
-        />
-      </div>
+    <div className="relative overflow-hidden bg-slate-950 text-white py-16 sm:py-20">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(249,168,45,0.2),_transparent_30%),radial-gradient(circle_at_bottom_right,_rgba(56,189,248,0.18),_transparent_28%)] pointer-events-none" />
+      <div className="absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-slate-950/100 to-transparent pointer-events-none" />
 
       <PageContainer className="relative z-10">
-        {/* Section Header */}
         <motion.div
-          initial={{ opacity: 0, y: -20 }}
+          initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="text-center mb-12 md:mb-16"
+          className="space-y-8 mb-14 md:mb-20"
         >
-          <h2 className="text-4xl md:text-5xl font-black text-slate-900 mb-4">
-            Shop by <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-yellow-500">Category</span>
+          <p className="inline-flex rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm uppercase tracking-[0.28em] text-slate-300 shadow-sm shadow-slate-900/30">
+            Curated Collections
+          </p>
+          <h2 className="text-4xl sm:text-5xl font-black tracking-tight text-white">
+            Shop by <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-slate-100 to-yellow-400">Category</span>
           </h2>
-          <p className="text-gray-600 text-lg max-w-2xl mx-auto">Explore our curated collections across all categories</p>
+          <p className="max-w-3xl text-base leading-8 text-slate-300">
+            Explore premium category collections crafted for every design mood. Discover tees, hoodies, round necks and sweatshirts with quality prints and effortless style.
+          </p>
         </motion.div>
 
-        {/* Categories Grid */}
-        <motion.div
-          className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6 md:gap-8"
+        <MotionDiv
+          className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-4 auto-rows-fr"
           variants={containerVariants}
           initial="hidden"
           whileInView="visible"
@@ -81,75 +80,37 @@ const Category = () => {
             const imageSource = cat.images || cat.cimgs;
             const imageUrl = Array.isArray(imageSource) ? imageSource[0] : imageSource;
             const categoryName = cat.name || cat.cname || cat.category_id || "Category";
+            const productCount = cat.count || cat.totalProducts || cat.items || "20+";
 
             return (
-              <motion.div key={cat.category_id || cat.id || index} variants={itemVariants}>
-                <Link to={`/products/${encodeURIComponent(categoryName)}?subcategory=all`}>
+              <motion.div key={cat.category_id || cat.id || index} variants={itemVariants} className="h-full">
+                <Link to={`/products/${encodeURIComponent(categoryName)}?subcategory=all`} className="h-full">
                   <motion.div
-                    className="group flex flex-col items-center text-center py-8 cursor-pointer"
                     whileHover={{ y: -10 }}
-                    transition={{ duration: 0.3 }}
+                    transition={{ duration: 0.35 }}
+                    className="group flex h-full flex-col overflow-hidden rounded-[2rem] border border-white/10 bg-slate-900/90 shadow-[0_20px_60px_rgba(15,23,42,0.4)]"
                   >
-                    {/* Category Card Container */}
-                    <div className="relative w-full aspect-square mb-4">
-                      {/* Background Gradient */}
-                      <motion.div
-                        className="absolute inset-0 bg-gradient-to-br from-primary/20 to-yellow-400/10 rounded-3xl group-hover:from-primary/40 group-hover:to-yellow-400/30 transition-all duration-300"
-                        initial={{ scale: 0.95 }}
-                        whileHover={{ scale: 1.05 }}
+                    <div className="relative h-full overflow-hidden">
+                      <img
+                        src={imageUrl || "/placeholder-category.png"}
+                        alt={categoryName}
+                        className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
                       />
-
-                      {/* Image Container */}
-                      <div className="absolute inset-0 flex items-center justify-center rounded-3xl overflow-hidden">
-                        <motion.img
-                          src={imageUrl || "/placeholder-category.png"}
-                          alt={categoryName}
-                          className="w-full h-full object-cover"
-                          whileHover={{ scale: 1.15, rotate: 5 }}
-                          transition={{ duration: 0.5 }}
-                        />
-                        
-                        {/* Overlay */}
-                        <motion.div
-                          className="absolute inset-0 bg-gradient-to-t from-slate-900/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                          initial={{ opacity: 0 }}
-                          whileHover={{ opacity: 1 }}
-                        />
+                      <div className="absolute inset-0 bg-gradient-to-t from-slate-950/95 via-slate-950/40 to-transparent" />
+                      <div className="absolute inset-x-0 bottom-0 p-6">
+                        <p className="text-sm uppercase tracking-[0.25em] text-slate-200/80">{productCount} styles</p>
+                        <h3 className="mt-2 text-2xl font-bold text-white">{categoryName}</h3>
+                        <p className="mt-2 max-w-xs text-sm leading-6 text-slate-300">
+                          Browse premium designs with bold prints and effortless comfort.
+                        </p>
                       </div>
-
-                      {/* Badge */}
-                      <motion.div
-                        className="absolute -top-2 -right-2 bg-gradient-to-r from-primary to-yellow-400 px-3 py-1 rounded-full text-white text-xs font-bold shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                        initial={{ scale: 0 }}
-                        whileHover={{ scale: 1 }}
-                      >
-                        Explore
-                      </motion.div>
                     </div>
-
-                    {/* Category Name */}
-                    <motion.p
-                      className="text-sm md:text-base font-bold text-slate-900 uppercase tracking-wide group-hover:text-primary transition-colors duration-300"
-                      initial={{ opacity: 0.7 }}
-                      whileHover={{ opacity: 1 }}
-                    >
-                      {categoryName}
-                    </motion.p>
-
-                    {/* Underline */}
-                    <motion.div
-                      className="h-1 bg-gradient-to-r from-primary to-yellow-400 rounded-full mt-2 origin-left"
-                      initial={{ scaleX: 0 }}
-                      whileHover={{ scaleX: 1 }}
-                      transition={{ duration: 0.3 }}
-                      style={{ width: "60%" }}
-                    />
                   </motion.div>
                 </Link>
               </motion.div>
             );
           })}
-        </motion.div>
+        </MotionDiv>
       </PageContainer>
     </div>
   );

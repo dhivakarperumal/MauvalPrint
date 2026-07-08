@@ -17,7 +17,7 @@ const Home = () => {
         <Product/>
         <Category/>     
         <Testimonial/>
-        <ReelsSwiper />
+        {/* <ReelsSwiper /> */}
     </section>
   )
 }

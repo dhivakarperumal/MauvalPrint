@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Autoplay } from "swiper/modules";
-import { 
-  FaPlay, FaPause, FaInstagram, FaVolumeMute, FaVolumeUp, 
-  FaExpand, FaHeart, FaComment, FaShare, FaTimes, FaChevronLeft, FaChevronRight, FaArrowRight 
+import {
+  FaPlay, FaPause, FaInstagram, FaVolumeMute, FaVolumeUp,
+  FaHeart, FaComment, FaShare, FaChevronLeft, FaChevronRight
 } from "react-icons/fa";
 import api from "../api";
 import "swiper/css";
@@ -56,37 +56,80 @@ const normalizeVideo = (video) => {
 };
 
 // ─── Reel Card (Inline Slide) ───────────────────────────────────────────────
-const ReelCard = ({ reel }) => {
+const ReelCard = ({ reel, active }) => {
   const videoRef = useRef(null);
   const [playing, setPlaying] = useState(false);
   const [muted, setMuted] = useState(true);
   const [liked, setLiked] = useState(false);
+  const [userPaused, setUserPaused] = useState(false);
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
+
     const onTimeUpdate = () => {
-      if (video.duration)
-        setProgress((video.currentTime / video.duration) * 100);
+      if (video.duration) setProgress((video.currentTime / video.duration) * 100);
     };
+
+    const onEnded = () => {
+      setPlaying(false);
+      if (active) {
+        video.currentTime = 0;
+        video.play().catch(() => {});
+        setPlaying(true);
+      }
+    };
+
     video.addEventListener("timeupdate", onTimeUpdate);
-    return () => video.removeEventListener("timeupdate", onTimeUpdate);
-  }, []);
+    video.addEventListener("ended", onEnded);
+
+    return () => {
+      video.removeEventListener("timeupdate", onTimeUpdate);
+      video.removeEventListener("ended", onEnded);
+    };
+  }, [active]);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || reel.isExternal) return;
+    video.muted = muted;
+
+    if (active && !userPaused) {
+      video.play().then(() => setPlaying(true)).catch(() => {});
+    } else {
+      video.pause();
+      setPlaying(false);
+    }
+  }, [active, muted, userPaused, reel.isExternal]);
+
+  useEffect(() => {
+    if (!reel.isExternal) return;
+    if (active) {
+      setPlaying(true);
+    } else {
+      setPlaying(false);
+    }
+  }, [active, reel.isExternal]);
 
   const togglePlay = (e) => {
+    if (e) e.stopPropagation();
     if (reel.isExternal) {
       setPlaying(!playing);
       return;
     }
+
     const video = videoRef.current;
     if (!video) return;
+
     if (playing) {
       video.pause();
       setPlaying(false);
+      setUserPaused(true);
     } else {
       video.play().catch(() => {});
       setPlaying(true);
+      setUserPaused(false);
     }
   };
 
@@ -100,13 +143,16 @@ const ReelCard = ({ reel }) => {
 
   return (
     <div
-      className="relative w-full h-full rounded-3xl overflow-hidden shadow-2xl cursor-pointer group select-none bg-black"
+      className={`relative w-full h-full rounded-3xl overflow-hidden shadow-[0_30px_100px_rgba(15,23,42,0.35)] cursor-pointer select-none bg-slate-950 ${
+        active ? "ring-2 ring-pink-400/40" : ""
+      }`}
       onClick={togglePlay}
     >
-      {/* Video element */}
+      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/10 to-black/80 opacity-80" />
+
       {reel.isExternal ? (
         playing ? (
-          <div className="w-full h-full bg-white flex items-center justify-center">
+          <div className="w-full h-full bg-black flex items-center justify-center">
             {(() => {
               const url = reel.videoUrl;
               let embedUrl = url;
@@ -116,7 +162,9 @@ const ReelCard = ({ reel }) => {
                   let cleanPath = urlObj.pathname.replace(/^\/(?:reel|tv|reels)\//, '/p/');
                   if (!cleanPath.endsWith('/')) cleanPath += '/';
                   embedUrl = `https://www.instagram.com${cleanPath}embed/`;
-                } catch (e) {}
+                } catch {
+                  // Ignore invalid Instagram embed URL
+                }
               } else if (url.includes("youtube.com") || url.includes("youtu.be")) {
                 try {
                   let id = null;
@@ -127,22 +175,21 @@ const ReelCard = ({ reel }) => {
                   else if (shortsMatch) id = shortsMatch[1];
                   else if (watchMatch) id = watchMatch[1];
                   if (id) embedUrl = `https://www.youtube.com/embed/${id}?autoplay=1`;
-                } catch (e) {}
+                } catch {
+                  // Ignore invalid YouTube embed URL
+                }
               }
               return (
-                <div className="w-full h-full relative overflow-hidden bg-black flex items-center justify-center">
-                  <iframe
-                    src={embedUrl}
-                    title="Video player"
-                    frameBorder="0"
-                    scrolling="no"
-                    allowTransparency="true"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                    className="w-full h-full"
-                    style={url.includes("instagram.com") ? { transform: "scale(1.65)", transformOrigin: "center center" } : {}}
-                  />
-                </div>
+                <iframe
+                  src={embedUrl}
+                  title="Video player"
+                  frameBorder="0"
+                  scrolling="no"
+                  allowTransparency="true"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  className="w-full h-full"
+                />
               );
             })()}
           </div>
@@ -159,123 +206,73 @@ const ReelCard = ({ reel }) => {
           playsInline
           preload="metadata"
           className="w-full h-full object-cover"
-          onEnded={() => setPlaying(false)}
         />
       )}
 
-      {/* Dark overlay — lighter when playing */}
-      {!reel.isExternal && (
-        <div
-          className={`absolute inset-0 transition-all duration-500 ${
-            playing
-              ? "bg-gradient-to-t from-black/70 via-transparent to-black/30"
-              : "bg-gradient-to-t from-black/80 via-black/20 to-black/40"
+      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent" />
+
+      <div className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none">
+        <button
+          type="button"
+          onClick={togglePlay}
+          className="pointer-events-auto w-14 h-14 rounded-full bg-black/60 text-white backdrop-blur-md border border-white/20 flex items-center justify-center transition hover:bg-black/80"
+        >
+          {playing ? <FaPause size={18} /> : <FaPlay size={18} />}
+        </button>
+      </div>
+
+      <div className="absolute top-4 left-4 z-20 flex items-center gap-2">
+        <span className="inline-flex items-center gap-1 rounded-full bg-black/50 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.25em] text-white backdrop-blur-md">
+          {reel.tag}
+        </span>
+      </div>
+
+      <div className="absolute top-4 right-4 z-20 flex flex-col items-center gap-3">
+        <button
+          onClick={toggleMute}
+          className="w-11 h-11 rounded-full bg-black/40 backdrop-blur-md border border-white/10 flex items-center justify-center text-white transition hover:bg-white/20"
+        >
+          {muted ? <FaVolumeMute size={14} /> : <FaVolumeUp size={14} />}
+        </button>
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            setLiked(!liked);
+          }}
+          className={`w-11 h-11 rounded-full bg-black/40 backdrop-blur-md border border-white/10 flex items-center justify-center transition hover:bg-white/20 ${
+            liked ? "text-pink-400" : "text-white"
           }`}
-        />
-      )}
+        >
+          <FaHeart size={14} />
+        </button>
+      </div>
 
-      {/* ── Top bar ── */}
-      {!reel.isExternal && (
-        <div className="absolute top-4 left-4 right-4 flex items-center justify-between z-10">
-          <div /> {/* Empty div to keep flex space-between if needed, or just remove */}
-          {/* Expand / mute buttons */}
-          <div className="flex items-center gap-2 ml-auto">
-            {!reel.isExternal && (
-              <button
-                onClick={toggleMute}
-                className="w-8 h-8 rounded-full bg-black/40 backdrop-blur-md border border-white/10 flex items-center justify-center text-white hover:bg-white/20 transition"
-              >
-                {muted ? <FaVolumeMute size={12} /> : <FaVolumeUp size={12} />}
+      <div className="absolute inset-x-0 bottom-0 z-20 px-5 pb-5">
+        <div className="mb-3 h-0.5 w-full overflow-hidden rounded-full bg-white/20">
+          <div className="h-full bg-gradient-to-r from-pink-500 via-fuchsia-500 to-yellow-400 transition-all duration-100" style={{ width: `${progress}%` }} />
+        </div>
+        <div className="rounded-[1.75rem] bg-black/40 p-4 backdrop-blur-xl border border-white/10">
+          <p className="text-sm uppercase tracking-[0.25em] text-slate-300">{reel.tag}</p>
+          <h3 className="mt-2 text-lg font-semibold text-white leading-6 line-clamp-2">{reel.caption}</h3>
+          <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between text-white/90 text-sm">
+            <div className="flex items-center gap-3">
+              <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-2">
+                <FaHeart size={14} className="text-pink-400" />
+                {reel.likes}
+              </span>
+              <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-2">
+                <FaComment size={14} />
+                {reel.comments}
+              </span>
+            </div>
+            <div className="flex items-center gap-2 justify-end">
+              <button className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-2 text-white transition hover:bg-white/20">
+                <FaShare size={14} />
+                Share
               </button>
-            )}
+            </div>
           </div>
         </div>
-      )}
-
-      {/* ── Center play/pause indicator ── */}
-      {!reel.isExternal && (
-        <div
-          className={`absolute inset-0 flex items-center justify-center z-10 pointer-events-none transition-opacity duration-300 ${
-            playing ? "opacity-0 group-hover:opacity-100" : "opacity-100"
-          }`}
-        >
-          <div className="w-16 h-16 rounded-full bg-white/20 border-2 border-white/60 backdrop-blur-sm flex items-center justify-center shadow-2xl">
-            {playing ? (
-              <FaPause className="text-white text-lg" />
-            ) : (
-              <FaPlay className="text-white text-lg ml-1" />
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* ── Right action buttons ── */}
-      {!reel.isExternal && (
-        <div
-          className="absolute right-4 bottom-24 flex flex-col items-center gap-5 z-10"
-          onClick={(e) => e.stopPropagation()}
-        >
-          {/* Likes */}
-          <div className="flex flex-col items-center gap-1 group/btn cursor-pointer">
-            <button
-              onClick={() => setLiked(!liked)}
-              className={`w-10 h-10 rounded-full bg-black/40 backdrop-blur-md border border-white/10 flex items-center justify-center transition-all duration-300 ${
-                liked ? "text-pink-500 bg-pink-500/20" : "text-white group-hover/btn:bg-white/20"
-              }`}
-            >
-              <FaHeart size={16} />
-            </button>
-            <span className="text-white text-[10px] font-bold drop-shadow-md">
-              {reel.likes}
-            </span>
-          </div>
-          {/* Comments */}
-          <div className="flex flex-col items-center gap-1 group/btn cursor-pointer">
-            <button className="w-10 h-10 rounded-full bg-black/40 backdrop-blur-md border border-white/10 flex items-center justify-center text-white group-hover/btn:bg-white/20 transition-all duration-300">
-              <FaComment size={16} />
-            </button>
-            <span className="text-white text-[10px] font-bold drop-shadow-md">
-              {reel.comments}
-            </span>
-          </div>
-          {/* Share */}
-          <div className="flex flex-col items-center gap-1 group/btn cursor-pointer">
-            <a
-              href={reel.instagramUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-10 h-10 rounded-full bg-black/40 backdrop-blur-md border border-white/10 flex items-center justify-center text-white group-hover/btn:bg-white/20 transition-all duration-300"
-            >
-              <FaShare size={16} />
-            </a>
-            <span className="text-white text-[10px] font-bold drop-shadow-md">
-              Share
-            </span>
-          </div>
-        </div>
-      )}
-
-      {/* ── Bottom caption ── */}
-      {!reel.isExternal && (
-        <div
-          className="absolute bottom-6 left-4 right-16 z-10"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <span className="text-pink-400 text-[10px] font-bold tracking-widest uppercase block mb-1">
-            {reel.tag}
-          </span>
-          <p className="text-white font-bold text-sm leading-snug drop-shadow-lg line-clamp-2">
-            {reel.caption}
-          </p>
-        </div>
-      )}
-
-      {/* ── Progress bar ── */}
-      <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-white/20 z-20">
-        <div
-          className="h-full bg-gradient-to-r from-pink-500 to-yellow-400 transition-all duration-100"
-          style={{ width: `${progress}%` }}
-        />
       </div>
     </div>
   );
@@ -286,6 +283,7 @@ const ReelsSwiper = () => {
   const prevRef = useRef(null);
   const nextRef = useRef(null);
   const [reels, setReels] = useState([]);
+  const [activeIndex, setActiveIndex] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -384,7 +382,11 @@ const ReelsSwiper = () => {
             prevEl: prevRef.current,
             nextEl: nextRef.current,
           }}
+          onSlideChange={(swiper) => {
+            setActiveIndex(swiper.realIndex);
+          }}
           onSwiper={(swiper) => {
+            setActiveIndex(swiper.realIndex);
             setTimeout(() => {
               if (swiper.params?.navigation) {
                 swiper.params.navigation.prevEl = prevRef.current;
@@ -402,9 +404,9 @@ const ReelsSwiper = () => {
             1024: { slidesPerView: 5, spaceBetween: 20, centeredSlides: false },
           }}
         >
-          {reels.map((reel) => (
+          {reels.map((reel, index) => (
             <SwiperSlide key={reel.id}>
-              <ReelCard reel={reel} />
+              <ReelCard reel={reel} active={index === activeIndex} />
             </SwiperSlide>
           ))}
         </Swiper>
