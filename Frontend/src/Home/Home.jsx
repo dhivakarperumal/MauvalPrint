@@ -11,8 +11,8 @@ import ReelsSwiper from './ReelsSwiper'
 
 const Home = () => {
   return (
-    <section className='mt-17'>
-        {/* <Hero/> */}
+    <section className='mt-17 bg-gradient-to-b from-white via-gray-50 to-primary/5 min-h-screen'>
+        <Hero/>
         <RecentDesigns/>
         <Product/>
         <Category/>     

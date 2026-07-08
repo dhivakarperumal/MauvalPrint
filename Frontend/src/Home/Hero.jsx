@@ -113,52 +113,127 @@
 //   );
 // }
 
-import React from "react";
-import home from '/Image/Home.png'
-import { motion } from "framer-motion";
+import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import { FaArrowRight, FaStar, FaShieldAlt, FaTruck } from "react-icons/fa";
+import hero1 from "/Image/hero1.png";
+import hero2 from "/Image/hero2.png";
+import hero3 from "/Image/hero3.png";
+import hero4 from "/Image/hero4.png";
 
+const slides = [
+  {
+    src: hero1,
+    alt: "Colorful custom tee",
+    label: "Bold Statement",
+    subtext: "Stand out with vibrant prints.",
+  },
+  {
+    src: hero2,
+    alt: "Minimalist custom tee",
+    label: "Clean Comfort",
+    subtext: "Timeless style in every stitch.",
+  },
+  {
+    src: hero3,
+    alt: "Graphic print tee",
+    label: "Graphic Fresh",
+    subtext: "Designs designed to turn heads.",
+  },
+  {
+    src: hero4,
+    alt: "Lifestyle print tee",
+    label: "Everyday Premium",
+    subtext: "Premium fabrics, perfect fit.",
+  },
+];
+
+const stats = [
+  { icon: FaStar, value: "500+", label: "Happy Customers" },
+  { icon: FaShieldAlt, value: "100%", label: "Quality Assured" },
+  { icon: FaTruck, value: "Fast", label: "Pan India Delivery" },
+];
 
 const Hero = () => {
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  useEffect(() => {
+    const rotate = setInterval(() => {
+      setActiveIndex((current) => (current + 1) % slides.length);
+    }, 5000);
+
+    return () => clearInterval(rotate);
+  }, []);
+
   return (
-    <section className=" bg-gradient-to-b md:bg-gradient-to-l  from-gray-300 via-gray-400 md:via-gray-500 to-primary flex flex-col md:flex-row items-center justify-between w-full h-auto md:h-[66vh] overflow-hidden">
-      {/* Left Section */}
-      <div className=" order-2 md:order-1 w-full md:w-1/2 px-6 md:px-12 lg:px-16 py-10 md:py-0 flex flex-col justify-center relative text-center md:text-left">
-        {/* Background Text */}
-        <h1 className="text-[2.8rem] sm:text-[3.5rem]  font-bold text-[#e6e2e0] leading-tight tracking-tight drop-shadow-md">
-          MAUVAL PRINT
-        </h1>
-
-        {/* Paragraph */}
-        <p className="text-white font-bold mt-4 text-2xl">
-          PRINT YOUR HAPPINESS
-        </p>
-
-        {/* Button */}
-        <button className="mt-6 bg-white text-primary px-6 py-3 cursor-pointer rounded-full text-sm sm:text-base font-semibold shadow-md hover:bg-gray-100 transition-all duration-300 w-fit mx-auto md:mx-0">
-          SHOP NOW
-        </button>
+    <section className="hidden lg:block relative w-full min-h-[70vh] overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white">
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute -left-20 top-10 w-96 h-96 rounded-full bg-yellow-400/20 blur-3xl animate-[float_12s_ease-in-out_infinite]" />
+        <div className="absolute right-0 bottom-12 w-80 h-80 rounded-full bg-cyan-500/20 blur-3xl animate-[float_14s_ease-in-out_infinite]" />
       </div>
 
-      
+      <div className="relative z-10 max-w-[1440px] mx-auto px-6 py-10 md:px-12 lg:px-16">
+        <div className="grid gap-12 lg:grid-cols-[1.1fr_0.9fr] items-center">
+          <div className="space-y-8 transition duration-700 ease-out">
+            <div className="inline-flex items-center gap-3 bg-white/10 border border-white/10 text-sm text-white/80 rounded-full px-4 py-2 backdrop-blur-md shadow-lg shadow-black/20">
+              <FaStar className="text-yellow-300" />
+              Premium prints, fast delivery.
+            </div>
 
-       <div className="order-1 md:order-2 w-full md:w-1/2 flex justify-center items-center mt-6 md:mt-0">
-      <motion.img
-        src={home}
-        alt="Mauval Print T-shirt"
-        className="w-52 sm:w-68 object-cover overflow-hidden"
-        animate={{
-          y: [0, -10, 0],       // float up and down
-          opacity: [1, 0.85, 1], // slight fade for smoothness
-          scale: [1, 1.05, 1],   // subtle zoom in/out
-        }}
-        transition={{
-          duration: 4,           // full cycle duration
-          ease: "easeInOut",     // smooth easing
-          repeat: Infinity,      // loop forever
-          repeatType: "loop",    // seamless repeat
-        }}
-      />
-    </div>
+            <div className="space-y-4">
+              <h1 className="text-4xl sm:text-5xl md:text-6xl font-black tracking-tight text-white">
+                MAUVAL <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-orange-300 to-primary">PRINT</span>
+              </h1>
+              <p className="text-lg sm:text-xl md:text-2xl font-semibold text-white/90 max-w-2xl">
+                Design your custom apparel with premium prints, bold colors, and comfort that lasts all day.
+              </p>
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-2">
+              <Link to="/products" className="inline-flex items-center justify-center gap-3 rounded-full bg-gradient-to-r from-yellow-400 to-yellow-500 px-8 py-4 font-semibold text-slate-900 shadow-2xl shadow-yellow-500/30 transition-transform duration-300 hover:-translate-y-1">
+                Shop Now
+                <FaArrowRight />
+              </Link>
+              <button className="inline-flex items-center justify-center rounded-full border border-white/20 bg-white/5 px-8 py-4 text-white font-semibold transition hover:bg-white/10">
+                Customize Now
+              </button>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-3">
+              {stats.map(({ icon, value, label }, index) => (
+                <div key={index} className="rounded-3xl border border-white/10 bg-white/5 p-5 backdrop-blur-md shadow-xl shadow-black/20">
+                  <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-white/10 text-yellow-300">
+                    {React.createElement(icon, { className: "text-yellow-300" })}
+                  </div>
+                  <p className="mt-4 text-2xl font-bold text-white">{value}</p>
+                  <p className="mt-1 text-sm text-white/70">{label}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="relative hidden lg:flex items-stretch justify-center">
+            <div className="relative w-full rounded-[2rem] border border-white/10 bg-slate-950/80 shadow-[0_30px_90px_rgba(0,0,0,0.45)] p-6">
+              <div className="absolute -left-8 top-8 h-28 w-28 rounded-full bg-yellow-400/15 blur-2xl" />
+              <div className="absolute -right-8 bottom-10 h-32 w-32 rounded-full bg-cyan-500/15 blur-2xl" />
+
+              <div className="relative overflow-hidden rounded-[1.75rem] border border-white/10 bg-slate-950 min-h-[470px]">
+                <img
+                  src={slides[activeIndex].src}
+                  alt={slides[activeIndex].alt}
+                  className="h-full w-full object-cover transition-all duration-700 ease-out"
+                />
+                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950/90 to-transparent px-6 py-5">
+                  <p className="text-xs uppercase tracking-[0.25em] text-white/60">Featured design</p>
+                  <p className="mt-2 text-3xl font-bold text-white">{slides[activeIndex].label}</p>
+                  <p className="mt-2 text-sm text-white/70 max-w-xs">{slides[activeIndex].subtext}</p>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </div>
     </section>
   );
 };

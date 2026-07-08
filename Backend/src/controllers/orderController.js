@@ -207,6 +207,30 @@ const parseJSON = (value, fallback) => {
 
 const createWebOrder = async (req, res) => {
   const { checkout, cart, total, paymentID, isCustomLogoPrint, userId, userEmail } = req.body;
+
+  // Debug: log incoming request metadata to help troubleshoot 500s from frontend
+  try {
+    console.log(`[${new Date().toISOString()}] createWebOrder called. headers content-length=${req.headers['content-length'] || '(unknown)'} bodyKeys=${Object.keys(req.body || {}).join(',')}`);
+    if (Array.isArray(cart)) {
+      cart.forEach((it, idx) => {
+        if (it && it.image && typeof it.image === 'string' && it.image.length > 2000) {
+          console.log(`  cart[${idx}].image length=${it.image.length} (truncated)`);
+        }
+      });
+    }
+  } catch (e) {
+    console.error('Failed to log createWebOrder request info', e);
+  }
+
+  // Basic validation to return clearer errors instead of generic 500s
+  if (!cart || !Array.isArray(cart) || cart.length === 0) {
+    return res.status(400).json({ success: false, message: "Cart is required and must be a non-empty array." });
+  }
+
+  if (!checkout || typeof checkout !== 'object') {
+    return res.status(400).json({ success: false, message: "Checkout information is required." });
+  }
+
   try {
     const pool = req.app.locals.pool;
     const prefix = isCustomLogoPrint ? "OFP" : "ORD";
@@ -244,8 +268,20 @@ const createWebOrder = async (req, res) => {
       order_id: orderId,
     });
   } catch (error) {
-    console.error("Create web order error:", error);
-    res.status(500).json({ success: false, message: "Could not create web order." });
+    // Log full error details to help debugging (stack + request body)
+    console.error("Create web order error:", error && error.stack ? error.stack : error);
+    try {
+      console.error("Request body for failed web-checkout:", JSON.stringify(req.body));
+    } catch (e) {
+      console.error("Could not stringify request body for logging.");
+    }
+
+    // Return helpful message in development; otherwise keep generic
+    const clientMessage = process.env.NODE_ENV === 'production'
+      ? 'Could not create web order.'
+      : (error && error.message) ? `Could not create web order: ${error.message}` : 'Could not create web order.';
+
+    res.status(500).json({ success: false, message: clientMessage });
   }
 };
 

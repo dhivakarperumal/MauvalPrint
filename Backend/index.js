@@ -192,6 +192,17 @@ app.use((req, res, next) => {
   next();
 });
 
+// Log incoming order request sizes for debugging large payloads
+app.use('/api/orders', (req, res, next) => {
+  try {
+    const len = req.headers['content-length'] || '(unknown)';
+    console.log(`[${new Date().toISOString()}] /api/orders ${req.method} content-length=${len}`);
+  } catch (e) {
+    console.error('Error logging /api/orders request size', e);
+  }
+  next();
+});
+
 app.use("/api/users", userRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/categories", categoryRoutes);
@@ -236,4 +247,16 @@ async function startServer() {
 startServer();
 
 module.exports = app;
+
+// Global error handler to capture unexpected errors and log request body for diagnostics
+app.use((err, req, res, next) => {
+  console.error('Unhandled server error:', err && err.stack ? err.stack : err);
+  try { console.error('Request body at error time:', JSON.stringify(req.body)); } catch (e) { console.error('Failed to stringify request body'); }
+  if (!res.headersSent) {
+    const msg = process.env.NODE_ENV === 'production' ? 'Internal server error' : (err && err.message) ? err.message : 'Internal server error';
+    res.status(500).json({ success: false, message: msg });
+  } else {
+    next(err);
+  }
+});
 

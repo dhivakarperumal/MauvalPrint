@@ -1,9 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Canvas, Rect, Image as FabricImage } from 'fabric';
+import { Canvas, Rect, Image as FabricImage, Control } from 'fabric';
 
 const CanvasWorkspace = ({ onCanvasReady, product, imageSrc, selectedProductColor, onExportSafeChange }) => {
   const canvasRef = useRef(null);
+  const wrapperRef = useRef(null);
   const [fabricCanvas, setFabricCanvas] = useState(null);
+  const [canvasSize, setCanvasSize] = useState({ width: 250, height: 350 });
 
   // Inline SVG placeholder — no external dependency
   const placeholderSvg = `data:image/svg+xml,${encodeURIComponent(
@@ -16,37 +18,47 @@ const CanvasWorkspace = ({ onCanvasReady, product, imageSrc, selectedProductColo
 
   // Use the provided imageSrc directly, or fall back to the placeholder
   const displaySrc = imageSrc || placeholderSvg;
+  const backendProxyBase = '/api/proxy-image?url=';
   const proxyApiUrl = '/api/proxy-image?url=';
   const viteProxyBase = '/proxy-image';
 
-  const addImageToCanvas = (canvas, imgEl) => {
+  const addImageToCanvas = (canvas, imgEl, options = {}) => {
+    const { isBase = false } = options;
     try {
       const img = new FabricImage(imgEl, {
-        originX: 'left',
-        originY: 'top',
-        left: 0,
-        top: 0,
-        selectable: true,
-        evented: true,
-        hasControls: true,
-        hasBorders: true,
-        lockRotation: true,
+        originX: 'center',
+        originY: 'center',
+        left: canvas.getWidth() / 2,
+        top: canvas.getHeight() / 2,
+        selectable: !isBase,
+        evented: !isBase,
+        hasControls: !isBase,
+        hasBorders: !isBase,
+        lockMovementX: isBase,
+        lockMovementY: isBase,
+        lockScalingX: isBase,
+        lockScalingY: isBase,
+        lockRotation: isBase,
         cornerStyle: 'circle',
         cornerStrokeColor: '#4f46e5',
         borderColor: '#818cf8',
         cornerSize: 10,
         transparentCorners: false,
         opacity: 0.95,
-        id: 'product-image',
+        id: isBase ? 'product-image' : `uploaded-image-${Date.now()}`,
       });
-      const scale = Math.min(250 / img.width, 350 / img.height, 1);
+      const maxWidth = canvas.getWidth() * (isBase ? 0.95 : 0.75);
+      const maxHeight = canvas.getHeight() * (isBase ? 0.95 : 0.75);
+      const scale = Math.min(maxWidth / img.width, maxHeight / img.height, 1);
       img.scale(scale);
-      img.left = (250 - img.getScaledWidth()) / 2;
-      img.top = (350 - img.getScaledHeight()) / 2;
+      img.left = canvas.getWidth() / 2;
+      img.top = canvas.getHeight() / 2;
+      img.setCoords();
       canvas.add(img);
 
-      // Use canvas method for Fabric.js v6+ compatibility
-      if (canvas.sendObjectToBack) {
+      if (isBase) {
+        canvas.sendToBack(img);
+      } else if (canvas.sendObjectToBack) {
         canvas.sendObjectToBack(img);
       } else if (img.sendToBack) {
         img.sendToBack();
@@ -163,7 +175,8 @@ const CanvasWorkspace = ({ onCanvasReady, product, imageSrc, selectedProductColo
         }
 
         const imgEl = new window.Image();
-        imgEl.onload = () => addImageToCanvas(canvas, imgEl);
+        imgEl.crossOrigin = 'anonymous';
+        imgEl.onload = () => addImageToCanvas(canvas, imgEl, { isBase: true });
         imgEl.onerror = () => {
           console.error('Clean image failed to load');
           if (!src.startsWith('data:')) loadProductImage(canvas, errorSvg);
@@ -180,20 +193,45 @@ const CanvasWorkspace = ({ onCanvasReady, product, imageSrc, selectedProductColo
       });
   };
 
+  const updateCanvasDimensions = (canvas = fabricCanvas) => {
+    if (!canvas || !canvasRef.current || !wrapperRef.current) return;
+
+    const rect = wrapperRef.current.getBoundingClientRect();
+    const width = Math.max(250, Math.round(rect.width));
+    const height = Math.max(350, Math.round(rect.height));
+    const dpr = window.devicePixelRatio || 1;
+
+    canvasRef.current.style.width = `${width}px`;
+    canvasRef.current.style.height = `${height}px`;
+    canvasRef.current.width = Math.round(width * dpr);
+    canvasRef.current.height = Math.round(height * dpr);
+
+    canvas.setDimensions({ width, height }, { cssOnly: true });
+    canvas.setDimensions({ width: Math.round(width * dpr), height: Math.round(height * dpr) }, { backstoreOnly: true });
+    const clipPath = canvas.getObjects().find((obj) => obj.id === 'clip-path');
+    if (clipPath) {
+      clipPath.set({ width, height });
+    }
+    canvas.requestRenderAll();
+    setCanvasSize({ width, height });
+  };
+
   useEffect(() => {
     if (!canvasRef.current) return;
 
     const canvas = new Canvas(canvasRef.current, {
-      width: 250,
-      height: 350,
       preserveObjectStacking: true,
       selection: true,
-      backgroundColor: '#ffffff', // keep workspace background white by default
+      selectionColor: 'rgba(255,255,255,0.08)',
+      selectionBorderColor: '#94a3b8',
+      selectionLineWidth: 2,
+      hoverCursor: 'move',
+      backgroundColor: '#ffffff',
     });
 
     const clipPath = new Rect({
-      width: 250,
-      height: 350,
+      width: canvasSize.width,
+      height: canvasSize.height,
       left: 0,
       top: 0,
       absolutePositioned: true,
@@ -209,8 +247,15 @@ const CanvasWorkspace = ({ onCanvasReady, product, imageSrc, selectedProductColo
     canvas.add(clipPath);
     setFabricCanvas(canvas);
     if (onCanvasReady) onCanvasReady(canvas);
+    updateCanvasDimensions(canvas);
+
+    const resizeObserver = new ResizeObserver(() => updateCanvasDimensions(canvas));
+    if (wrapperRef.current) resizeObserver.observe(wrapperRef.current);
+    window.addEventListener('resize', () => updateCanvasDimensions(canvas));
 
     return () => {
+      resizeObserver.disconnect();
+      window.removeEventListener('resize', () => updateCanvasDimensions(canvas));
       canvas.dispose();
     };
   }, []);
@@ -225,10 +270,10 @@ const CanvasWorkspace = ({ onCanvasReady, product, imageSrc, selectedProductColo
   useEffect(() => {
     if (!fabricCanvas) return;
     loadProductImage(fabricCanvas, displaySrc);
-  }, [displaySrc, fabricCanvas]);
+  }, [displaySrc, fabricCanvas, canvasSize.width, canvasSize.height]);
 
   return (
-    <div className="w-full max-w-[500px] md:aspect-[5/6] h-[300px] md:h-auto rounded-2xl shadow-2xl relative flex items-center justify-center overflow-hidden shrink-0 bg-white">
+    <div ref={wrapperRef} className="w-full max-w-[500px] md:aspect-[5/6] h-[300px] md:h-auto rounded-2xl shadow-2xl relative flex items-center justify-center overflow-hidden shrink-0 bg-white">
       <div className="absolute inset-0 w-full h-full pointer-events-none" />
       <div className="w-full h-full [&>div]:!w-full [&>div]:!h-full [&>div>canvas]:!w-full [&>div>canvas]:!h-full">
         <canvas ref={canvasRef} />

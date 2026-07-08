@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext, useMemo } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { IoArrowBack, IoDownloadOutline, IoCartOutline, IoMenu, IoClose } from 'react-icons/io5';
-import { IText, Rect, Circle, Triangle, FabricImage } from 'fabric';
+import { IText, Rect, Circle, Triangle, FabricImage, Control } from 'fabric';
 import { AuthContext } from '../Context/AuthContext';
 import SidebarTools from './SidebarTools';
 import CanvasWorkspace from './CanvasWorkspace';
@@ -19,8 +19,6 @@ const CustomizerLayout = () => {
   const [canvas, setCanvas] = useState(null);
   const [activeObject, setActiveObject] = useState(null);
   const [zoomLevel, setZoomLevel] = useState(1);
-  const [currentViewIndex, setCurrentViewIndex] = useState(0);
-  const [viewStates, setViewStates] = useState({});
   const [selectedProductColor, setSelectedProductColor] = useState('#ffffff');
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [showRightPanelMobile, setShowRightPanelMobile] = useState(false);
@@ -157,6 +155,63 @@ const CustomizerLayout = () => {
     setZoomLevel((prev) => Math.max(prev - 0.1, 0.4));
   };
 
+  const createRemoveControl = () => new Control({
+    x: 0,
+    y: -0.6,
+    offsetY: -16,
+    cursorStyleHandler: () => 'pointer',
+    mouseUpHandler: (eventData, transform) => {
+      const target = transform.target;
+      if (!target) return false;
+      const canvasInstance = target.canvas;
+      if (canvasInstance) {
+        canvasInstance.remove(target);
+        canvasInstance.discardActiveObject();
+        canvasInstance.requestRenderAll();
+      }
+      setActiveObject(null);
+      return true;
+    },
+    render: (ctx, left, top, styleOverride, fabricObject) => {
+      const size = styleOverride.cornerSize || 18;
+      ctx.save();
+      ctx.fillStyle = '#111827';
+      ctx.strokeStyle = '#ef4444';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(left, top, size / 2, 0, Math.PI * 2, false);
+      ctx.fill();
+      ctx.stroke();
+      const crossSize = size * 0.24;
+      ctx.beginPath();
+      ctx.moveTo(left - crossSize, top - crossSize);
+      ctx.lineTo(left + crossSize, top + crossSize);
+      ctx.moveTo(left + crossSize, top - crossSize);
+      ctx.lineTo(left - crossSize, top + crossSize);
+      ctx.stroke();
+      ctx.restore();
+    },
+    cornerSize: 18,
+  });
+
+  const applyDeleteControl = (obj) => {
+    if (!obj || obj.id === 'product-image' || obj.id === 'clip-path') return;
+    const deleteControl = createRemoveControl();
+    obj.controls = {
+      ...obj.controls,
+      deleteControl,
+    };
+    obj.set({
+      cornerStyle: 'circle',
+      cornerColor: '#ffffff',
+      cornerStrokeColor: '#4f46e5',
+      borderColor: '#818cf8',
+      cornerSize: 8,
+      transparentCorners: false,
+    });
+    obj.setCoords();
+  };
+
   if (!product) {
     return <div className="h-screen w-full bg-gray-900 text-white flex items-center justify-center">Loading product...</div>;
   }
@@ -167,13 +222,23 @@ const CustomizerLayout = () => {
     
     const sizes = { heading: 40, subheading: 24, body: 16 };
     const text = new IText('Double click to edit', {
-      left: Math.random() * 50 + 50,
-      top: Math.random() * 50 + 50,
+      left: canvas.getWidth() / 2,
+      top: canvas.getHeight() / 2,
+      originX: 'center',
+      originY: 'center',
       fontFamily: 'Arial',
       fill: '#000000',
       fontSize: sizes[type] || 24,
       fontWeight: type === 'heading' ? 'bold' : 'normal',
+      textAlign: 'center',
+      padding: 10,
+      selectable: true,
+      objectCaching: false,
+      cornerStyle: 'circle',
+      cornerSize: 8,
+      transparentCorners: false,
     });
+    applyDeleteControl(text);
     canvas.add(text);
     canvas.setActiveObject(text);
     canvas.requestRenderAll();
@@ -189,6 +254,7 @@ const CustomizerLayout = () => {
     else if (type === 'triangle') shape = new Triangle({ ...opts, width: 80, height: 80 });
     
     if (shape) {
+      applyDeleteControl(shape);
       canvas.add(shape);
       canvas.setActiveObject(shape);
       canvas.requestRenderAll();
@@ -203,9 +269,27 @@ const CustomizerLayout = () => {
     reader.onload = async (f) => {
       const data = f.target.result;
       try {
-        const img = await FabricImage.fromURL(data);
-        img.scaleToWidth(150);
-        img.set({ left: 50, top: 50 });
+        const img = await FabricImage.fromURL(data, { crossOrigin: 'anonymous' });
+        const maxWidth = canvas.getWidth() * 0.85;
+        const maxHeight = canvas.getHeight() * 0.85;
+        const scaleX = maxWidth / img.width;
+        const scaleY = maxHeight / img.height;
+        const scale = Math.min(scaleX, scaleY, 1);
+        img.set({
+          originX: 'center',
+          originY: 'center',
+          left: canvas.getWidth() / 2,
+          top: canvas.getHeight() / 2,
+          objectCaching: false,
+          imageSmoothingEnabled: true,
+          selectable: true,
+          evented: true,
+          hasControls: true,
+          hasBorders: true,
+        });
+        img.scale(scale);
+        img.setCoords();
+        applyDeleteControl(img);
         canvas.add(img);
         canvas.setActiveObject(img);
         canvas.requestRenderAll();
@@ -225,34 +309,6 @@ const CustomizerLayout = () => {
     setActiveObject(canvas.getActiveObject());
   };
 
-  const views = ['Front View', 'Back View', 'Left Sleeve', 'Right Sleeve', 'Neck Label'];
-
-  const handleViewChange = (idx) => {
-    if (idx === currentViewIndex) return;
-    
-    if (canvas) {
-      // Save current state including custom properties like 'id'
-      const currentState = canvas.toJSON(['id', 'selectable', 'evented']);
-      setViewStates(prev => ({ ...prev, [currentViewIndex]: currentState }));
-      
-      // Load new state
-      if (viewStates[idx]) {
-        canvas.loadFromJSON(viewStates[idx], () => {
-          canvas.requestRenderAll();
-        });
-      } else {
-        // Clear canvas but keep clipPath
-        canvas.getObjects().forEach(obj => {
-          if (obj.id !== 'clip-path') {
-            canvas.remove(obj);
-          }
-        });
-        canvas.requestRenderAll();
-      }
-    }
-    
-    setCurrentViewIndex(idx);
-  };
 
   const handlePlaceOrder = async () => {
     if (!product) return;
@@ -405,9 +461,24 @@ const CustomizerLayout = () => {
 
            {activeTab === 'text' && (
              <div className="flex flex-col gap-3">
-               <button onClick={() => handleAddText('heading')} className="w-full py-2 md:py-3 bg-indigo-600 hover:bg-indigo-700 rounded-lg font-semibold shadow-lg shadow-indigo-600/20 transition-all text-sm md:text-base">Add a heading</button>
-               <button onClick={() => handleAddText('subheading')} className="w-full py-1.5 md:py-2 bg-gray-800 hover:bg-gray-700 rounded-lg font-medium border border-gray-700 transition-all text-sm">Add a subheading</button>
-               <button onClick={() => handleAddText('body')} className="w-full py-1.5 md:py-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-sm border border-gray-700 transition-all">Add a little bit of body text</button>
+               <button
+                 onClick={() => handleAddText('heading')}
+                 className="w-full py-2 md:py-3 rounded-lg font-semibold shadow-lg transition-all text-sm md:text-base bg-indigo-600 hover:bg-indigo-700 text-white shadow-indigo-600/20"
+               >
+                 Add a heading
+               </button>
+               <button
+                 onClick={() => handleAddText('subheading')}
+                 className="w-full py-1.5 md:py-2 rounded-lg font-medium border border-gray-700 transition-all text-sm bg-gray-800 hover:bg-gray-700 text-white"
+               >
+                 Add a subheading
+               </button>
+               <button
+                 onClick={() => handleAddText('body')}
+                 className="w-full py-1.5 md:py-2 rounded-lg text-sm border border-gray-700 transition-all bg-gray-800 hover:bg-gray-700 text-white"
+               >
+                 Add a little bit of body text
+               </button>
              </div>
            )}
 
@@ -538,21 +609,6 @@ const CustomizerLayout = () => {
               <div className="flex items-center gap-2">
                 <button onClick={handleZoomOut} className="flex-1 px-3 py-2 rounded-2xl bg-gray-800 hover:bg-gray-700 text-white">-</button>
                 <button onClick={handleZoomIn} className="flex-1 px-3 py-2 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white">+</button>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <h3 className="text-sm font-semibold text-white">Views</h3>
-              <div className="grid gap-2">
-                {views.map((viewName, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => handleViewChange(idx)}
-                    className={`w-full text-left px-4 py-2 rounded-2xl text-sm transition ${currentViewIndex === idx ? 'bg-indigo-600 text-white' : 'bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white'}`}
-                  >
-                    {viewName}
-                  </button>
-                ))}
               </div>
             </div>
 
