@@ -121,6 +121,10 @@ const DesignCard = ({ product, images }) => {
   const colors = product.color || [];
   const sizes = product.size || [];
 
+  // ✅ Sort sizes in correct order
+  const sizeOrder = ["XS", "S", "M", "L", "XL", "XXL", "XXXL"];
+  const sortedSizes = [...sizes].sort((a, b) => sizeOrder.indexOf(a) - sizeOrder.indexOf(b));
+
   const handleAddToCart = () => {
     if (sizes.length > 0 && !selectedSize) {
       toast.warn("Please select a size!");
@@ -227,7 +231,7 @@ const DesignCard = ({ product, images }) => {
       {/* Size Selector */}
       {sizes.length > 0 && (
         <div className="mt-3 mb-3 flex justify-center gap-2 flex-wrap">
-          {sizes.map((sz, idx) => (
+          {sortedSizes.map((sz, idx) => (
             <button
               key={idx}
               onClick={(e) => {

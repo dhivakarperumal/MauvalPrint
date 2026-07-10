@@ -12,8 +12,15 @@ import api from "../api";
 import { isValidImageSrc, pickPrimaryImage, flattenVariantImages } from "./helpers";
 
 function ProductCard({ product, index, addToCart, addToWishlist, cardSize, setCardSize }) {
+  const navigate = useNavigate();
   const [clickedProductId, setClickedProductId] = useState(null);
   const stockByVariant = product?.stockByVariant || {};
+
+  // ✅ Sort sizes in correct order
+  const sizeOrder = ["XS", "S", "M", "L", "XL", "XXL", "XXXL"];
+  const sortSizes = (sizes) => {
+    return sizes.sort((a, b) => sizeOrder.indexOf(a) - sizeOrder.indexOf(b));
+  };
 
   if (!product) return null;
 
@@ -89,14 +96,16 @@ function ProductCard({ product, index, addToCart, addToWishlist, cardSize, setCa
           style={{ borderTop: "2px solid white", borderRight: "1px solid white", backdropFilter: "blur(2px)" }}
         >
           <div className="absolute top-2 right-2">
-            <Link to={`/productdetails/${product.product_id}`}>
-              <button
-                className="text-white cursor-pointer bg-white/20 p-1.5 rounded-full hover:bg-white hover:text-primary transition"
-                title="View Details"
-              >
-                <FaEye size={15} />
-              </button>
-            </Link>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate(`/productdetails/${product.product_id}`, { state: { product } });
+              }}
+              className="text-white cursor-pointer bg-white/20 p-1.5 rounded-full hover:bg-white hover:text-primary transition"
+              title="View Details"
+            >
+              <FaEye size={15} />
+            </button>
           </div>
         </div>
 
@@ -123,7 +132,7 @@ function ProductCard({ product, index, addToCart, addToWishlist, cardSize, setCa
 
       {/* Sizes */}
       <div className="mt-2 mb-3 flex flex-wrap items-center justify-center gap-2">
-        {(product?.size || []).map((sz) => {
+        {sortSizes([...(product?.size || [])]).map((sz) => {
           const selectedColor = product.color?.[0] || "";
           const variantKey = `${selectedColor}-${sz}`;
           const variantQuantity = stockByVariant[variantKey];

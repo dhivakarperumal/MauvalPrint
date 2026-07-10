@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState } from "react";
 import { AuthContext } from "../Context/AuthContext";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import PageContainer from "../Components/PageContainer";
 import { FaStar, FaHeart, FaShoppingCart, FaEye } from "react-icons/fa";
 import { toast } from "react-toastify";
@@ -10,9 +10,10 @@ import "aos/dist/aos.css";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import api from "../api";
-import { pickPrimaryImage, flattenVariantImages, isValidImageSrc } from "../Products/helpers";
+import { pickPrimaryImage, flattenVariantImages } from "../Products/helpers";
 
 function Product() {
+  const navigate = useNavigate();
   const { addToCart, addToWishlist } = useContext(AuthContext);
 
   const [products, setProducts] = useState([]);
@@ -37,7 +38,7 @@ function Product() {
             if (typeof parsedImagesByVariant === "string") {
               try {
                 parsedImagesByVariant = JSON.parse(parsedImagesByVariant);
-              } catch (e) {
+              } catch {
                 parsedImagesByVariant = {};
               }
             }
@@ -111,6 +112,12 @@ function Product() {
 
   const toggleBubble = (productId) => {
     setClickedProductId((prevId) => (prevId === productId ? null : productId));
+  };
+
+  // ✅ Sort sizes in correct order
+  const sizeOrder = ["XS", "S", "M", "L", "XL", "XXL", "XXXL"];
+  const sortSizes = (sizes) => {
+    return sizes.sort((a, b) => sizeOrder.indexOf(a) - sizeOrder.indexOf(b));
   };
 
   // ✅ Group products by category
@@ -263,18 +270,16 @@ function Product() {
                         }}
                       >
                         <div className="absolute top-2 right-2">
-                          <Link
-                            to={`/productdetails/${product.product_id}`}
-                            state={{ product }}
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              navigate(`/productdetails/${product.product_id}`, { state: { product } });
+                            }}
+                            className="text-white bg-white/20 p-2 rounded-full cursor-pointer hover:bg-white hover:text-primary transition"
+                            title="View Details"
                           >
-                            <button
-                              // onClick={(e) => e.stopPropagation()}
-                              className="text-white bg-white/20 p-2 rounded-full cursor-pointer hover:bg-white hover:text-primary transition"
-                              title="View Details"
-                            >
-                              <FaEye size={16} />
-                            </button>
-                          </Link>
+                            <FaEye size={16} />
+                          </button>
                         </div>
                       </div>
 
@@ -315,7 +320,7 @@ function Product() {
 
                     {/* Sizes */}
                     <div className="mt-2 text-sm text-gray-600 flex flex-wrap items-center justify-center gap-1">
-                      {(product?.size || []).map((sz) => {
+                      {sortSizes([...(product?.size || [])]).map((sz) => {
                         const selectedColor = product.color?.[0];
                         const variantKey = `${selectedColor}-${sz}`;
                         const isAvailable =

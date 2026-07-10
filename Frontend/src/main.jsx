@@ -1,6 +1,6 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { createHashRouter, RouterProvider } from "react-router-dom";
 import "./index.css";
 
 import App from "./App.jsx";
@@ -52,10 +52,11 @@ import CustomizerLayout from "./Customizer/CustomizerLayout.jsx";
 import { Toaster } from "react-hot-toast";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 
-const router = createBrowserRouter([
-  {
-    path: "/",
-    element: <App />,
+const router = createHashRouter(
+  [
+    {
+      path: "/",
+      element: <App />,
     children: [
       { path: "/", element: <Home /> },
       { path: "/designs", element: <Designs /> },
@@ -152,7 +153,8 @@ const router = createBrowserRouter([
       </PrivateRoute>
     ),
   },
-]);
+]
+);
 
 const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 

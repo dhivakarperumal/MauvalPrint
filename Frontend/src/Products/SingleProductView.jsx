@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef, useContext, useMemo, useCallback } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { IoMdHeartEmpty, IoMdHeart } from "react-icons/io";
 import { FaStar, FaRegStar, FaStarHalfAlt } from "react-icons/fa";
 import { IoClose } from "react-icons/io5";
@@ -28,6 +28,8 @@ const optimizeImageUrl = (url) => {
 
 const SingleProductView = () => {
   const { id, category } = useParams();
+  const location = useLocation();
+  const stateProduct = location.state?.product || null;
 
   const navigate = useNavigate();
   const previewImageRef = useRef();
@@ -68,14 +70,17 @@ const SingleProductView = () => {
 
   useEffect(() => {
     const found = memoizedProducts.find((p) => `${p.product_id || p.productId || p.id}` === id);
+    
+    // Use found product or fallback to state product
+    const productToUse = found || stateProduct;
 
-    if (found) {
+    if (productToUse) {
       // Coerce numeric fields to numbers to avoid `.toFixed` errors
       const normalized = {
-        ...found,
-        salePrice: Number(found.salePrice) || 0,
-        mrp: Number(found.mrp) || 0,
-        rating: Number(found.rating) || 0,
+        ...productToUse,
+        salePrice: Number(productToUse.salePrice || productToUse.sale_price) || 0,
+        mrp: Number(productToUse.mrp) || 0,
+        rating: Number(productToUse.rating) || 0,
       };
 
       setProduct(normalized);
@@ -106,7 +111,7 @@ const SingleProductView = () => {
     }
 
     window.scrollTo({ top: 0, behavior: "smooth" });
-  }, [id, memoizedProducts]);
+  }, [id, memoizedProducts, stateProduct]);
 
   // reset selected image index when product images change
   useEffect(() => {
@@ -427,11 +432,23 @@ const SingleProductView = () => {
     displayImages = flattenVariantImages(product.images_by_variant || {});
   }
 
-  // Ensure numeric values
-  const salePrice = Number(product.salePrice) || 0;
-  const mrp = Number(product.mrp) || 0;
+  const salePrice = Number(product?.salePrice || product?.sale_price) || 0;
+  const mrp = Number(product?.mrp) || 0;
   const discountPercent =
     mrp > 0 ? Math.round(((mrp - salePrice) / mrp) * 100) : 0;
+
+  // Loading fallback if product not found
+  if (!product) {
+    return (
+      <div className="mt-20">
+        <PageContainer>
+          <div className="flex items-center justify-center h-64">
+            <p className="text-gray-500 text-lg">Loading product details...</p>
+          </div>
+        </PageContainer>
+      </div>
+    );
+  }
 
   return (
       <>
@@ -478,7 +495,7 @@ const SingleProductView = () => {
               <p className="font-semibold text-gray-700 mb-1">Sizes:</p>
               <div className="flex items-end gap-5">
                 <div className="flex gap-2 flex-wrap">
-                  {["XS", "S", "M", "L", "XL", "XXL"].map((s) => {
+                  {availableSizes.map((s) => {
                     const variantKey = `${selectedColor}-${s}`;
                     const stock =
                       product?.stockByVariant && product.stockByVariant[variantKey];

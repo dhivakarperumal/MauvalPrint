@@ -1,5 +1,5 @@
 import { useEffect, useState, memo } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Slider from "react-slick";
 import api from "../api";
 import { FaStar, FaHeart, FaShoppingCart, FaEye } from "react-icons/fa";
@@ -21,8 +21,15 @@ const optimizeImageUrl = (url) => {
 
 // Memoized Product Card
 const ProductCard = memo(({ product, index, addToCart, addToWishlist }) => {
+  const navigate = useNavigate();
   const [cardSize, setCardSize] = useState({});
   const [clickedProductId, setClickedProductId] = useState(null);
+
+  // ✅ Sort sizes in correct order
+  const sizeOrder = ["XS", "S", "M", "L", "XL", "XXL", "XXXL"];
+  const sortSizes = (sizes) => {
+    return sizes.sort((a, b) => sizeOrder.indexOf(a) - sizeOrder.indexOf(b));
+  };
 
   if (!product || !product.stockByVariant) return null;
 
@@ -102,14 +109,16 @@ const ProductCard = memo(({ product, index, addToCart, addToWishlist }) => {
           style={{ borderTop: "2px solid white", borderRight: "1px solid white", backdropFilter: "blur(2px)" }}
         >
           <div className="absolute top-2 right-2">
-            <Link to={`/designdetails/${product.product_id}`}>
-              <button
-                className="text-white cursor-pointer bg-white/20 p-2 rounded-full hover:bg-white hover:text-primary transition"
-                title="View Details"
-              >
-                <FaEye size={16} />
-              </button>
-            </Link>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate(`/productdetails/${product.product_id}`, { state: { product } });
+              }}
+              className="text-white cursor-pointer bg-white/20 p-2 rounded-full hover:bg-white hover:text-primary transition"
+              title="View Details"
+            >
+              <FaEye size={16} />
+            </button>
           </div>
         </div>
 
@@ -139,7 +148,7 @@ const ProductCard = memo(({ product, index, addToCart, addToWishlist }) => {
 
       {/* Sizes */}
       <div className="mt-2 mb-3 flex flex-wrap items-center justify-center gap-2">
-        {(product?.size || []).map((sz) => {
+        {sortSizes([...(product?.size || [])]).map((sz) => {
           const selectedColor = product.color?.[0];
           const variantKey = `${selectedColor}-${sz}`;
           const isAvailable = product.stockByVariant?.[variantKey] > 0;
