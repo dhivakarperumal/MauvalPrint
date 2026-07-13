@@ -616,7 +616,7 @@ const SingleProductView = () => {
               >
                 Buy Now
               </button>
-              {product.customizable && (
+              {!!product.customizable && (
                 <button
                   onClick={() => {
                     if (!user) {
