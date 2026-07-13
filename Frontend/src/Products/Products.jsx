@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState, useMemo } from "react";
+import React, { useContext, useEffect, useState, useMemo, useCallback } from "react";
 import { AuthContext } from "../Context/AuthContext";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { FaStar, FaHeart, FaShoppingCart, FaEye } from "react-icons/fa";
@@ -175,17 +175,38 @@ function Products() {
   const [showFilters, setShowFilters] = useState(false);
   const [cardSize, setCardSize] = useState({});
 
+  // Use contextProducts (non-ourDesign) for the main products grid.
+  // When context is empty, fall back to pageProducts — but still exclude ourDesign products.
+  const products = useMemo(() => {
+    if (Array.isArray(contextProducts) && contextProducts.length > 0) {
+      return contextProducts; // already filtered to non-ourDesign by AuthContext
+    }
+    // Fallback: local API fetch result — exclude ourDesign products explicitly
+    return (pageProducts || []).filter((p) => !p.ourDesign);
+  }, [contextProducts, pageProducts]);
+
+  // All products combined (for loading check and filters sidebar options)
   const allContextProducts = useMemo(() => {
     return [...(contextProducts || []), ...(contextDesigns || [])];
   }, [contextProducts, contextDesigns]);
 
-  const products =
-    Array.isArray(allContextProducts) && allContextProducts.length > 0 ? allContextProducts : pageProducts;
+  const regularProducts = products;
+
+  // Normalize subcategory string: lowercase + remove spaces for flexible matching
+  // Wrapped in useCallback so it's stable across renders (used in useMemo deps)
+  const normalizeSubcat = useCallback(
+    (s) => (s || '').toLowerCase().replace(/[\s_-]+/g, '').trim(),
+    []
+  );
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const subcatParam = params.get("subcategory") || "all";
     setSelectedSubcategory(subcatParam.toLowerCase());
+    
+    const catParam = params.get("category") || "all";
+    setCategory(catParam.toLowerCase());
+    
     setCurrentPage(1);
   }, [location.search]);
 
@@ -340,11 +361,15 @@ function Products() {
     setPriceRange(priceRangeMax);
   }, [priceRangeMax]);
 
-  // Memoized filtered & paginated products
+  // Memoized filtered & paginated products (only regular, non-ourDesign products)
   const filteredProducts = useMemo(() => {
-    return products.filter((product) => {
-      const matchCategory = category === "all" || product.category === category;
-      const matchPrice = product.salePrice <= priceRange;
+    return regularProducts.filter((product) => {
+      // Normalize both category and subcategory for robust matching
+      const matchCategory =
+        category === "all" ||
+        normalizeSubcat(product.category) === normalizeSubcat(category);
+
+      const matchPrice = (product.salePrice ?? 0) <= priceRange;
       const matchRating = (product.rating || 0) >= minRating;
       const matchSize = selectedSize === "all" || (product.size || []).includes(selectedSize);
       const matchColor =
@@ -352,14 +377,17 @@ function Products() {
         Object.keys(product.stockByVariant || {}).some((variantKey) =>
           variantKey.startsWith(`${selectedColor}-`)
         );
+      // Normalize both sides: remove spaces/hyphens, lowercase — handles 'Oversize', 'Over size', 'over-size'
       const matchSubcategory =
-        selectedSubcategory === "all" || product.subcategory?.toLowerCase() === selectedSubcategory;
+        selectedSubcategory === "all" ||
+        normalizeSubcat(product.subcategory) === normalizeSubcat(selectedSubcategory);
 
       return matchCategory && matchSubcategory && matchPrice && matchRating && matchSize && matchColor;
     });
-  }, [products, category, priceRange, minRating, selectedSize, selectedColor, selectedSubcategory]);
+  }, [regularProducts, category, priceRange, minRating, selectedSize, selectedColor, selectedSubcategory, normalizeSubcat]);
 
-  const productsPerPage = showFilters ? 8 : 10;
+  // Show more products per page so all subcategory products are visible at once
+  const productsPerPage = showFilters ? 20 : 24;
   const totalPages = Math.max(1, Math.ceil(filteredProducts.length / productsPerPage));
 
   useEffect(() => {

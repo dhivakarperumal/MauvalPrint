@@ -69,10 +69,11 @@ export default function Navbar() {
         const { data } = await api.get("/products");
         const products = data?.products || [];
 
-        const filtered = ["round neck", "collared"];
+        // Get all unique categories (lowercase for consistency)
+        const allCategories = [...new Set(products.map(p => p.category?.toLowerCase()).filter(Boolean))];
         const grouped = [];
 
-        filtered.forEach((cat) => {
+        allCategories.forEach((cat) => {
           const categoryProducts = products.filter(
             (p) => p.category?.toLowerCase() === cat
           );
@@ -84,11 +85,9 @@ export default function Navbar() {
 
             grouped.push({
               name: cat,
-              cname:
-                cat === "round neck"
-                  ? "Round Neck"
-                  : "Collared",
-              subcategories: [...subSet],
+              // Capitalize the first letter of each word for display name
+              cname: cat.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' '),
+              subcategories: [...subSet].filter(Boolean),
               products: categoryProducts,
             });
           }
@@ -210,10 +209,20 @@ export default function Navbar() {
                     {customizeData.map((category) => (
                       <li
                         key={category.name}
-                        className="hover:bg-gray-100 px-4 py-2 cursor-pointer"
+                        className="hover:bg-gray-100 px-4 py-2 cursor-pointer flex justify-between items-center"
                         onMouseEnter={() => setHoveredCategory(category)}
+                        onClick={() => {
+                          if (!category.subcategories || category.subcategories.length === 0) {
+                            navigate(`/products?category=${encodeURIComponent(category.name)}`);
+                            setCustomizeDropdownOpen(false);
+                            setHoveredCategory(null);
+                          }
+                        }}
                       >
-                        {category.cname}
+                        <span>{category.cname}</span>
+                        {category.subcategories && category.subcategories.length > 0 && (
+                          <span className="text-xs text-gray-400">▶</span>
+                        )}
                       </li>
                     ))}
                   </ul>
@@ -403,27 +412,38 @@ export default function Navbar() {
                 <ul className="ml-4 space-y-1 mt-1">
                   {customizeData.map((category) => (
                     <li key={category.name}>
-                      <p className="font-semibold">{category.cname}</p>
-                      <ul className="ml-10">
-                        {category.subcategories.map((sub) => (
-                          <li key={sub}>
-                            <button
-                              onClick={() => {
-                                // Capitalize first letter and encode
-                                const formattedSub = sub.charAt(0).toUpperCase() + sub.slice(1);
-                                navigate(`/products?subcategory=${encodeURIComponent(formattedSub)}`);
-
-                                // Close dropdowns
-                                setIsOpen(false);
-                                setIsMobileCustomizeOpen(false);
-                              }}
-                              className="text-left w-full hover:text-primary transition"
-                            >
-                              {sub}
-                            </button>
-                          </li>
-                        ))}
-                      </ul>
+                      <button
+                        className="font-semibold text-left w-full flex items-center justify-between"
+                        onClick={() => {
+                          if (!category.subcategories || category.subcategories.length === 0) {
+                            navigate(`/products?category=${encodeURIComponent(category.name)}`);
+                            setIsOpen(false);
+                            setIsMobileCustomizeOpen(false);
+                          }
+                        }}
+                      >
+                        {category.cname}
+                      </button>
+                      
+                      {category.subcategories && category.subcategories.length > 0 && (
+                        <ul className="ml-10 mt-1">
+                          {category.subcategories.map((sub) => (
+                            <li key={sub}>
+                              <button
+                                onClick={() => {
+                                  const formattedSub = sub.charAt(0).toUpperCase() + sub.slice(1);
+                                  navigate(`/products?subcategory=${encodeURIComponent(formattedSub)}`);
+                                  setIsOpen(false);
+                                  setIsMobileCustomizeOpen(false);
+                                }}
+                                className="text-left w-full hover:text-primary transition py-1"
+                              >
+                                {sub}
+                              </button>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
                     </li>
                   ))}
                 </ul>
