@@ -623,6 +623,32 @@ function Products() {
                 <p className="text-center text-gray-500 py-10">No products found for selected filters.</p>
               )}
 
+              {/* Our Design Products Section - ONLY show when no filters are active (All Products view) */}
+              {category === "all" && selectedSubcategory === "all" && contextDesigns && contextDesigns.length > 0 && (
+                <div className="mt-14 pt-8 border-t border-gray-200">
+                  <h2 className="text-2xl font-bold text-gray-800 mb-1">Our Design Products</h2>
+                  <p className="text-sm text-gray-500 mb-6">Exclusive designs crafted by our team</p>
+                  <div
+                    className={`grid gap-4 ${showFilters
+                        ? "grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+                        : "grid-cols-2 md:grid-cols-4 xl:grid-cols-5"
+                      }`}
+                  >
+                    {contextDesigns.map((product, index) => (
+                      <ProductCard
+                        key={`design-${product.id}-${showFilters}`}
+                        product={product}
+                        index={index}
+                        addToCart={addToCart}
+                        addToWishlist={addToWishlist}
+                        cardSize={cardSize}
+                        setCardSize={setCardSize}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Pagination */}
               {totalPages > 1 && (
                 <div className="mt-10 flex flex-col items-center gap-3">
