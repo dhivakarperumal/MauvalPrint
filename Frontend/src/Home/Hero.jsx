@@ -166,7 +166,7 @@ const Hero = () => {
   }, []);
 
   return (
-    <section className="hidden lg:block relative w-full min-h-[70vh] overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white">
+    <section className="relative w-full min-h-[70vh] overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white">
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <div className="absolute -left-20 top-10 w-96 h-96 rounded-full bg-yellow-400/20 blur-3xl animate-[float_12s_ease-in-out_infinite]" />
         <div className="absolute right-0 bottom-12 w-80 h-80 rounded-full bg-cyan-500/20 blur-3xl animate-[float_14s_ease-in-out_infinite]" />
@@ -212,12 +212,12 @@ const Hero = () => {
             </div>
           </div>
 
-          <div className="relative hidden lg:flex items-stretch justify-center">
-            <div className="relative w-full rounded-[2rem] border border-white/10 bg-slate-950/80 shadow-[0_30px_90px_rgba(0,0,0,0.45)] p-6">
+          <div className="relative flex items-stretch justify-center mt-10 lg:mt-0">
+            <div className="relative w-full rounded-[2rem] border border-white/10 bg-slate-950/80 shadow-[0_30px_90px_rgba(0,0,0,0.45)] p-4 sm:p-6">
               <div className="absolute -left-8 top-8 h-28 w-28 rounded-full bg-yellow-400/15 blur-2xl" />
               <div className="absolute -right-8 bottom-10 h-32 w-32 rounded-full bg-cyan-500/15 blur-2xl" />
 
-              <div className="relative overflow-hidden rounded-[1.75rem] border border-white/10 bg-slate-950 min-h-[470px]">
+              <div className="relative overflow-hidden rounded-[1.75rem] border border-white/10 bg-slate-950 min-h-[300px] sm:min-h-[400px] lg:min-h-[470px]">
                 <img
                   src={slides[activeIndex].src}
                   alt={slides[activeIndex].alt}
