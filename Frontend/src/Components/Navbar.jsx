@@ -192,6 +192,9 @@ export default function Navbar() {
             <li className={linkBase}>
               <Link to="/products">Products</Link>
             </li>
+            <li className={linkBase}>
+              <Link to="/logos">Logos</Link>
+            </li>
             <li className="relative" ref={customizeRef}>
               <button
                 className="group flex items-center gap-2 cursor-pointer"
@@ -398,6 +401,11 @@ export default function Navbar() {
             <li>
               <Link to="/products" onClick={() => setIsOpen(false)}>
                 Products
+              </Link>
+            </li>
+            <li>
+              <Link to="/logos" onClick={() => setIsOpen(false)}>
+                Logos
               </Link>
             </li>
             <li>

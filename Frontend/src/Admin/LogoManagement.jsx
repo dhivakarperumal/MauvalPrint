@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
 import api from "../api";
-import { FaEdit, FaTrash, FaPlus, FaImage } from "react-icons/fa";
+import { FaEdit, FaTrash, FaPlus, FaImage, FaSearch, FaList, FaThLarge, FaFilter } from "react-icons/fa";
 import toast from "react-hot-toast";
 
 const LogoManagement = () => {
   const [logos, setLogos] = useState([]);
   const [viewMode, setViewMode] = useState("table"); // 'table' or 'form'
+  const [displayMode, setDisplayMode] = useState("list"); // 'list' or 'card'
   const [loading, setLoading] = useState(false);
 
   const initialFormState = {
@@ -15,6 +16,9 @@ const LogoManagement = () => {
     type: "Header",
     width: 150,
     height: 50,
+    mrp: "",
+    offer: "",
+    offer_price: "",
     status: 1,
     is_default: 0,
     description: "",
@@ -142,27 +146,56 @@ const LogoManagement = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-5 py-8 min-h-screen">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h2 className="text-3xl font-bold text-blue-900">Logo Management</h2>
-          <p className="text-sm text-gray-500">Manage site logos for Header, Footer, Login, Favicon.</p>
+      <div className="mb-6">
+        <h2 className="text-3xl font-bold text-blue-900 mb-2">Design Management</h2>
+        <p className="text-sm text-gray-500">Manage site designs and assets.</p>
+      </div>
+
+      <div className="bg-white border border-gray-200 rounded-xl p-3 mb-6 flex flex-col md:flex-row items-center justify-between gap-4 shadow-sm">
+        {/* Search */}
+        <div className="relative w-full md:w-1/3">
+          <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Search designs..."
+            className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 bg-gray-50 text-sm"
+          />
         </div>
-        <div>
+        
+        {/* Actions Toolbar */}
+        <div className="flex items-center gap-3 overflow-x-auto w-full md:w-auto pb-2 md:pb-0 hide-scrollbar">
+          {/* View Toggle */}
+          <div className="flex items-center bg-gray-100 rounded-lg p-1 border border-gray-200">
+            <button
+              onClick={() => setDisplayMode("list")}
+              className={`p-1.5 rounded transition ${displayMode === "list" ? "bg-[#1e3a8a] text-white shadow-sm" : "text-gray-500 hover:text-gray-800"}`}
+              title="List View"
+            >
+              <FaList size={14} />
+            </button>
+            <button
+              onClick={() => setDisplayMode("card")}
+              className={`p-1.5 rounded transition ${displayMode === "card" ? "bg-[#1e3a8a] text-white shadow-sm" : "text-gray-500 hover:text-gray-800"}`}
+              title="Card View"
+            >
+              <FaThLarge size={14} />
+            </button>
+          </div>
+          
+         
+         
+          
           <button
             onClick={() => {
               setForm(initialFormState);
-              setViewMode(viewMode === "table" ? "form" : "table");
+              setViewMode("form");
             }}
-            className="px-4 py-2 bg-blue-900 text-white rounded-full flex items-center gap-2 hover:bg-blue-800 transition"
+            className="flex items-center gap-2 px-4 py-2 bg-[#1e3a8a] text-white rounded-lg hover:bg-blue-800 font-medium whitespace-nowrap text-sm transition shadow-sm"
           >
-            {viewMode === "table" ? (
-              <>
-                <FaPlus /> Add Logo
-              </>
-            ) : (
-              "Back to List"
-            )}
+            <FaPlus /> Add Design
           </button>
+          
+          
         </div>
       </div>
 
@@ -216,6 +249,62 @@ const LogoManagement = () => {
                 onChange={handleInputChange}
                 className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-100"
                 required
+              />
+            </div>
+
+            {/* MRP */}
+            <div>
+              <label className="block text-sm font-semibold mb-2">MRP (₹) *</label>
+              <input
+                type="number"
+                name="mrp"
+                value={form.mrp}
+                onChange={(e) => {
+                  const mrp = parseFloat(e.target.value) || 0;
+                  const offer = parseFloat(form.offer) || 0;
+                  const offer_price = offer > 0 ? (mrp - (mrp * offer) / 100).toFixed(2) : "";
+                  setForm((prev) => ({ ...prev, mrp: e.target.value, offer_price }));
+                }}
+                className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-100"
+                placeholder="e.g. 999"
+                min="0"
+                step="0.01"
+              />
+            </div>
+
+            {/* Offer % */}
+            <div>
+              <label className="block text-sm font-semibold mb-2">Offer (%)</label>
+              <input
+                type="number"
+                name="offer"
+                value={form.offer}
+                onChange={(e) => {
+                  const offer = parseFloat(e.target.value) || 0;
+                  const mrp = parseFloat(form.mrp) || 0;
+                  const offer_price = mrp > 0 && offer > 0 ? (mrp - (mrp * offer) / 100).toFixed(2) : "";
+                  setForm((prev) => ({ ...prev, offer: e.target.value, offer_price }));
+                }}
+                className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-100"
+                placeholder="e.g. 10"
+                min="0"
+                max="100"
+                step="0.01"
+              />
+            </div>
+
+            {/* Offer Price (Auto) */}
+            <div>
+              <label className="block text-sm font-semibold mb-2">Offer Price (₹) <span className="text-gray-400 font-normal text-xs">auto-calculated</span></label>
+              <input
+                type="number"
+                name="offer_price"
+                value={form.offer_price}
+                onChange={handleInputChange}
+                className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-green-50"
+                placeholder="Auto calculated"
+                min="0"
+                step="0.01"
               />
             </div>
             {/* Image Upload */}
@@ -287,75 +376,126 @@ const LogoManagement = () => {
         </div>
       )}
 
-      <div className="bg-white rounded-lg shadow-sm  overflow-hidden">
-          {loading ? (
-            <div className="p-10 text-center text-gray-500">Loading logos...</div>
-          ) : (
-            <div className="overflow-x-auto bg-white rounded-xl shadow-sm border border-gray-200">
-          <table className="min-w-full text-sm text-left">
-            <thead className="bg-gray-800 text-white">
+      <div className="rounded-lg overflow-hidden">
+        {loading ? (
+          <div className="p-10 text-center text-gray-500 bg-white rounded-xl border">Loading logos...</div>
+        ) : logos.length === 0 ? (
+          <div className="p-10 text-center text-gray-500 bg-white rounded-xl border">No designs found. Click <strong>Add Design</strong> to get started.</div>
+        ) : displayMode === "list" ? (
+          /* ── LIST / TABLE VIEW ── */
+          <div className="overflow-x-auto bg-white rounded-xl shadow-sm border border-gray-200">
+            <table className="min-w-full text-sm text-left">
+              <thead className="bg-gray-800 text-white">
                 <tr>
-                  <th className="p-4 w-16">S.No</th>
-                  <th className="p-4">Logo Preview</th>
+                  <th className="p-4">S.No</th>
+                  <th className="p-4">Preview</th>
                   <th className="p-4">Name</th>
                   <th className="p-4">Dimensions</th>
+                  <th className="p-4">MRP</th>
+                  <th className="p-4">Offer</th>
+                  <th className="p-4">Price</th>
                   <th className="p-4">Status</th>
                   <th className="p-4">Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {logos.length === 0 ? (
-                  <tr>
-                    <td colSpan="6" className="p-6 text-center text-gray-500">
-                      No logos found. Add a new logo to get started.
+                {logos.map((logo, index) => (
+                  <tr key={logo.id} className="border-b border-gray-100 hover:bg-gray-50 transition">
+                    <td className="p-4 font-semibold text-gray-500">{index + 1}</td>
+                    <td className="p-4">
+                      <img src={logo.image} alt={logo.name} className="h-10 w-auto object-contain bg-gray-100 rounded" />
+                    </td>
+                    <td className="p-4 font-medium text-gray-800">{logo.name}</td>
+                    <td className="p-4 text-gray-600">{logo.width} × {logo.height} px</td>
+                    <td className="p-4 text-gray-700">₹{parseFloat(logo.mrp || 0).toFixed(2)}</td>
+                    <td className="p-4">
+                      {logo.offer > 0 ? (
+                        <span className="bg-orange-100 text-orange-700 text-xs font-bold px-2 py-0.5 rounded-full">{logo.offer}% OFF</span>
+                      ) : <span className="text-gray-400 text-xs">—</span>}
+                    </td>
+                    <td className="p-4 font-semibold text-green-700">₹{parseFloat(logo.offer_price || logo.mrp || 0).toFixed(2)}</td>
+                    <td className="p-4">
+                      {logo.status === 1 ? (
+                        <span className="inline-flex items-center gap-1.5 text-green-700 bg-green-50 border border-green-200 text-xs font-semibold px-2.5 py-1 rounded-full">
+                          <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div> Active
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1.5 text-red-600 bg-red-50 border border-red-200 text-xs font-semibold px-2.5 py-1 rounded-full">
+                          <div className="w-1.5 h-1.5 bg-red-500 rounded-full"></div> Inactive
+                        </span>
+                      )}
+                    </td>
+                    <td className="p-4">
+                      <div className="flex gap-3">
+                        <button onClick={() => handleEdit(logo)} className="text-blue-600 hover:text-blue-800 transition" title="Edit">
+                          <FaEdit size={16} />
+                        </button>
+                        <button onClick={() => handleDelete(logo.id)} className="text-red-500 hover:text-red-700 transition" title="Delete">
+                          <FaTrash size={16} />
+                        </button>
+                      </div>
                     </td>
                   </tr>
-                ) : (
-                  logos.map((logo, index) => (
-                    <tr key={logo.id} className=" hover:bg-gray-50 transition">
-                      <td className="p-4 font-semibold text-gray-600">{index + 1}</td>
-                      <td className="p-4">
-                        <img src={logo.image} alt={logo.name} className="h-10 w-auto object-contain bg-gray-100 rounded" />
-                      </td>
-                      <td className="p-4 font-medium text-gray-800">{logo.name}</td>
-                      <td className="p-4">{logo.width}x{logo.height}</td>
-                      <td className="p-4">
-                        {logo.status === 1 ? (
-                          <span className="text-green-600 font-semibold flex items-center gap-1">
-                            <div className="w-2 h-2 bg-green-500 rounded-full"></div> Active
-                          </span>
-                        ) : (
-                          <span className="text-red-500 font-semibold flex items-center gap-1">
-                            <div className="w-2 h-2 bg-red-500 rounded-full"></div> Inactive
-                          </span>
-                        )}
-                      </td>
-                      <td className="p-4">
-                        <div className="flex gap-3">
-                          <button
-                            onClick={() => handleEdit(logo)}
-                            className="text-blue-600 hover:text-blue-800 transition"
-                            title="Edit"
-                          >
-                            <FaEdit size={16} />
-                          </button>
-                          <button
-                            onClick={() => handleDelete(logo.id)}
-                            className="text-red-600 hover:text-red-800 transition"
-                            title="Delete"
-                          >
-                            <FaTrash size={16} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                )}
+                ))}
               </tbody>
             </table>
-            </div>
-          )}
-        </div>
+          </div>
+        ) : (
+          /* ── CARD / GRID VIEW ── */
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+            {logos.map((logo, index) => (
+              <div key={logo.id} className="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow overflow-hidden">
+                {/* Card Image */}
+                <div className="flex items-center justify-center bg-gray-50 border-b border-gray-100 h-36 p-4">
+                  <img src={logo.image} alt={logo.name} className="max-h-full max-w-full object-contain" />
+                </div>
+                {/* Card Body */}
+                <div className="p-4">
+                  <div className="flex items-start justify-between mb-2">
+                    <div>
+                      <span className="text-xs text-gray-400 font-medium">#{index + 1}</span>
+                      <h3 className="font-semibold text-gray-800 text-sm mt-0.5 leading-tight">{logo.name}</h3>
+                    </div>
+                    {logo.status === 1 ? (
+                      <span className="inline-flex items-center gap-1 text-green-700 bg-green-50 border border-green-200 text-xs font-semibold px-2 py-0.5 rounded-full">
+                        <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div> Active
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 text-red-600 bg-red-50 border border-red-200 text-xs font-semibold px-2 py-0.5 rounded-full">
+                        <div className="w-1.5 h-1.5 bg-red-500 rounded-full"></div> Inactive
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs text-gray-500 mb-1">{logo.width} × {logo.height} px</p>
+                  <div className="flex items-center gap-2 mb-3">
+                    {logo.mrp > 0 && <span className="text-xs text-gray-400 line-through">₹{parseFloat(logo.mrp).toFixed(2)}</span>}
+                    {logo.offer > 0 && <span className="text-xs bg-orange-100 text-orange-700 font-bold px-1.5 py-0.5 rounded-full">{logo.offer}% OFF</span>}
+                    {(logo.offer_price > 0 || logo.mrp > 0) && (
+                      <span className="text-sm font-bold text-green-700">₹{parseFloat(logo.offer_price || logo.mrp).toFixed(2)}</span>
+                    )}
+                  </div>
+                  {logo.description && <p className="text-xs text-gray-400 truncate mb-3">{logo.description}</p>}
+                  {/* Card Actions */}
+                  <div className="flex gap-2 pt-2 border-t border-gray-100">
+                    <button
+                      onClick={() => handleEdit(logo)}
+                      className="flex-1 flex items-center justify-center gap-1.5 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition"
+                    >
+                      <FaEdit size={12} /> Edit
+                    </button>
+                    <button
+                      onClick={() => handleDelete(logo.id)}
+                      className="flex-1 flex items-center justify-center gap-1.5 py-1.5 text-xs font-medium text-red-500 bg-red-50 hover:bg-red-100 rounded-lg transition"
+                    >
+                      <FaTrash size={12} /> Delete
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 };

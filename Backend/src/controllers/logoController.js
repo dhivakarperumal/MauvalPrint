@@ -15,23 +15,26 @@ exports.getLogos = async (req, res) => {
 // Add a new logo
 exports.addLogo = async (req, res) => {
   try {
-    const { name, image, type, width, height, status, is_default, description } = req.body;
+    const { name, image, type, width, height, mrp, offer, offer_price, status, is_default, description } = req.body;
 
-    if (!name || !image || !type || !width || !height) {
+    if (!name || !image || !width || !height) {
       return res.status(400).json({ success: false, message: 'Missing required fields' });
     }
 
     const pool = getPool();
 
     const [result] = await pool.query(
-      `INSERT INTO logos (name, image, type, width, height, status, is_default, description)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO logos (name, image, type, width, height, mrp, offer, offer_price, status, is_default, description)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         name,
         image,
-        type,
+        type || 'Header',
         width,
         height,
+        parseFloat(mrp) || 0,
+        parseFloat(offer) || 0,
+        parseFloat(offer_price) || 0,
         status === undefined ? 1 : status,
         is_default ? 1 : 0,
         description || ''
@@ -49,9 +52,9 @@ exports.addLogo = async (req, res) => {
 exports.updateLogo = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, image, type, width, height, status, is_default, description } = req.body;
+    const { name, image, type, width, height, mrp, offer, offer_price, status, is_default, description } = req.body;
 
-    if (!id || !name || !image || !type || !width || !height) {
+    if (!id || !name || !image || !width || !height) {
       return res.status(400).json({ success: false, message: 'Missing required fields' });
     }
 
@@ -59,14 +62,17 @@ exports.updateLogo = async (req, res) => {
     
     await pool.query(
       `UPDATE logos 
-       SET name=?, image=?, type=?, width=?, height=?, status=?, is_default=?, description=?
+       SET name=?, image=?, type=?, width=?, height=?, mrp=?, offer=?, offer_price=?, status=?, is_default=?, description=?
        WHERE id=?`,
       [
         name,
         image,
-        type,
+        type || 'Header',
         width,
         height,
+        parseFloat(mrp) || 0,
+        parseFloat(offer) || 0,
+        parseFloat(offer_price) || 0,
         status === undefined ? 1 : status,
         is_default ? 1 : 0,
         description || '',

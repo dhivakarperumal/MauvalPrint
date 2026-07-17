@@ -44,6 +44,7 @@ import GetOrdersDetails from "./Admin/GetOrdersDetails.jsx";
 import VideoManagement from "./Admin/VideoManagement.jsx";
 import LogoManagement from "./Admin/LogoManagement.jsx";
 import FlimLogoPrint from "./Products/FlimLogoPrint.jsx";
+import LogosPage from "./Products/LogosPage.jsx";
 import PrivateRoute from "./PrivateRoute.jsx";
 import Login from "./Components/Login.jsx";
 import Register from "./Components/Register.jsx";
@@ -107,6 +108,7 @@ const router = createHashRouter(
         ),
       },
      
+      { path: "/logos", element: <LogosPage /> },
      
     ],
   },
