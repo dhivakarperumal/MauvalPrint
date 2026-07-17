@@ -54,6 +54,7 @@ const Review = ({ uname, productname, productId, reviews = [] }) => {
     slidesToShow: 3,
     slidesToScroll: 1,
     autoplay: true,
+    autoplaySpeed: 1000,
     responsive: [
       {
         breakpoint: 1024,

@@ -42,6 +42,7 @@ import Dealers from "./Admin/Delears.jsx";
 import Profile from "./Admin/Profile/Profile.jsx";
 import GetOrdersDetails from "./Admin/GetOrdersDetails.jsx";
 import VideoManagement from "./Admin/VideoManagement.jsx";
+import LogoManagement from "./Admin/LogoManagement.jsx";
 import FlimLogoPrint from "./Products/FlimLogoPrint.jsx";
 import PrivateRoute from "./PrivateRoute.jsx";
 import Login from "./Components/Login.jsx";
@@ -143,6 +144,7 @@ const router = createHashRouter(
       { path: "profile", element: <Profile /> },
       { path: "getorders", element: <GetOrdersDetails /> },
       { path: "videomanagement", element: <VideoManagement /> },
+      { path: "logos", element: <LogoManagement /> },
     ]
   },
   {

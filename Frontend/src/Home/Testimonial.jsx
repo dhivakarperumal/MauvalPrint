@@ -24,7 +24,7 @@ function Testimonial() {
     infinite: true,
     autoplay: true,
     speed: 800,
-    autoplaySpeed: 3500,
+    autoplaySpeed: 2500,
     slidesToShow: 4,
     slidesToScroll: 1,
     arrows: false,

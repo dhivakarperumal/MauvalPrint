@@ -214,7 +214,6 @@ const OurDesings = () => {
 
 
   useEffect(() => {
-    generateNextProductId();
     fetchCategories();
     fetchDesignProducts();
   }, []);

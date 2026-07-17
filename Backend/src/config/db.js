@@ -261,6 +261,21 @@ async function ensureTables() {
         updated_at DATETIME NULL
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
     `,
+    `
+      CREATE TABLE IF NOT EXISTS logos (
+        id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        image LONGTEXT NOT NULL,
+        type ENUM('Header', 'Footer', 'Login', 'Favicon') NOT NULL,
+        width INT NOT NULL,
+        height INT NOT NULL,
+        status TINYINT(1) DEFAULT 1,
+        is_default TINYINT(1) DEFAULT 0,
+        description TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    `,
   ];
 
   for (const statement of statements) {

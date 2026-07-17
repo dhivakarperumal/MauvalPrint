@@ -19,6 +19,8 @@ import {
   FiBriefcase,
   FiHome,
   FiPlay,
+  FiPenTool,
+  FiImage,
 } from "react-icons/fi";
 import logo from "/Image/logo.png";
 
@@ -29,6 +31,7 @@ const tabLabels = {
     icon: <FiPackage />,
     isDropdown: true,
     children: {
+      
       "/admin/products": { label: "All Products", icon: <FiPackage /> },
       "/admin/category": { label: "Category", icon: <FiFolder /> },
       "/admin/productkeywords": { label: "Product Keywords", icon: <FiTag /> },
@@ -69,6 +72,7 @@ const tabLabels = {
     },
   },
   "/admin/videomanagement": { label: "Video Management", icon: <FiPlay /> },
+  "/admin/logos": { label: "Logo Management", icon: <FiImage /> },
 };
 
 const SidebarItem = ({ icon, label, to, active, onClick, count, isChild, isParentActive }) => (
