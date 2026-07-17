@@ -8,6 +8,9 @@ const LogoManagement = () => {
   const [viewMode, setViewMode] = useState("table"); // 'table' or 'form'
   const [displayMode, setDisplayMode] = useState("list"); // 'list' or 'card'
   const [loading, setLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 12;
 
   const initialFormState = {
     id: null,
@@ -158,6 +161,11 @@ const LogoManagement = () => {
           <input
             type="text"
             placeholder="Search designs..."
+            value={searchQuery}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setCurrentPage(1); // Reset to first page on search
+            }}
             className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 bg-gray-50 text-sm"
           />
         </div>
@@ -376,32 +384,41 @@ const LogoManagement = () => {
         </div>
       )}
 
-      <div className="rounded-lg overflow-hidden">
-        {loading ? (
-          <div className="p-10 text-center text-gray-500 bg-white rounded-xl border">Loading logos...</div>
-        ) : logos.length === 0 ? (
-          <div className="p-10 text-center text-gray-500 bg-white rounded-xl border">No designs found. Click <strong>Add Design</strong> to get started.</div>
-        ) : displayMode === "list" ? (
-          /* ── LIST / TABLE VIEW ── */
-          <div className="overflow-x-auto bg-white rounded-xl shadow-sm border border-gray-200">
-            <table className="min-w-full text-sm text-left">
-              <thead className="bg-gray-800 text-white">
-                <tr>
-                  <th className="p-4">S.No</th>
-                  <th className="p-4">Preview</th>
-                  <th className="p-4">Name</th>
-                  <th className="p-4">Dimensions</th>
-                  <th className="p-4">MRP</th>
-                  <th className="p-4">Offer</th>
-                  <th className="p-4">Status</th>
-                  <th className="p-4">Update Time</th>
-                  <th className="p-4">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {logos.map((logo, index) => (
-                  <tr key={logo.id} className="border-b border-gray-100 hover:bg-gray-50 transition">
-                    <td className="p-4 font-semibold text-gray-500">{index + 1}</td>
+      {(() => {
+        const filteredLogos = logos.filter(logo => 
+          logo.name.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+        const totalPages = Math.ceil(filteredLogos.length / itemsPerPage);
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const currentLogos = filteredLogos.slice(startIndex, startIndex + itemsPerPage);
+
+        return (
+          <div className="rounded-lg overflow-hidden flex flex-col gap-4">
+            {loading ? (
+              <div className="p-10 text-center text-gray-500 bg-white rounded-xl border">Loading logos...</div>
+            ) : filteredLogos.length === 0 ? (
+              <div className="p-10 text-center text-gray-500 bg-white rounded-xl border">No designs found.</div>
+            ) : displayMode === "list" ? (
+              /* ── LIST / TABLE VIEW ── */
+              <div className="overflow-x-auto bg-white rounded-xl shadow-sm border border-gray-200">
+                <table className="min-w-full text-sm text-left">
+                  <thead className="bg-gray-800 text-white">
+                    <tr>
+                      <th className="p-4">S.No</th>
+                      <th className="p-4">Preview</th>
+                      <th className="p-4">Name</th>
+                      <th className="p-4">Dimensions</th>
+                      <th className="p-4">MRP</th>
+                      <th className="p-4">Offer</th>
+                      <th className="p-4">Status</th>
+                      <th className="p-4">Update Time</th>
+                      <th className="p-4">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {currentLogos.map((logo, index) => (
+                      <tr key={logo.id} className="border-b border-gray-100 hover:bg-gray-50 transition">
+                        <td className="p-4 font-semibold text-gray-500">{startIndex + index + 1}</td>
                     <td className="p-4">
                       <img src={logo.image} alt={logo.name} className="h-10 w-auto object-contain bg-gray-100 rounded" />
                     </td>
@@ -444,7 +461,7 @@ const LogoManagement = () => {
         ) : (
           /* ── CARD / GRID VIEW ── */
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-            {logos.map((logo, index) => (
+            {currentLogos.map((logo, index) => (
               <div key={logo.id} className="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow overflow-hidden">
                 {/* Card Image */}
                 <div className="flex items-center justify-center bg-gray-50 border-b border-gray-100 h-36 p-4">
@@ -454,7 +471,7 @@ const LogoManagement = () => {
                 <div className="p-4">
                   <div className="flex items-start justify-between mb-2">
                     <div>
-                      <span className="text-xs text-gray-400 font-medium">#{index + 1}</span>
+                      <span className="text-xs text-gray-400 font-medium">#{startIndex + index + 1}</span>
                       <h3 className="font-semibold text-gray-800 text-sm mt-0.5 leading-tight">{logo.name}</h3>
                     </div>
                     {logo.status === 1 ? (
@@ -501,7 +518,44 @@ const LogoManagement = () => {
             ))}
           </div>
         )}
-      </div>
+
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className="flex justify-center items-center gap-2 mt-6 mb-8">
+                <button
+                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                  className="px-4 py-2 border rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                >
+                  Previous
+                </button>
+                <div className="flex gap-1">
+                  {[...Array(totalPages)].map((_, i) => (
+                    <button
+                      key={i + 1}
+                      onClick={() => setCurrentPage(i + 1)}
+                      className={`w-10 h-10 rounded-lg flex items-center justify-center transition ${
+                        currentPage === i + 1 
+                        ? 'bg-blue-900 text-white shadow-md font-semibold' 
+                        : 'border hover:bg-gray-50 text-gray-600'
+                      }`}
+                    >
+                      {i + 1}
+                    </button>
+                  ))}
+                </div>
+                <button
+                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                  disabled={currentPage === totalPages}
+                  className="px-4 py-2 border rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                >
+                  Next
+                </button>
+              </div>
+            )}
+          </div>
+        );
+      })()}
     </div>
   );
 };
