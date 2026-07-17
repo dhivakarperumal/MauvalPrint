@@ -262,7 +262,7 @@ const LogoManagement = () => {
                 onChange={(e) => {
                   const mrp = parseFloat(e.target.value) || 0;
                   const offer = parseFloat(form.offer) || 0;
-                  const offer_price = offer > 0 ? (mrp - (mrp * offer) / 100).toFixed(2) : "";
+                  const offer_price = offer > 0 ? (mrp - (mrp * offer) / 100).toFixed(2) : form.offer_price;
                   setForm((prev) => ({ ...prev, mrp: e.target.value, offer_price }));
                 }}
                 className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-100"
@@ -282,7 +282,7 @@ const LogoManagement = () => {
                 onChange={(e) => {
                   const offer = parseFloat(e.target.value) || 0;
                   const mrp = parseFloat(form.mrp) || 0;
-                  const offer_price = mrp > 0 && offer > 0 ? (mrp - (mrp * offer) / 100).toFixed(2) : "";
+                  const offer_price = mrp > 0 && offer > 0 ? (mrp - (mrp * offer) / 100).toFixed(2) : form.offer_price;
                   setForm((prev) => ({ ...prev, offer: e.target.value, offer_price }));
                 }}
                 className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-100"
@@ -393,8 +393,8 @@ const LogoManagement = () => {
                   <th className="p-4">Dimensions</th>
                   <th className="p-4">MRP</th>
                   <th className="p-4">Offer</th>
-                  <th className="p-4">Price</th>
                   <th className="p-4">Status</th>
+                  <th className="p-4">Update Time</th>
                   <th className="p-4">Actions</th>
                 </tr>
               </thead>
@@ -425,6 +425,7 @@ const LogoManagement = () => {
                         </span>
                       )}
                     </td>
+                    
                     <td className="p-4">
                       <div className="flex gap-3">
                         <button onClick={() => handleEdit(logo)} className="text-blue-600 hover:text-blue-800 transition" title="Edit">
@@ -466,7 +467,12 @@ const LogoManagement = () => {
                       </span>
                     )}
                   </div>
-                  <p className="text-xs text-gray-500 mb-1">{logo.width} × {logo.height} px</p>
+                  <div className="flex justify-between items-center text-xs text-gray-500 mb-1">
+                    <span>{logo.width} × {logo.height} px</span>
+                    <span title="Last Updated">
+                      {logo.updated_at ? new Date(logo.updated_at).toLocaleString() : logo.created_at ? new Date(logo.created_at).toLocaleString() : '-'}
+                    </span>
+                  </div>
                   <div className="flex items-center gap-2 mb-3">
                     {logo.mrp > 0 && <span className="text-xs text-gray-400 line-through">₹{parseFloat(logo.mrp).toFixed(2)}</span>}
                     {logo.offer > 0 && <span className="text-xs bg-orange-100 text-orange-700 font-bold px-1.5 py-0.5 rounded-full">{logo.offer}% OFF</span>}

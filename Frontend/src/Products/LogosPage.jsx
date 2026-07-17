@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import api from "../api";
-import { FaRulerCombined, FaWhatsapp } from "react-icons/fa";
+import { FaRulerCombined, FaWhatsapp, FaShareAlt } from "react-icons/fa";
 import PageContainer from "../Components/PageContainer";
 import Head from "../Components/Head";
 
@@ -8,6 +8,7 @@ const LogosPage = () => {
   const [logos, setLogos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [clickedLogoId, setClickedLogoId] = useState(null);
 
   useEffect(() => {
     api
@@ -21,6 +22,10 @@ const LogosPage = () => {
       .finally(() => setLoading(false));
   }, []);
 
+  const toggleBubble = (logoId) => {
+    setClickedLogoId((prevId) => (prevId === logoId ? null : logoId));
+  };
+
   const filtered = logos.filter((l) =>
     l.name?.toLowerCase().includes(search.toLowerCase())
   );
@@ -28,8 +33,6 @@ const LogosPage = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <Head title="Our Logo Designs" subtitle="Logos" />
-
- 
 
       {/* Content */}
       <PageContainer className="py-12">
@@ -58,74 +61,115 @@ const LogosPage = () => {
                 return (
                   <div
                     key={logo.id}
-                    className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden group flex flex-col"
+                    onClick={() => toggleBubble(logo.id)}
+                    className="group relative bg-white border text-center border-gray-200 rounded-2xl shadow-md hover:shadow-xl transition-all duration-500 p-4 flex flex-col"
                   >
                     {/* Offer Badge */}
                     {hasOffer && (
-                      <div className="absolute z-10 mt-3 ml-3">
+                      <div className="absolute z-20 top-2 left-2">
                         <span className="bg-orange-500 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow">
                           {logo.offer}% OFF
                         </span>
                       </div>
                     )}
 
-                    {/* Image */}
-                    <div className="relative bg-gray-50 flex items-center justify-center h-44 overflow-hidden border-b border-gray-100 p-4">
+                    {/* Image with Bubble Effects */}
+                    <div className="relative w-full h-52 bg-primary/5 rounded-[30px] overflow-hidden shadow-lg transition-transform duration-1000 ease-in-out hover:scale-105 group">
+                      
+                      {/* WhatsApp Order Bubble */}
+                      <div
+                        className={`absolute w-[70%] h-[70%] transition-all duration-400 ease-in-out z-10 rounded-[10%_13%_42%_0%/10%_12%_75%_0%] bg-primary/30 ${clickedLogoId === logo.id
+                          ? "bottom-0 left-0"
+                          : "bottom-[-70%] left-[-70%] group-hover:bottom-0 group-hover:left-0"
+                          }`}
+                        style={{
+                          borderTop: "2px solid white",
+                          borderRight: "1px solid white",
+                          backdropFilter: "blur(2px)",
+                        }}
+                      >
+                        <div className="absolute top-2 right-2">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              const priceText = hasOffer 
+                                ? `MRP: ₹${mrp.toFixed(2)}\nSale Price: ₹${finalPrice.toFixed(2)}` 
+                                : `Price: ₹${mrp.toFixed(2)}`;
+                              const message = encodeURIComponent(`Hello, I would like to place an order for the following logo design:\n\n*Design Name:* ${logo.name}\n${priceText}\n\n*Image:* ${logo.image}\n\nPlease let me know the next steps to complete this order.`);
+                              window.open(`https://wa.me/916385381388?text=${message}`, "_blank");
+                            }}
+                            className="text-white bg-white/20 p-2 cursor-pointer rounded-full hover:bg-green-500 hover:text-white transition"
+                            title="Order via WhatsApp"
+                          >
+                            <FaWhatsapp size={16} />
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* WhatsApp Share Bubble */}
+                      <div
+                        className={`absolute w-[50%] h-[50%] transition-all duration-700 ease-in-out z-10 rounded-[10%_13%_42%_0%/10%_12%_75%_0%] bg-primary/30 ${clickedLogoId === logo.id
+                          ? "bottom-0 left-0"
+                          : "bottom-[-70%] left-[-70%] group-hover:bottom-0 group-hover:left-0"
+                          }`}
+                        style={{
+                          borderTop: "2px solid white",
+                          borderRight: "1px solid white",
+                          backdropFilter: "blur(2px)",
+                        }}
+                      >
+                        <div className="absolute top-2 right-2">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              const priceText = hasOffer 
+                                ? `MRP: ₹${mrp.toFixed(2)}\nSale Price: ₹${finalPrice.toFixed(2)}` 
+                                : `Price: ₹${mrp.toFixed(2)}`;
+                              const message = encodeURIComponent(`Check out this awesome design on Mauval Print!\n\n*Design Name:* ${logo.name}\n${priceText}\n\n*Image:* ${logo.image}`);
+                              window.open(`https://wa.me/?text=${message}`, "_blank");
+                            }}
+                            className="text-white bg-white/20 p-2 cursor-pointer rounded-full hover:bg-blue-500 hover:text-white transition"
+                            title="Share on WhatsApp"
+                          >
+                            <FaShareAlt size={16} />
+                          </button>
+                        </div>
+                      </div>
+
                       <img
                         src={logo.image}
                         alt={logo.name}
-                        className="max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-500"
-                        style={{ maxWidth: logo.width || "100%", maxHeight: logo.height || "100%" }}
+                        className="relative z-5 w-full h-full object-contain transition-transform duration-500 group-hover:scale-105 p-2"
                       />
                     </div>
 
-                    {/* Details */}
-                    <div className="p-4 flex flex-col flex-1">
-                      <h3 className="font-bold text-gray-800 text-sm mb-1 truncate">{logo.name}</h3>
+                    {/* Product Info */}
+                    <h3 className="text-lg font-semibold text-gray-800 truncate mt-3">
+                      {logo.name}
+                    </h3>
 
-                      {/* Dimensions */}
-                      <div className="flex items-center gap-1 text-xs text-gray-400 mb-2">
-                        <FaRulerCombined size={10} />
-                        <span>{logo.width} × {logo.height} px</span>
-                      </div>
-
-                      {/* Description */}
-                      {logo.description && (
-                        <p className="text-xs text-gray-400 mb-3 line-clamp-2">{logo.description}</p>
-                      )}
-
-                      {/* Pricing */}
-                      {mrp > 0 && (
-                        <div className="flex items-center gap-2 mb-3 mt-auto">
-                          {hasOffer && (
-                            <span className="text-xs text-gray-400 line-through">₹{mrp.toFixed(2)}</span>
-                          )}
-                          <span className="text-base font-extrabold text-green-700">
-                            ₹{finalPrice.toFixed(2)}
-                          </span>
-                          {hasOffer && (
-                            <span className="text-xs bg-orange-100 text-orange-600 font-semibold px-1.5 py-0.5 rounded-full">
-                              Save ₹{(mrp - finalPrice).toFixed(2)}
-                            </span>
-                          )}
-                        </div>
-                      )}
-
-                      {/* CTA */}
-                      <button 
-                        onClick={() => {
-                          const priceText = hasOffer 
-                            ? `MRP: ₹${mrp.toFixed(2)}\nSale Price: ₹${finalPrice.toFixed(2)}` 
-                            : `Price: ₹${mrp.toFixed(2)}`;
-                          const message = encodeURIComponent(`Hello, I would like to place an order for the following logo design:\n\n*Design Name:* ${logo.name}\n${priceText}\n\n*Image:* ${logo.image}\n\nPlease let me know the next steps to complete this order.`);
-                          window.open(`https://wa.me/916385381388?text=${message}`, "_blank");
-                        }}
-                        className="mt-auto w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-green-600 hover:bg-green-700 text-white text-sm font-semibold transition-colors"
-                      >
-                        <FaWhatsapp size={15} />
-                        Get This Design
-                      </button>
+                    {/* Dimensions replacing Stars for Logos */}
+                    <div className="flex items-center justify-center text-xs text-gray-400 my-1 gap-1">
+                      <FaRulerCombined size={10} />
+                      <span>{logo.width} × {logo.height} px</span>
                     </div>
+
+                    {logo.description && (
+                      <p className="text-xs text-gray-400 mb-1 line-clamp-1">{logo.description}</p>
+                    )}
+
+                    <p className="text-md font-bold text-primary mt-2">
+                      MRP: <del className="text-gray-400 mr-1 font-normal">₹{mrp.toFixed(2)}</del> ₹{finalPrice.toFixed(2)}
+                    </p>
+
+                    {/* Optional: Save badge */}
+                    {hasOffer && (
+                      <div className="mt-2 text-sm text-gray-600 flex flex-wrap items-center justify-center">
+                        <span className="text-xs bg-orange-100 text-orange-600 font-semibold px-2 py-0.5 rounded-full">
+                          Save ₹{(mrp - finalPrice).toFixed(2)}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 );
               })}
