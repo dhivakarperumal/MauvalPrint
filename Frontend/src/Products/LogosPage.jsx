@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import api from "../api";
-import { FaRulerCombined, FaWhatsapp, FaShareAlt } from "react-icons/fa";
+import { FaRulerCombined, FaWhatsapp, FaShareAlt, FaEye } from "react-icons/fa";
 import PageContainer from "../Components/PageContainer";
 import Head from "../Components/Head";
 
@@ -132,6 +132,32 @@ const LogosPage = () => {
                             title="Share on WhatsApp"
                           >
                             <FaShareAlt size={16} />
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* View Image Bubble */}
+                      <div
+                        className={`absolute w-[32%] h-[32%] transition-all duration-1000 ease-in-out z-10 rounded-[10%_13%_42%_0%/10%_12%_75%_0%] bg-primary/30 ${clickedLogoId === logo.id
+                          ? "bottom-0 left-0"
+                          : "bottom-[-70%] left-[-70%] group-hover:bottom-0 group-hover:left-0"
+                          }`}
+                        style={{
+                          borderTop: "2px solid white",
+                          borderRight: "1px solid white",
+                          backdropFilter: "blur(2px)",
+                        }}
+                      >
+                        <div className="absolute top-2 right-2">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              window.open(logo.image, "_blank");
+                            }}
+                            className="text-white bg-white/20 p-2 rounded-full cursor-pointer hover:bg-white hover:text-primary transition"
+                            title="View Full Image"
+                          >
+                            <FaEye size={16} />
                           </button>
                         </div>
                       </div>

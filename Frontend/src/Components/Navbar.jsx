@@ -193,7 +193,7 @@ export default function Navbar() {
               <Link to="/products">Products</Link>
             </li>
             <li className={linkBase}>
-              <Link to="/logos">Logos</Link>
+              <Link to="/logos">Designs Logos</Link>
             </li>
             <li className="relative" ref={customizeRef}>
               <button
@@ -405,7 +405,7 @@ export default function Navbar() {
             </li>
             <li>
               <Link to="/logos" onClick={() => setIsOpen(false)}>
-                Logos
+                Designs Logos
               </Link>
             </li>
             <li>
