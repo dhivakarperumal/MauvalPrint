@@ -152,33 +152,24 @@ const LogoManagement = () => {
 
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-        <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm flex items-center justify-between hover:shadow-md transition-shadow duration-200">
-          <div>
-            <p className="text-sm font-medium text-gray-500">Total Designs</p>
-            <h3 className="text-2xl font-bold text-gray-800 mt-1">{logos.length}</h3>
-          </div>
-          <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center">
-            <FaImage size={20} />
-          </div>
-        </div>
-        <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm flex items-center justify-between hover:shadow-md transition-shadow duration-200">
-          <div>
-            <p className="text-sm font-medium text-gray-500">Active Designs</p>
-            <h3 className="text-2xl font-bold text-green-600 mt-1">{logos.filter(l => l.status === 1).length}</h3>
-          </div>
-          <div className="w-12 h-12 bg-green-50 text-green-600 rounded-full flex items-center justify-center">
-            <FaThLarge size={20} />
-          </div>
-        </div>
-        <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm flex items-center justify-between hover:shadow-md transition-shadow duration-200">
-          <div>
-            <p className="text-sm font-medium text-gray-500">Inactive Designs</p>
-            <h3 className="text-2xl font-bold text-red-600 mt-1">{logos.filter(l => l.status === 0).length}</h3>
-          </div>
-          <div className="w-12 h-12 bg-red-50 text-red-600 rounded-full flex items-center justify-center">
-            <FaList size={20} />
-          </div>
-        </div>
+        <StatBox
+          title="Designs"
+          count={logos.length}
+          color="blue"
+          icon={<FaImage size={22} className="text-white drop-shadow-sm" />}
+        />
+        <StatBox
+          title="Active Designs"
+          count={logos.filter(l => l.status === 1).length}
+          color="green"
+          icon={<FaThLarge size={22} className="text-white drop-shadow-sm" />}
+        />
+        <StatBox
+          title="Inactive Designs"
+          count={logos.filter(l => l.status === 0).length}
+          color="red"
+          icon={<FaList size={22} className="text-white drop-shadow-sm" />}
+        />
       </div>
 
       <div className="bg-white border border-gray-200 rounded-xl p-3 mb-6 flex flex-col md:flex-row items-center justify-between gap-4 shadow-sm">
@@ -583,6 +574,42 @@ const LogoManagement = () => {
           </div>
         );
       })()}
+    </div>
+  );
+};
+
+const StatBox = ({ title, count, color, icon }) => {
+  const gradientMap = {
+    blue: "bg-gradient-to-br from-indigo-500 via-blue-500 to-blue-700",
+    red: "bg-gradient-to-br from-rose-500 via-red-500 to-orange-500",
+    purple: "bg-gradient-to-br from-fuchsia-500 via-purple-500 to-indigo-600",
+    green: "bg-gradient-to-br from-teal-400 via-emerald-500 to-green-600",
+  };
+
+  const shadowMap = {
+    blue: "shadow-blue-500/40",
+    red: "shadow-red-500/40",
+    purple: "shadow-purple-500/40",
+    green: "shadow-emerald-500/40",
+  };
+
+  return (
+    <div className={`relative overflow-hidden rounded-2xl p-6 ${gradientMap[color]} shadow-lg ${shadowMap[color]} flex flex-col justify-between group cursor-pointer hover:-translate-y-1 transition-all duration-300`}>
+      {/* Decorative glass shapes */}
+      <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 group-hover:scale-125 transition-transform duration-700 ease-out pointer-events-none"></div>
+      <div className="absolute bottom-0 left-0 w-32 h-32 bg-black/10 rounded-full blur-2xl translate-y-1/3 -translate-x-1/3 group-hover:scale-125 transition-transform duration-700 ease-out pointer-events-none"></div>
+
+      <div className="flex justify-between items-start relative z-10">
+        <div className="text-white">
+          <p className="text-xs font-bold text-white/80 uppercase tracking-widest mb-1 drop-shadow-sm">{title}</p>
+          <p className="text-4xl font-black drop-shadow-md tracking-tight">{count}</p>
+        </div>
+        <div className="p-3.5 bg-white/20 backdrop-blur-md rounded-2xl border border-white/30 shadow-inner group-hover:bg-white/30 transition-colors duration-300 text-white">
+          {icon}
+        </div>
+      </div>
+
+
     </div>
   );
 };
