@@ -10,7 +10,7 @@ const LogoManagement = () => {
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 12;
+  const itemsPerPage = 5;
 
   const initialFormState = {
     id: null,
@@ -149,9 +149,36 @@ const LogoManagement = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-5 py-8 min-h-screen">
-      <div className="mb-6">
-        <h2 className="text-3xl font-bold text-blue-900 mb-2">Design Management</h2>
-        <p className="text-sm text-gray-500">Manage site designs and assets.</p>
+
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+        <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm flex items-center justify-between hover:shadow-md transition-shadow duration-200">
+          <div>
+            <p className="text-sm font-medium text-gray-500">Total Designs</p>
+            <h3 className="text-2xl font-bold text-gray-800 mt-1">{logos.length}</h3>
+          </div>
+          <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center">
+            <FaImage size={20} />
+          </div>
+        </div>
+        <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm flex items-center justify-between hover:shadow-md transition-shadow duration-200">
+          <div>
+            <p className="text-sm font-medium text-gray-500">Active Designs</p>
+            <h3 className="text-2xl font-bold text-green-600 mt-1">{logos.filter(l => l.status === 1).length}</h3>
+          </div>
+          <div className="w-12 h-12 bg-green-50 text-green-600 rounded-full flex items-center justify-center">
+            <FaThLarge size={20} />
+          </div>
+        </div>
+        <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm flex items-center justify-between hover:shadow-md transition-shadow duration-200">
+          <div>
+            <p className="text-sm font-medium text-gray-500">Inactive Designs</p>
+            <h3 className="text-2xl font-bold text-red-600 mt-1">{logos.filter(l => l.status === 0).length}</h3>
+          </div>
+          <div className="w-12 h-12 bg-red-50 text-red-600 rounded-full flex items-center justify-center">
+            <FaList size={20} />
+          </div>
+        </div>
       </div>
 
       <div className="bg-white border border-gray-200 rounded-xl p-3 mb-6 flex flex-col md:flex-row items-center justify-between gap-4 shadow-sm">
@@ -386,7 +413,7 @@ const LogoManagement = () => {
 
       {(() => {
         const filteredLogos = logos.filter(logo => 
-          logo.name.toLowerCase().includes(searchQuery.toLowerCase())
+          (logo.name || "").toLowerCase().includes((searchQuery || "").toLowerCase())
         );
         const totalPages = Math.ceil(filteredLogos.length / itemsPerPage);
         const startIndex = (currentPage - 1) * itemsPerPage;
@@ -521,11 +548,11 @@ const LogoManagement = () => {
 
             {/* Pagination Controls */}
             {totalPages > 1 && (
-              <div className="flex justify-center items-center gap-2 mt-6 mb-8">
+              <div className="flex justify-end items-center gap-2 mt-6 mb-8">
                 <button
                   onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                   disabled={currentPage === 1}
-                  className="px-4 py-2 border rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                  className="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition"
                 >
                   Previous
                 </button>
@@ -534,10 +561,10 @@ const LogoManagement = () => {
                     <button
                       key={i + 1}
                       onClick={() => setCurrentPage(i + 1)}
-                      className={`w-10 h-10 rounded-lg flex items-center justify-center transition ${
+                      className={`w-7 h-7 rounded-lg flex items-center justify-center transition ${
                         currentPage === i + 1 
                         ? 'bg-blue-900 text-white shadow-md font-semibold' 
-                        : 'border hover:bg-gray-50 text-gray-600'
+                        : 'border border-gray-300 hover:bg-gray-50 text-gray-600'
                       }`}
                     >
                       {i + 1}
@@ -547,7 +574,7 @@ const LogoManagement = () => {
                 <button
                   onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                   disabled={currentPage === totalPages}
-                  className="px-4 py-2 border rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                  className="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition"
                 >
                   Next
                 </button>
