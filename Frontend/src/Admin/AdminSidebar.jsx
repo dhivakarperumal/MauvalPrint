@@ -35,7 +35,7 @@ const tabLabels = {
       "/admin/products": { label: "All Products", icon: <FiPackage /> },
       "/admin/category": { label: "Category", icon: <FiFolder /> },
       "/admin/productkeywords": { label: "Product Keywords", icon: <FiTag /> },
-      "/admin/logos": { label: "Design Logo Management", icon: <FiImage /> },
+      "/admin/logos": { label: "B2B Logos", icon: <FiImage /> },
     },
   },
   "/admin/orders": {
