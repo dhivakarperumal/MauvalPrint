@@ -196,9 +196,6 @@ export default function Navbar() {
             <li className={linkBase}>
               <Link to="/products">Products</Link>
             </li>
-            <li className={linkBase}>
-              <Link to="/logos">Designs Logos</Link>
-            </li>
             <li className="relative" ref={customizeRef}>
               <button
                 className="group flex items-center gap-2 cursor-pointer"
@@ -259,6 +256,9 @@ export default function Navbar() {
             </li>
             <li className={linkBase}>
               <Link to="/designs">Designs</Link>
+            </li>
+            <li className={linkBase}>
+              <Link to="/logos">B2b</Link>
             </li>
 
           </ul>
@@ -425,11 +425,6 @@ export default function Navbar() {
               </Link>
             </li>
             <li>
-              <Link to="/logos" onClick={() => setIsOpen(false)}>
-                Designs Logos
-              </Link>
-            </li>
-            <li>
               <button
                 onClick={() => setIsMobileCustomizeOpen(!isMobileCustomizeOpen)}
                 className="flex items-center gap-2"
@@ -481,6 +476,11 @@ export default function Navbar() {
             <li>
               <Link to="/designs" onClick={() => setIsOpen(false)}>
                 Designs
+              </Link>
+            </li>
+            <li>
+              <Link to="/logos" onClick={() => setIsOpen(false)}>
+                B2B
               </Link>
             </li>
             {/* Logo Cart - mobile menu */}
