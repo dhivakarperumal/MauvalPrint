@@ -16,6 +16,7 @@ export function AuthProvider({ children }) {
   const [designs, setDesigns] = useState([]);
   const [products, setProducts] = useState([]);
   const [cart, setCart] = useState([]);
+  const [logoCart, setLogoCart] = useState([]);
   const [wishlist, setWishlist] = useState([]);
   const [reviews, setReviews] = useState([]);
   const [isOrderSidebarOpen, setOrderSidebarOpen] = useState(false);
@@ -34,6 +35,18 @@ export function AuthProvider({ children }) {
         }
       };
 
+      const fetchLogoCart = async () => {
+        try {
+          const { data } = await api.get(`/logo-cart/${user.uid}`);
+          if (data.success) {
+            setLogoCart(data.cart);
+          }
+        } catch (error) {
+          console.error("Logo cart fetch error:", error);
+          setLogoCart([]);
+        }
+      };
+
       const fetchWishlist = async () => {
         try {
           const { data } = await api.get(`/wishlist/${user.uid}`);
@@ -47,11 +60,13 @@ export function AuthProvider({ children }) {
       };
 
       fetchCart();
+      fetchLogoCart();
       fetchWishlist();
 
       return () => {};
     } else {
       setCart([]);
+      setLogoCart([]);
       setWishlist([]);
     }
   }, [user]);
@@ -301,6 +316,68 @@ export function AuthProvider({ children }) {
     }
   };
 
+  const addToLogoCart = async (logo, quantity = 1) => {
+    if (!user) {
+      toast.error("Login required");
+      return false;
+    }
+    try {
+      await api.post("/logo-cart/add", {
+        user_id: user.uid,
+        logo_id: logo.id,
+        quantity,
+        item_data: logo,
+      });
+      const { data } = await api.get(`/logo-cart/${user.uid}`);
+      if (data.success) setLogoCart(data.cart);
+      toast.success("Added to logo cart");
+      return true;
+    } catch (err) {
+      console.error("Add to logo cart failed:", err);
+      toast.error("Failed to add logo to cart");
+      return false;
+    }
+  };
+
+  const removeFromLogoCart = async (logo_id) => {
+    if (!user) return;
+    try {
+      await api.delete(`/logo-cart/${user.uid}/${logo_id}`);
+      const { data } = await api.get(`/logo-cart/${user.uid}`);
+      if (data.success) setLogoCart(data.cart);
+      toast.info("Removed from logo cart");
+    } catch (err) {
+      console.error("Remove from logo cart failed:", err);
+    }
+  };
+
+  const updateLogoCartQuantity = async (logo_id, qty) => {
+    if (!user) return;
+    try {
+      await api.patch("/logo-cart/update", {
+        user_id: user.uid,
+        logo_id,
+        quantity: qty,
+      });
+      const { data } = await api.get(`/logo-cart/${user.uid}`);
+      if (data.success) setLogoCart(data.cart);
+    } catch (err) {
+      console.error("Update logo cart quantity failed:", err);
+    }
+  };
+
+  const clearLogoCart = async () => {
+    if (!user) return;
+    try {
+      for (const item of logoCart) {
+        await api.delete(`/logo-cart/${user.uid}/${item.id}`);
+      }
+      setLogoCart([]);
+    } catch (err) {
+      console.error("Clear logo cart failed:", err);
+    }
+  };
+
   const addToWishlist = async (product) => {
     if (!user) return toast.error("Login required");
 
@@ -394,6 +471,11 @@ export function AuthProvider({ children }) {
         removeFromCart,
         updateQuantity,
         clearCart,
+        logoCart,
+        addToLogoCart,
+        removeFromLogoCart,
+        updateLogoCartQuantity,
+        clearLogoCart,
         wishlist,
         addToWishlist,
         removeFromWishlist,

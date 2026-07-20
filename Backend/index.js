@@ -16,6 +16,7 @@ const wishlistRouter = require("./src/routers/wishlist");
 const cartRouter = require("./src/routers/cart");
 const videoRoutes = require("./src/routers/videoRoutes");
 const logoRoutes = require("./src/routers/logoRoutes");
+const logoCartRoutes = require("./src/routers/logoCartRoutes");
 require("dotenv").config();
 
 const app = express();
@@ -217,6 +218,7 @@ app.use("/api/wishlist", wishlistRouter);
 app.use("/api/cart", cartRouter);
 app.use("/api/videos", videoRoutes);
 app.use("/api/logos", logoRoutes);
+app.use("/api/logo-cart", logoCartRoutes);
 
 // Health Check
 app.get("/api/health", (req, res) => {

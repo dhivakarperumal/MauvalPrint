@@ -1,14 +1,18 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import api from "../api";
-import { FaRulerCombined, FaWhatsapp, FaShareAlt, FaEye } from "react-icons/fa";
+import { FaRulerCombined, FaWhatsapp, FaShareAlt, FaEye, FaShoppingCart } from "react-icons/fa";
 import PageContainer from "../Components/PageContainer";
 import Head from "../Components/Head";
+import { AuthContext } from "../Context/AuthContext";
+import LogoCartSidebar from "./LogoCartSidebar";
 
 const LogosPage = () => {
+  const { logoCart, addToLogoCart } = useContext(AuthContext);
   const [logos, setLogos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [clickedLogoId, setClickedLogoId] = useState(null);
+  const [showLogoCart, setShowLogoCart] = useState(false);
 
   useEffect(() => {
     api
@@ -34,25 +38,66 @@ const LogosPage = () => {
     <div className="min-h-screen bg-gray-50">
       <Head title="Our Logo Designs" subtitle="Logos" />
 
+      {/* Logo Cart Sidebar */}
+      <LogoCartSidebar show={showLogoCart} onClose={() => setShowLogoCart(false)} />
+
       {/* Content */}
       <PageContainer className="py-12">
         {loading ? (
           <div className="flex justify-center items-center py-24">
             <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
           </div>
-        ) : filtered.length === 0 ? (
-          <div className="text-center py-24 text-gray-400">
-            <div className="text-6xl mb-4">🖼️</div>
-            <p className="text-xl font-medium">No designs found.</p>
-            <p className="text-sm mt-1">Try a different search term.</p>
-          </div>
         ) : (
           <>
-            <p className="text-gray-500 text-sm mb-6">
-              Showing <span className="font-semibold text-gray-800">{filtered.length}</span> design{filtered.length !== 1 ? "s" : ""}
-            </p>
+            {/* Search Bar + Cart Button */}
+            <div className="flex justify-end items-center gap-3 mb-8">
+              {/* Cart Icon Button */}
+              <button
+                onClick={() => setShowLogoCart(true)}
+                className="relative flex items-center gap-2 bg-primary text-white px-4 py-2.5 rounded-full shadow hover:bg-primary/90 transition font-semibold text-sm cursor-pointer shrink-0"
+              >
+                <FaShoppingCart size={16} />
+                <span className="hidden sm:inline">Logo Cart</span>
+                {logoCart.length > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-orange-500 text-white text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center">
+                    {logoCart.length}
+                  </span>
+                )}
+              </button>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+              {/* Search */}
+              <div className="relative w-full max-w-xs">
+                <input
+                  type="text"
+                  placeholder="Search logos..."
+                  className="w-full px-5 py-3 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-primary shadow-sm"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                />
+                <svg
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-4.35-4.35M16.65 16.65A7.5 7.5 0 1116.65 1.5a7.5 7.5 0 010 15.15z" />
+                </svg>
+              </div>
+            </div>
+
+            {filtered.length === 0 ? (
+              <div className="text-center py-24 text-gray-400">
+                <div className="text-6xl mb-4">🖼️</div>
+                <p className="text-xl font-medium">No designs found.</p>
+                <p className="text-sm mt-1">Try a different search term.</p>
+              </div>
+            ) : (
+              <>
+                <p className="text-gray-500 text-sm mb-6">
+                  Showing <span className="font-semibold text-gray-800">{filtered.length}</span> design{filtered.length !== 1 ? "s" : ""}
+                </p>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
               {filtered.map((logo) => {
                 const hasOffer = parseFloat(logo.offer) > 0;
                 const finalPrice = parseFloat(logo.offer_price || logo.mrp || 0);
@@ -196,10 +241,34 @@ const LogosPage = () => {
                         </span>
                       </div>
                     )}
+                    {/* Add to Logo Cart Button */}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        addToLogoCart({
+                          id: logo.id,
+                          name: logo.name,
+                          image: logo.image,
+                          mrp: mrp,
+                          offer: parseFloat(logo.offer || 0),
+                          offer_price: finalPrice,
+                          price: finalPrice,
+                          width: logo.width,
+                          height: logo.height,
+                          description: logo.description || "",
+                        });
+                      }}
+                      className="mt-3 w-full flex items-center justify-center gap-2 bg-primary text-white text-sm font-semibold py-2 rounded-xl hover:bg-primary/90 active:scale-95 transition cursor-pointer"
+                    >
+                      <FaShoppingCart size={13} />
+                      Add to Cart
+                    </button>
                   </div>
                 );
               })}
             </div>
+              </>
+            )}
           </>
         )}
       </PageContainer>

@@ -9,6 +9,7 @@ import {
   FaBars,
   FaTimes,
   FaChevronDown,
+  FaImage,
 } from "react-icons/fa";
 import {
   FaPhoneAlt,
@@ -27,6 +28,7 @@ import Login from "./Login";
 import RegisterPage from "./Register";
 import Search from "./Search";
 import CartSidebar from "../Products/CartSidebar";
+import LogoCartSidebar from "../Products/LogoCartSidebar";
 import Wishlist from "../Products/Wishlist";
 import Orders from "../Products/Orders";
 import api from "../api";
@@ -43,6 +45,7 @@ export default function Navbar() {
   const [showSearch, setShowSearch] = useState(false);
   const [showWishlist, setShowWishlist] = useState(false);
   const [showCart, setShowCart] = useState(false);
+  const [showLogoCart, setShowLogoCart] = useState(false);
   const [showOrders, setShowOrders] = useState(false);
   const [ordersCount, setOrdersCount] = useState(0);
   const [customizeDropdownOpen, setCustomizeDropdownOpen] = useState(false);
@@ -55,6 +58,7 @@ export default function Navbar() {
     user,
     logout,
     cart = [],
+    logoCart = [],
     wishlist = [],
   } = useContext(AuthContext);
   const navigate = useNavigate();
@@ -260,13 +264,16 @@ export default function Navbar() {
           </ul>
 
           {/* Icons */}
-          <div className="flex items-center gap-4 lg:gap-6">
-            <button className="cursor-pointer sm-hidden" onClick={() => setShowSearch(true)}>
+          <div className="flex items-center gap-3 lg:gap-6">
+            {/* Search - desktop only */}
+            <button className="cursor-pointer hidden lg:block" onClick={() => setShowSearch(true)}>
               <FaSearch className={iconBase} />
             </button>
+
+            {/* Wishlist - desktop only */}
             <button
               onClick={() => requireLogin(setShowWishlist)}
-              className="relative cursor-pointer"
+              className="relative cursor-pointer hidden lg:block"
             >
               <FaHeart className={iconBase} />
               {user && wishlist.length > 0 && (
@@ -283,6 +290,20 @@ export default function Navbar() {
               {user && cart.length > 0 && (
                 <span className="absolute -top-2 -right-2 h-4 w-4 flex items-center justify-center rounded-full bg-red-500 text-xs">
                   {cart.length}
+                </span>
+              )}
+            </button>
+
+            {/* Logo Cart icon - desktop only */}
+            <button
+              onClick={() => requireLogin(setShowLogoCart)}
+              className="relative cursor-pointer hidden lg:block"
+              title="Logo Cart"
+            >
+              <FaImage className={iconBase} />
+              {user && logoCart.length > 0 && (
+                <span className="absolute -top-2 -right-2 h-4 w-4 flex items-center justify-center rounded-full bg-orange-500 text-[10px]">
+                  {logoCart.length}
                 </span>
               )}
             </button>
@@ -462,6 +483,24 @@ export default function Navbar() {
                 Designs
               </Link>
             </li>
+            {/* Logo Cart - mobile menu */}
+            <li>
+              <button
+                onClick={() => {
+                  setIsOpen(false);
+                  requireLogin(setShowLogoCart);
+                }}
+                className="flex items-center gap-2 cursor-pointer"
+              >
+                <FaImage size={16} />
+                Logo Cart
+                {user && logoCart.length > 0 && (
+                  <span className="bg-orange-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+                    {logoCart.length}
+                  </span>
+                )}
+              </button>
+            </li>
             {/* <li>
               <button
                 onClick={() => setIsMobilePagesOpen(!isMobilePagesOpen)}
@@ -534,6 +573,7 @@ export default function Navbar() {
         />
       )}
       <CartSidebar show={showCart} onClose={() => setShowCart(false)} />
+      <LogoCartSidebar show={showLogoCart} onClose={() => setShowLogoCart(false)} />
       <Wishlist show={showWishlist} onClose={() => setShowWishlist(false)} />
     </header>
   );
