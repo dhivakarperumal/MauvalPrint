@@ -56,7 +56,7 @@ const LogoManagement = () => {
     }));
   };
 
-  const uploadToGoDaddy = async (files, category = "products") => {
+  const uploadToBackend = async (files, category = "products") => {
     const formData = new FormData();
     files.forEach((file, i) =>
       formData.append("files[]", file, file.name || `file_${i}`)
@@ -66,7 +66,7 @@ const LogoManagement = () => {
     const toastId = toast.loading(`Uploading ${files.length} file(s)...`);
 
     try {
-      const res = await fetch("https://mauvalprint.in/api/upload.php", {
+      const res = await fetch(`/api/upload?category=${encodeURIComponent(category)}`, {
         method: "POST",
         body: formData,
       });
@@ -99,7 +99,7 @@ const LogoManagement = () => {
   const handleImageUpload = async (e) => {
     const file = e.target.files[0];
     if (file) {
-      const urls = await uploadToGoDaddy([file], "logos");
+      const urls = await uploadToBackend([file], "logos");
       if (urls && urls.length > 0) {
         setForm((prev) => ({ ...prev, image: urls[0] }));
       }

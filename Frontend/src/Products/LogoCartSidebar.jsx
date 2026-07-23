@@ -16,18 +16,14 @@ const LogoCartSidebar = ({ show, onClose }) => {
   const shareOnWhatsApp = () => {
     if (logoCart.length === 0) return;
     const lines = logoCart.map((item) => {
-      const hasOffer = item.offer > 0;
-      const priceText = hasOffer
-        ? `MRP: ₹${item.mrp.toFixed(2)} → Sale: ₹${item.price.toFixed(2)} (${item.offer}% OFF)`
-        : `Price: ₹${item.price.toFixed(2)}`;
-      return `▪ *${item.name}* (${item.width}×${item.height}px)\n  Qty: ${item.quantity} | ${priceText}\n  Subtotal: ₹${(item.price * item.quantity).toFixed(2)}`;
+      return `▪ *${item.name}* (${item.width}×${item.height}px)\n  Qty: ${item.quantity}`;
     });
     const message = [
       "Hello! I would like to order the following logos from *Mauval Print*:",
       "",
       ...lines,
       "",
-      `*Total: ₹${subtotal.toFixed(2)}* (Shipping: Free)`,
+      "Please review the attached items.",
       "",
       "Please let me know the next steps. Thank you!",
     ].join("\n");
@@ -113,24 +109,7 @@ const LogoCartSidebar = ({ show, onClose }) => {
                         {item.width} × {item.height} px
                       </p>
                     )}
-                    <div className="flex items-center gap-1 mt-0.5">
-                      {hasOffer && (
-                        <span className="text-xs text-gray-400 line-through">
-                          ₹{mrp.toFixed(2)}
-                        </span>
-                      )}
-                      <span className="text-sm font-bold text-primary">
-                        ₹{finalPrice.toFixed(2)}
-                      </span>
-                      {hasOffer && (
-                        <span className="text-xs bg-orange-100 text-orange-600 font-semibold px-1.5 py-0.5 rounded-full">
-                          {item.offer}% OFF
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-sm font-bold text-gray-700 mt-0.5">
-                      ₹{(finalPrice * item.quantity).toFixed(2)}
-                    </p>
+                    {/* Removed Pricing Information */}
                   </div>
 
                   <div className="flex flex-col items-center gap-2 shrink-0">
@@ -174,19 +153,7 @@ const LogoCartSidebar = ({ show, onClose }) => {
         {/* Footer */}
         {logoCart.length > 0 && (
           <div className="p-4 border-t bg-white">
-            <div className="flex justify-between text-base mb-1 text-gray-700">
-              <span>Subtotal</span>
-              <span className="font-semibold">₹{subtotal.toFixed(2)}</span>
-            </div>
-            <div className="flex justify-between text-gray-500 text-sm mb-3">
-              <span>Shipping</span>
-              <span className="text-green-600 font-semibold">Free</span>
-            </div>
-            <hr className="my-2 border-gray-200" />
-            <div className="flex justify-between font-bold text-xl text-black mb-4">
-              <span>Total</span>
-              <span>₹{subtotal.toFixed(2)}</span>
-            </div>
+            {/* Removed Subtotal and Total sections */}
             {/* WhatsApp Share */}
             <button
               onClick={shareOnWhatsApp}

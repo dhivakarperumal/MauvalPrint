@@ -46,7 +46,7 @@ const AddProducts = () => {
   const [preview, setPreview] = useState(null); // stores preview display
 
 
- const uploadToGoDaddy = async (files, category = "products") => {
+ const uploadToBackend = async (files, category = "products") => {
   const formData = new FormData();
   files.forEach((file, i) =>
     formData.append("files[]", file, file.name || `file_${i}`)
@@ -56,7 +56,7 @@ const AddProducts = () => {
   const toastId = toast.loading(`Uploading ${files.length} file(s)...`);
 
   try {
-    const res = await fetch("https://mauvalprint.in/api/upload.php", {
+    const res = await fetch(`/api/upload?category=${encodeURIComponent(category)}`, {
       method: "POST",
       body: formData,
     });
@@ -98,7 +98,7 @@ const handleFileChange = async (e) => {
       initialQuality: 0.9,
     });
 
-    const urls = await uploadToGoDaddy([compressed], "sizecharts");
+    const urls = await uploadToBackend([compressed], "sizecharts");
 
     if (urls.length > 0) {
       setSizeChart(urls[0]);
@@ -253,7 +253,7 @@ const handleImageUpload = async (e) => {
       )
     );
 
-    const urls = await uploadToGoDaddy(compressedFiles, "products");
+    const urls = await uploadToBackend(compressedFiles, "products");
 
     if (urls.length > 0) {
       setProduct((prev) => ({ ...prev, images: urls }));

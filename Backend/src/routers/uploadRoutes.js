@@ -8,7 +8,7 @@ const router = express.Router();
 // Storage config — store under Backend/public/uploads/<category>/
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    const category = req.body.category || 'products';
+    const category = req.query.category || req.body.category || 'products';
     const dest = path.join(__dirname, '..', '..', 'public', 'uploads', category);
     fs.mkdirSync(dest, { recursive: true });
     cb(null, dest);
