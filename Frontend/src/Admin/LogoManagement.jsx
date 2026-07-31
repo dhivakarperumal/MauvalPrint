@@ -66,7 +66,7 @@ const LogoManagement = () => {
     const toastId = toast.loading(`Uploading ${files.length} file(s)...`);
 
     try {
-      const res = await fetch(`/api/upload?category=${encodeURIComponent(category)}`, {
+      const res = await fetch("https://mauvalprint.in/api/upload.php", {
         method: "POST",
         body: formData,
       });
