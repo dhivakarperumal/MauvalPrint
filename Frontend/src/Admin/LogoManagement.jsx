@@ -10,7 +10,7 @@ const LogoManagement = () => {
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5;
+  const itemsPerPage = 25;
 
   const initialFormState = {
     id: null,
@@ -425,9 +425,7 @@ const LogoManagement = () => {
                       <th className="p-4">Name</th>
                       <th className="p-4">Dimensions</th>
                       <th className="p-4">MRP</th>
-                      <th className="p-4">Offer</th>
                       <th className="p-4">Status</th>
-                      <th className="p-4">Update Time</th>
                       <th className="p-4">Actions</th>
                     </tr>
                   </thead>
@@ -441,12 +439,6 @@ const LogoManagement = () => {
                     <td className="p-4 font-medium text-gray-800">{logo.name}</td>
                     <td className="p-4 text-gray-600">{logo.width} × {logo.height} px</td>
                     <td className="p-4 text-gray-700">₹{parseFloat(logo.mrp || 0).toFixed(2)}</td>
-                    <td className="p-4">
-                      {logo.offer > 0 ? (
-                        <span className="bg-orange-100 text-orange-700 text-xs font-bold px-2 py-0.5 rounded-full">{logo.offer}% OFF</span>
-                      ) : <span className="text-gray-400 text-xs">—</span>}
-                    </td>
-                    <td className="p-4 font-semibold text-green-700">₹{parseFloat(logo.offer_price || logo.mrp || 0).toFixed(2)}</td>
                     <td className="p-4">
                       {logo.status === 1 ? (
                         <span className="inline-flex items-center gap-1.5 text-green-700 bg-green-50 border border-green-200 text-xs font-semibold px-2.5 py-1 rounded-full">
