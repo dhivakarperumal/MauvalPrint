@@ -206,11 +206,7 @@ const LogosPage = () => {
                       {logo.name}
                     </h3>
 
-                    {/* Dimensions replacing Stars for Logos */}
-                    <div className="flex items-center justify-center text-xs text-gray-400 my-1 gap-1">
-                      <FaRulerCombined size={10} />
-                      <span>{logo.width} × {logo.height} px</span>
-                    </div>
+                   
 
                     {/* Removed description */}
                     {/* Add to Logo Cart Button */}
