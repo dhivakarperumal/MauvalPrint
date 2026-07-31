@@ -255,32 +255,30 @@ const LogoManagement = () => {
 
             {/* Width */}
             <div>
-              <label className="block text-sm font-semibold mb-2">Width (px) *</label>
+              <label className="block text-sm font-semibold mb-2">Width (px)</label>
               <input
                 type="number"
                 name="width"
                 value={form.width}
                 onChange={handleInputChange}
                 className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-100"
-                required
               />
             </div>
             {/* Height */}
             <div>
-              <label className="block text-sm font-semibold mb-2">Height (px) *</label>
+              <label className="block text-sm font-semibold mb-2">Height (px)</label>
               <input
                 type="number"
                 name="height"
                 value={form.height}
                 onChange={handleInputChange}
                 className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-100"
-                required
               />
             </div>
 
             {/* MRP */}
             <div>
-              <label className="block text-sm font-semibold mb-2">MRP (₹) *</label>
+              <label className="block text-sm font-semibold mb-2">MRP (₹)</label>
               <input
                 type="number"
                 name="mrp"
