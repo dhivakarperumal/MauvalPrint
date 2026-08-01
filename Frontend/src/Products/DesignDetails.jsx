@@ -80,7 +80,6 @@ const DesignDetails = () => {
   const displayPrice = getVariantPrice();
   const displaySizeChart = getVariantSizeChart();
   const normalizedSelectedSize = selectedSize.trim();
-  const canPurchase = normalizedSelectedSize.length > 0;
 
   // Helper: normalize a color item
   const normalizeColor = (clr) => {
