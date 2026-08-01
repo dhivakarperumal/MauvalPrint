@@ -31,6 +31,7 @@ const DesignDetails = () => {
   const [zoomPosition, setZoomPosition] = useState({ x: 50, y: 50 });
   const [showSize, setShowSize] = useState(false);
   const [selectedColor, setSelectedColor] = useState("");
+  const [sizeError, setSizeError] = useState("");
   const [imagesLoaded, setImagesLoaded] = useState({});
   const [selectedVariant, setSelectedVariant] = useState("regular");
 
@@ -44,7 +45,7 @@ const DesignDetails = () => {
   const {
     name = "Product",
     rating = 0,
-    description = "",
+    description: descriptionValue = "",
     images: designImages = [],
     reviews = [],
     color: designColors = [],
@@ -121,6 +122,7 @@ const DesignDetails = () => {
     setQuantity(1);
     setZoomVisible(false);
     setSelectedSize("");
+    setSizeError("");
     if (colors.length > 0) setSelectedColor(colors[0].value);
   }, [productId, designs, colors]);
 
@@ -144,7 +146,11 @@ const DesignDetails = () => {
       return;
     }
 
-    if (!normalizedSelectedSize) return toast.warn("Please enter your size");
+    if (!normalizedSelectedSize) {
+      setSizeError("Please enter your size before adding this product to the cart.");
+      return;
+    }
+    setSizeError("");
     if (colors.length > 0 && !selectedColor) return toast.warn("Please select a color");
 
     const item = {
@@ -169,7 +175,11 @@ const DesignDetails = () => {
       return;
     }
 
-    if (!normalizedSelectedSize) return toast.warn("Please enter your size");
+    if (!normalizedSelectedSize) {
+      setSizeError("Please enter your size before buying this product.");
+      return;
+    }
+    setSizeError("");
     if (colors.length > 0 && !selectedColor) return toast.warn("Please select a color");
 
     const productToBuy = {
@@ -317,7 +327,7 @@ const DesignDetails = () => {
                     <p className="text-xs text-gray-500 mt-1">Select the perfect type for your style</p>
                   </div>
                   
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="grid grid-cols-3 gap-2 sm:gap-3">
                     {[
                       { key: 'regular', label: 'Regular', price: price_by_type?.regular || 0, desc: '190 GSM Regular Fit', icon: '👕' },
                       { key: 'oversize', label: 'Oversize', price: price_by_type?.oversize || 0, desc: '240 GSM Oversized', icon: '🛍️' },
@@ -326,7 +336,7 @@ const DesignDetails = () => {
                       <button
                         key={key}
                         onClick={() => setSelectedVariant(key)}
-                        className={`group relative p-4 rounded-xl border-2 cursor-pointer transition-all duration-300 transform hover:scale-105 ${
+                        className={`group relative min-w-0 p-2 sm:p-4 rounded-xl border-2 cursor-pointer transition-all duration-300 transform hover:scale-105 ${
                           selectedVariant === key
                             ? 'bg-gradient-to-br from-blue-600 to-blue-700 text-white border-blue-600 shadow-lg shadow-blue-500/30'
                             : 'bg-white border-gray-200 text-gray-800 hover:border-blue-400 shadow-sm hover:shadow-md'
@@ -335,25 +345,25 @@ const DesignDetails = () => {
                         {/* Corner Badge */}
                         {selectedVariant === key && (
                           <div className="absolute top-2 right-2">
-                            <span className="inline-flex items-center justify-center w-6 h-6 bg-white rounded-full">
-                              <span className="text-blue-600 text-sm">✓</span>
+                            <span className="inline-flex items-center justify-center w-5 h-5 sm:w-6 sm:h-6 bg-white rounded-full">
+                              <span className="text-blue-600 text-xs sm:text-sm">✓</span>
                             </span>
                           </div>
                         )}
                         
                         {/* Icon */}
-                        <div className="text-3xl mb-2">{icon}</div>
+                        <div className="text-2xl sm:text-3xl mb-2">{icon}</div>
                         
                         {/* Label */}
-                        <div className="font-bold text-base mb-1">{label}</div>
+                        <div className="font-bold text-sm sm:text-base mb-1">{label}</div>
                         
                         {/* Description */}
-                        <div className={`text-xs mb-3 ${selectedVariant === key ? 'text-blue-100' : 'text-gray-500'}`}>
+                        <div className={`text-[10px] sm:text-xs mb-3 ${selectedVariant === key ? 'text-blue-100' : 'text-gray-500'}`}>
                           {desc}
                         </div>
                         
                         {/* Price Tag */}
-                        <div className={`inline-block px-3 py-1 rounded-full font-semibold text-sm ${
+                        <div className={`inline-block px-2 sm:px-3 py-1 rounded-full font-semibold text-xs sm:text-sm ${
                           selectedVariant === key
                             ? 'bg-white text-blue-600'
                             : 'bg-gray-100 text-gray-700'
@@ -387,10 +397,14 @@ const DesignDetails = () => {
                     id="manual-size"
                     type="text"
                     value={selectedSize}
-                    onChange={(event) => setSelectedSize(event.target.value)}
+                    onChange={(event) => {
+                      setSelectedSize(event.target.value);
+                      if (event.target.value.trim()) setSizeError("");
+                    }}
                     placeholder="Enter size (for example: 42 or XL)"
-                    className="w-full border border-gray-400 rounded px-3 py-2 focus:border-gray-800 focus:outline-none"
-                    aria-describedby="size-help"
+                    className={`w-full border rounded px-3 py-2 focus:border-gray-800 focus:outline-none ${sizeError ? "border-red-500" : "border-gray-400"}`}
+                    aria-describedby="size-help size-error"
+                    aria-invalid={Boolean(sizeError)}
                   />
                   <p id="size-help" className="text-xs text-gray-500 mt-1">
                     Enter the size for the selected {selectedVariant} fit.
@@ -486,17 +500,24 @@ const DesignDetails = () => {
               </div>
 
               {/* Buttons */}
+              {sizeError && (
+                <p
+                  id="size-error"
+                  role="alert"
+                  className="mt-4 w-full max-w-md rounded border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700"
+                >
+                  {sizeError}
+                </p>
+              )}
               <div className="flex flex-col sm:flex-row gap-4 mt-6">
                 <button
                   onClick={handleAddToCart}
-                  disabled={!canPurchase}
                   className="w-full sm:w-auto bg-white border border-gray-900 text-gray-900 font-semibold px-6 py-2 rounded transition-all hover:shadow-md disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   Add to Cart
                 </button>
                 <button
                   onClick={handleBuyNow}
-                  disabled={!canPurchase}
                   className="w-full sm:w-auto bg-gray-900 text-white font-semibold px-6 py-2 rounded cursor-pointer hover:bg-gray-800 transition-all hover:shadow-md disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   Buy Now
@@ -504,9 +525,11 @@ const DesignDetails = () => {
               </div>
 
               {/* Details */}
-              <p className="mt-6 text-gray-700 leading-relaxed">
-                {description || "No description available."}
-              </p>
+              {(descriptionValue || design?.product_description || design?.details || design?.description_text) && (
+                <p className="mt-6 text-gray-700 leading-relaxed">
+                  {descriptionValue || design?.product_description || design?.details || design?.description_text}
+                </p>
+              )}
 
               <p className="mt-3">
                 <strong>Fabric Details: </strong>

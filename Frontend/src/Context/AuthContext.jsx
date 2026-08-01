@@ -150,6 +150,7 @@ export function AuthProvider({ children }) {
               ourDesign: p.our_design == 1 || p.our_design === true || p.ourDesign === true,
               salePrice: p.sale_price || p.salePrice || 0,
               mrp: p.mrp || 0,
+              description: p.description || p.product_description || p.details || p.description_text || "",
               fabricDetails: p.fabric_details || p.fabricDetails || "N/A",
               images: finalImages,
               images_by_variant: parsedImagesByVariant,

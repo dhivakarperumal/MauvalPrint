@@ -135,7 +135,7 @@ const OurDesings = () => {
       offer: Number(product.offer) || 0,
       rating: Number(product.rating) || 0,
       stock: totalStock,
-      description: product.description,
+      description: String(product.description || "").trim(),
       images: product.images,
       stock_by_variant: stockByVariant,
       our_design: true,
