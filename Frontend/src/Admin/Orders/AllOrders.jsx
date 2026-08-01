@@ -294,6 +294,7 @@ const AllOrders = () => {
       <tr style="background-color: #f3f3f3;">
         <th style="border: 1px solid #ccc; padding: 8px;">Image</th>
         <th style="border: 1px solid #ccc; padding: 8px;">Product</th>
+        <th style="border: 1px solid #ccc; padding: 8px;">Type</th>
         <th style="border: 1px solid #ccc; padding: 8px;">Qty</th>
         <th style="border: 1px solid #ccc; padding: 8px;">Size</th>
         <th style="border: 1px solid #ccc; padding: 8px;">Color</th>
@@ -312,6 +313,7 @@ const AllOrders = () => {
                  style="width: 40px; height: 40px; object-fit: cover;" />
           </td>
           <td style="border: 1px solid #ccc; padding: 8px;">${item.name}</td>
+          <td style="border: 1px solid #ccc; padding: 8px;">${item.variant ? item.variant.charAt(0).toUpperCase() + item.variant.slice(1) : "-"}</td>
           <td style="border: 1px solid #ccc; padding: 8px;">${item.quantity
             }</td>
           <td style="border: 1px solid #ccc; padding: 8px;">${item.size || "-"
@@ -676,6 +678,7 @@ const AllOrders = () => {
                                   <div>
                                     <p className="font-medium">{item.name}</p>
                                     <p>Qty: {item.quantity}</p>
+                                    <p>Type: {item.variant ? item.variant.charAt(0).toUpperCase() + item.variant.slice(1) : "-"}</p>
                                     <p>Color: {item.color}</p>
                                     <p>Size: {item.size}</p>
                                     <p>
@@ -830,7 +833,9 @@ const AllOrders = () => {
                                 </span>
                                 <div className="flex flex-wrap gap-1.5 mt-auto">
                                   <span className="bg-gray-50 border border-gray-100 text-gray-600 px-1.5 py-0.5 rounded-md text-[10px] font-medium">Qty: <b className="text-gray-900">{item.quantity}</b></span>
+                                  {item.variant && <span className="bg-blue-50 border border-blue-100 text-blue-600 px-1.5 py-0.5 rounded-md text-[10px] font-medium">Type: <b className="text-blue-900">{item.variant.charAt(0).toUpperCase() + item.variant.slice(1)}</b></span>}
                                   {item.size && <span className="bg-gray-50 border border-gray-100 text-gray-600 px-1.5 py-0.5 rounded-md text-[10px] font-medium">Size: <b className="text-gray-900">{item.size}</b></span>}
+                                  {item.color && <span className="bg-gray-50 border border-gray-100 text-gray-600 px-1.5 py-0.5 rounded-md text-[10px] font-medium">Color: <b className="text-gray-900">{item.color}</b></span>}
                                 </div>
                                 <div className="mt-1.5 font-bold text-green-700 text-xs">₹{item.price}</div>
                                 {(item.customizedImage || item.image || item.images?.[0]) && (

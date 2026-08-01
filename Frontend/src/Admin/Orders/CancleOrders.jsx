@@ -240,6 +240,7 @@ const CancelOrders = () => {
                                       <span>{item.name}</span>
                                       <span>Qty: {item.quantity}</span>
                                       <span>Price: ₹{item.price}</span>
+                                      <span>Type: {item.variant ? item.variant.charAt(0).toUpperCase() + item.variant.slice(1) : "-"}</span>
                                       <span>Color: {item.color}</span>
                                       <span>Size: {item.size}</span>
                                       <span>Total: ₹{item.quantity * item.price}</span>
@@ -320,6 +321,7 @@ const CancelOrders = () => {
                                 <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-gray-600">
                                   <span className="bg-gray-100 px-1.5 py-0.5 rounded text-gray-700">Qty: <b>{item.quantity}</b></span>
                                   <span className="bg-green-50 text-green-700 px-1.5 py-0.5 rounded font-medium">₹{item.price}</span>
+                                  {item.variant && <span className="bg-blue-100 px-1.5 py-0.5 rounded text-blue-700">Type: <b>{item.variant.charAt(0).toUpperCase() + item.variant.slice(1)}</b></span>}
                                   {item.size && <span className="bg-gray-100 px-1.5 py-0.5 rounded">Size: <b>{item.size}</b></span>}
                                   {item.color && <span className="bg-gray-100 px-1.5 py-0.5 rounded">Color: <b>{item.color}</b></span>}
                                 </div>

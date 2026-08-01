@@ -2,11 +2,38 @@ import React, { useEffect, useState } from "react";
 import api from "../../api";
 import imageCompression from "browser-image-compression";
 import toast from "react-hot-toast";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, useParams } from "react-router-dom";
+
+const OUR_DESIGN_DEFAULT_PRICES = {
+  regular: 399,
+  oversize: 499,
+  kids: 299,
+};
+
+const OUR_DESIGN_DEFAULT_SIZE_CHARTS = {
+  regular: "https://mauvalprint.in/uploads/sizecharts/file_6a6dc9954f598.jpeg",
+  oversize: "https://mauvalprint.in/uploads/sizecharts/file_6a6dc99a446d8.jpeg",
+  kids: "https://mauvalprint.in/uploads/sizecharts/file_6a6dc99e2b8ab.jpeg",
+};
+
+const getDefaultDesignPrices = (value) => ({
+  regular: value?.regular ?? OUR_DESIGN_DEFAULT_PRICES.regular,
+  oversize: value?.oversize ?? OUR_DESIGN_DEFAULT_PRICES.oversize,
+  kids: value?.kids ?? OUR_DESIGN_DEFAULT_PRICES.kids,
+});
+
+const getDefaultSizeCharts = (value) => ({
+  regular: value?.regular ?? OUR_DESIGN_DEFAULT_SIZE_CHARTS.regular,
+  oversize: value?.oversize ?? OUR_DESIGN_DEFAULT_SIZE_CHARTS.oversize,
+  kids: value?.kids ?? OUR_DESIGN_DEFAULT_SIZE_CHARTS.kids,
+});
 
 const AddProducts = () => {
   const location = useLocation();
   const selectedProduct = location.state?.product || null;
+  const { id: routeProductId } = useParams();
+  const [fetchedProduct, setFetchedProduct] = useState(null);
+  const activeProduct = selectedProduct || fetchedProduct;
 
   const [product, setProduct] = useState({
     id: "",
@@ -31,6 +58,9 @@ const AddProducts = () => {
     keywords: [],
     washingDetails: [],
     notes: "",
+    // our-design specific fields
+    designPrices: getDefaultDesignPrices(),
+    sizeCharts: getDefaultSizeCharts(),
   });
 
   const [stockByVariant, setStockByVariant] = useState({});
@@ -44,6 +74,7 @@ const AddProducts = () => {
   // FIXED: sizeChart & preview logic
   const [sizeChart, setSizeChart] = useState(null); // stores base64
   const [preview, setPreview] = useState(null); // stores preview display
+  const [sizeChartPreviews, setSizeChartPreviews] = useState({ regular: null, oversize: null, kids: null });
 
 
  const uploadToBackend = async (files, category = "products") => {
@@ -113,9 +144,39 @@ const handleFileChange = async (e) => {
   }
 };
 
+const handleSizeChartFileChange = async (type, e) => {
+  const file = e.target.files?.[0];
+  if (!file) return;
+
+  try {
+    const compressed = await imageCompression(file, {
+      maxSizeMB: 2 * 1024 * 1024,
+      maxWidthOrHeight: 1080,
+      useWebWorker: true,
+      initialQuality: 0.9,
+    });
+
+    const urls = await uploadToBackend([compressed], "sizecharts");
+
+    if (urls.length > 0) {
+      setProduct((prev) => ({
+        ...prev,
+        sizeCharts: { ...prev.sizeCharts, [type]: urls[0] },
+      }));
+      setSizeChartPreviews((p) => ({ ...p, [type]: urls[0] }));
+      toast.success(`${type} size chart uploaded!`);
+    } else {
+      toast.error("Size chart upload failed: no URL returned");
+    }
+  } catch (err) {
+    console.error("Size chart upload error:", err);
+    toast.error("Size chart upload error");
+  }
+};
+
   const handleUpload = async () => {
     if (!sizeChart) return toast.error("No size chart selected!");
-    const productId = selectedProduct?.product_id;
+    const productId = selectedProduct?.product_id || routeProductId;
     if (!productId) return toast.error("Product ID not found!");
 
     try {
@@ -173,6 +234,8 @@ const handleFileChange = async (e) => {
       keywords: [],
       washingDetails: [],
       notes: "That the T-shirt's color may differ slightly from the picture.",
+      designPrices: getDefaultDesignPrices(),
+      sizeCharts: getDefaultSizeCharts(),
     });
     setStockByVariant({});
     setPreviewImg([]);
@@ -183,43 +246,69 @@ const handleFileChange = async (e) => {
   };
 
   // On mount: if editing, populate form; if adding, generate a new ID
+  const fetchProductById = async (productId) => {
+    try {
+      const { data } = await api.get(`/products/${productId}`);
+      if (data.success && data.product) {
+        setFetchedProduct(data.product);
+      } else {
+        toast.error("Could not load product for editing.");
+      }
+    } catch (err) {
+      console.error("Fetch product by id error:", err);
+      toast.error("Could not load product for editing.");
+    }
+  };
+
   useEffect(() => {
-    if (selectedProduct && selectedProduct.product_id) {
+    if (!selectedProduct && routeProductId && !fetchedProduct) {
+      fetchProductById(routeProductId);
+    }
+  }, [routeProductId, selectedProduct, fetchedProduct]);
+
+  useEffect(() => {
+    if (activeProduct && activeProduct.product_id) {
       setProduct({
-        id: selectedProduct.product_id || "",
-        productTitle: selectedProduct.title || "",
-        name: selectedProduct.name || "",
-        category: selectedProduct.category || "",
-        subcategory: selectedProduct.subcategory || "",
-        color: selectedProduct.color ? (Array.isArray(selectedProduct.color) ? selectedProduct.color : JSON.parse(selectedProduct.color || "[]")) : [],
-        size: selectedProduct.size ? (Array.isArray(selectedProduct.size) ? selectedProduct.size : JSON.parse(selectedProduct.size || "[]")) : [],
-        offer: selectedProduct.offer || 0,
-        rating: selectedProduct.rating || 0,
-        mrp: selectedProduct.mrp || 0,
-        salePrice: selectedProduct.sale_price || 0,
-        stock: selectedProduct.stock || 0,
-        description: selectedProduct.description || "",
-        fabricDetails: selectedProduct.fabric_details || "",
-        fabricGSM: selectedProduct.fabric_gsm ? (Array.isArray(selectedProduct.fabric_gsm) ? selectedProduct.fabric_gsm : JSON.parse(selectedProduct.fabric_gsm || "[]")) : [],
-        images: selectedProduct.images ? (Array.isArray(selectedProduct.images) ? selectedProduct.images : JSON.parse(selectedProduct.images || "[]")) : [],
-        ourDesign: selectedProduct.our_design || false,
-        customizable: selectedProduct.customizable || false,
-        keyword: selectedProduct.keyword || "",
-        keywords: selectedProduct.keywords ? (Array.isArray(selectedProduct.keywords) ? selectedProduct.keywords : JSON.parse(selectedProduct.keywords || "[]")) : [],
-        washingDetails: selectedProduct.washing_details ? (Array.isArray(selectedProduct.washing_details) ? selectedProduct.washing_details : JSON.parse(selectedProduct.washing_details || "[]")) : [],
-        notes: selectedProduct.notes || "",
+        id: activeProduct.product_id || "",
+        productTitle: activeProduct.title || "",
+        name: activeProduct.name || "",
+        category: activeProduct.category || "",
+        subcategory: activeProduct.subcategory || "",
+        color: activeProduct.color ? (Array.isArray(activeProduct.color) ? activeProduct.color : JSON.parse(activeProduct.color || "[]")) : [],
+        size: activeProduct.size ? (Array.isArray(activeProduct.size) ? activeProduct.size : JSON.parse(activeProduct.size || "[]")) : [],
+        offer: activeProduct.offer || 0,
+        rating: activeProduct.rating || 0,
+        mrp: activeProduct.mrp || 0,
+        salePrice: activeProduct.sale_price || 0,
+        stock: activeProduct.stock || 0,
+        description: activeProduct.description || "",
+        fabricDetails: activeProduct.fabric_details || "",
+        fabricGSM: activeProduct.fabric_gsm ? (Array.isArray(activeProduct.fabric_gsm) ? activeProduct.fabric_gsm : JSON.parse(activeProduct.fabric_gsm || "[]")) : [],
+        images: activeProduct.images ? (Array.isArray(activeProduct.images) ? activeProduct.images : JSON.parse(activeProduct.images || "[]")) : [],
+        ourDesign: activeProduct.our_design || false,
+        customizable: activeProduct.customizable || false,
+        keyword: activeProduct.keyword || "",
+        keywords: activeProduct.keywords ? (Array.isArray(activeProduct.keywords) ? activeProduct.keywords : JSON.parse(activeProduct.keywords || "[]")) : [],
+        washingDetails: activeProduct.washing_details ? (Array.isArray(activeProduct.washing_details) ? activeProduct.washing_details : JSON.parse(activeProduct.washing_details || "[]")) : [],
+        notes: activeProduct.notes || "",
+        designPrices: activeProduct.our_design
+          ? getDefaultDesignPrices(typeof activeProduct.price_by_type === 'string' ? JSON.parse(activeProduct.price_by_type) : activeProduct.price_by_type)
+          : getDefaultDesignPrices(),
+        sizeCharts: activeProduct.our_design
+          ? getDefaultSizeCharts(typeof activeProduct.size_charts === 'string' ? JSON.parse(activeProduct.size_charts) : activeProduct.size_charts)
+          : getDefaultSizeCharts(),
       });
-      setStockByVariant(selectedProduct.stock_by_variant ? (typeof selectedProduct.stock_by_variant === 'string' ? JSON.parse(selectedProduct.stock_by_variant) : selectedProduct.stock_by_variant) : {});
-      setPreviewImg(selectedProduct.images ? (Array.isArray(selectedProduct.images) ? selectedProduct.images : JSON.parse(selectedProduct.images || "[]")) : []);
-      setVariantImages(selectedProduct.images_by_variant ? (typeof selectedProduct.images_by_variant === 'string' ? JSON.parse(selectedProduct.images_by_variant) : selectedProduct.images_by_variant) : {});
-      setSizeChart(selectedProduct.size_chart_image || null);
-      setPreview(selectedProduct.size_chart_image || null);
-    } else {
-      // Adding a new product
+      setStockByVariant(activeProduct.stock_by_variant ? (typeof activeProduct.stock_by_variant === 'string' ? JSON.parse(activeProduct.stock_by_variant) : activeProduct.stock_by_variant) : {});
+      setPreviewImg(activeProduct.images ? (Array.isArray(activeProduct.images) ? activeProduct.images : JSON.parse(activeProduct.images || "[]")) : []);
+      setVariantImages(activeProduct.images_by_variant ? (typeof activeProduct.images_by_variant === 'string' ? JSON.parse(activeProduct.images_by_variant) : activeProduct.images_by_variant) : {});
+      setSizeChart(activeProduct.size_chart_image || null);
+      setPreview(activeProduct.size_chart_image || null);
+      setSizeChartPreviews(activeProduct.size_charts ? (typeof activeProduct.size_charts === 'string' ? JSON.parse(activeProduct.size_charts) : activeProduct.size_charts) : { regular: null, oversize: null, kids: null });
+    } else if (!routeProductId) {
       resetForm();
       generateNextProductId();
     }
-  }, []);
+  }, [activeProduct, routeProductId]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -288,7 +377,7 @@ const handleImageUpload = async (e) => {
 
       const totalStock = Object.values(stockByVariant).reduce((a, b) => a + b, 0);
       const payload = {
-        product_id: product.id,       // send the pre-generated ID to the backend
+        product_id: product.id,
         title: product.productTitle,
         name: product.name,
         category: product.category,
@@ -315,9 +404,14 @@ const handleImageUpload = async (e) => {
         size_chart_image: sizeChart || "",
       };
 
-      if (selectedProduct?.product_id) {
-        // Update existing product
-        await api.put(`/products/${selectedProduct.product_id}`, payload);
+      if (product.ourDesign) {
+        payload.size_charts = product.sizeCharts;
+        payload.price_by_type = product.designPrices;
+      }
+
+      if (activeProduct?.product_id || routeProductId) {
+        const updateId = activeProduct?.product_id || routeProductId;
+        await api.put(`/products/${updateId}`, payload);
         toast.success("Product updated!");
       } else {
         // Add new product
@@ -452,7 +546,7 @@ const handleImageUpload = async (e) => {
   return (
     <div className="max-w-7xl mx-auto px-5 py-8">
       <h2 className="text-3xl font-bold text-blue-900 mb-6">
-        {selectedProduct ? "Edit Product" : "Add New Product"}
+        {activeProduct || routeProductId ? "Edit Product" : "Add New Product"}
       </h2>
 
       <form
@@ -595,6 +689,61 @@ const handleImageUpload = async (e) => {
                   {s}
                 </label>
               ))}
+            </div>
+          </div>
+        )}
+
+        {/* Our-Design specific Prices and Size Charts */}
+        {product.ourDesign && (
+          <div className="md:col-span-2 border border-gray-200 rounded-xl p-4 bg-white">
+            <h3 className="text-sm font-medium text-gray-700 mb-3">Our Design Options</h3>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <p className="text-sm font-medium text-gray-700 mb-2">Prices (₹)</p>
+                <div className="grid grid-cols-3 gap-2">
+                  {['regular','oversize','kids'].map((type) => (
+                    <div key={type} className="flex flex-col">
+                      <label className="text-xs capitalize text-gray-500">{type}</label>
+                      <input
+                        type="number"
+                        min={0}
+                        value={product.designPrices?.[type] ?? 0}
+                        onChange={(e) => setProduct((prev) => ({ ...prev, designPrices: { ...prev.designPrices, [type]: Number(e.target.value) } }))}
+                        className="border border-gray-300 rounded px-2 py-1"
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <p className="text-sm font-medium text-gray-700 mb-2">Size Charts</p>
+                <div className="grid grid-cols-1 gap-3">
+                  {['regular','oversize','kids'].map((type) => (
+                    <div key={type} className="flex items-center gap-3">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => handleSizeChartFileChange(type, e)}
+                        className="border border-gray-300 rounded px-2 py-1"
+                      />
+                      {(product.sizeCharts?.[type] || sizeChartPreviews?.[type]) && (
+                        <div className="relative inline-block">
+                          <img src={product.sizeCharts?.[type] || sizeChartPreviews?.[type]} alt={`${type} chart`} className="w-20 h-12 object-cover rounded border" />
+                          <button
+                            type="button"
+                            onClick={() => setProduct((prev) => ({ ...prev, sizeCharts: { ...prev.sizeCharts, [type]: null } }))}
+                            className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center"
+                          >
+                            ×
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
         )}
@@ -857,9 +1006,22 @@ const handleImageUpload = async (e) => {
               type="checkbox"
               name="ourDesign"
               checked={product.ourDesign}
-              onChange={(e) =>
-                setProduct((prev) => ({ ...prev, ourDesign: e.target.checked }))
-              }
+              onChange={(e) => {
+                const checked = e.target.checked;
+                setProduct((prev) => ({
+                  ...prev,
+                  ourDesign: checked,
+                  designPrices: checked
+                    ? getDefaultDesignPrices(prev.designPrices)
+                    : prev.designPrices,
+                  sizeCharts: checked
+                    ? getDefaultSizeCharts(prev.sizeCharts)
+                    : prev.sizeCharts,
+                }));
+                if (checked) {
+                  setSizeChartPreviews(getDefaultSizeCharts());
+                }
+              }}
               className="h-4 w-4 mr-2"
             />
             <label

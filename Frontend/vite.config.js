@@ -11,7 +11,7 @@ function imageProxyPlugin() {
     configureServer(server) {
       server.middlewares.use('/proxy-image', async (req, res) => {
         // req.url will be the path AFTER /proxy-image, e.g. /uploads/foo.jpg
-        const targetUrl = 'https://printmy.qtechx.com' + req.url;
+        const targetUrl = 'https://mauvalprint.in' + req.url;
         try {
           const response = await fetch(targetUrl);
           if (!response.ok) {

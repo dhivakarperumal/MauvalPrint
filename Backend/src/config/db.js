@@ -371,6 +371,20 @@ async function ensureTables() {
     );
   }
 
+  const [productsSizeChartsRows] = await pool.query("SHOW COLUMNS FROM products LIKE 'size_charts'");
+  if (productsSizeChartsRows.length === 0) {
+    await pool.query(
+      "ALTER TABLE products ADD COLUMN size_charts JSON NULL AFTER size_chart_image"
+    );
+  }
+
+  const [productsPriceByTypeRows] = await pool.query("SHOW COLUMNS FROM products LIKE 'price_by_type'");
+  if (productsPriceByTypeRows.length === 0) {
+    await pool.query(
+      "ALTER TABLE products ADD COLUMN price_by_type JSON NULL AFTER size_charts"
+    );
+  }
+
   const [emptyUserIdRows] = await pool.query(
     "SELECT id FROM users WHERE user_id = '' OR user_id IS NULL"
   );

@@ -108,6 +108,28 @@ export function AuthProvider({ children }) {
             }
             if (typeof parsedStockByVariant !== 'object' || !parsedStockByVariant) parsedStockByVariant = {};
 
+            // Parse price_by_type
+            let parsedPriceByType = {};
+            if (p.price_by_type) {
+              if (typeof p.price_by_type === 'string') {
+                try { parsedPriceByType = JSON.parse(p.price_by_type); } catch (e) { parsedPriceByType = {}; }
+              } else {
+                parsedPriceByType = p.price_by_type;
+              }
+            }
+            parsedPriceByType = parsedPriceByType || { regular: 0, oversize: 0, kids: 0 };
+
+            // Parse size_charts
+            let parsedSizeCharts = {};
+            if (p.size_charts) {
+              if (typeof p.size_charts === 'string') {
+                try { parsedSizeCharts = JSON.parse(p.size_charts); } catch (e) { parsedSizeCharts = {}; }
+              } else {
+                parsedSizeCharts = p.size_charts;
+              }
+            }
+            parsedSizeCharts = parsedSizeCharts || { regular: null, oversize: null, kids: null };
+
             // parse images_by_variant if present
             let parsedImagesByVariant = p.images_by_variant;
             if (typeof parsedImagesByVariant === 'string') {
@@ -128,6 +150,7 @@ export function AuthProvider({ children }) {
               ourDesign: p.our_design == 1 || p.our_design === true || p.ourDesign === true,
               salePrice: p.sale_price || p.salePrice || 0,
               mrp: p.mrp || 0,
+              fabricDetails: p.fabric_details || p.fabricDetails || "N/A",
               images: finalImages,
               images_by_variant: parsedImagesByVariant,
               size: parsedSize,
@@ -137,6 +160,8 @@ export function AuthProvider({ children }) {
               stockByVariant: parsedStockByVariant,
               sizeChartImage: p.sizeChartImage || p.size_chart_image || p.sizeChartImag || "",
               sizeChartImag: p.sizeChartImag || p.size_chart_image || p.sizeChartImage || "",
+              price_by_type: parsedPriceByType,
+              size_charts: parsedSizeCharts,
             };
           });
 
@@ -242,10 +267,12 @@ export function AuthProvider({ children }) {
       id: product.id,
       name: product.name,
       images: product.images ?? [],
-      price: product.salePrice ?? product.price ?? 0,
+      price: product.price ?? product.salePrice ?? 0,
       quantity,
       selectedSize: product.selectedSize || "",
       selectedColor: product.selectedColor || "",
+      selectedVariant: product.selectedVariant || product.variant || "",
+      variant: product.selectedVariant || product.variant || "",
       customizedImage: product.customizedImage || "",
     };
 
@@ -269,10 +296,10 @@ export function AuthProvider({ children }) {
     }
   };
 
-  const removeFromCart = async (id, size = "", color = "") => {
+  const removeFromCart = async (id, size = "", color = "", variant = "") => {
     if (!user) return;
     try {
-      const q = `?size=${encodeURIComponent(size || '')}&color=${encodeURIComponent(color || '')}`;
+      const q = `?size=${encodeURIComponent(size || '')}&color=${encodeURIComponent(color || '')}&variant=${encodeURIComponent(variant || '')}`;
       await api.delete(`/cart/${user.uid}/${id}${q}`);
       const { data } = await api.get(`/cart/${user.uid}`);
       if (data.success) setCart(data.cart);
@@ -282,7 +309,7 @@ export function AuthProvider({ children }) {
     }
   };
 
-  const updateQuantity = async (id, size, qty) => {
+  const updateQuantity = async (id, size, qty, variant = "") => {
     if (!user) return;
     const item = cart.find((item) => item.id === id && item.selectedSize === size);
     if (!item) return;
@@ -292,6 +319,7 @@ export function AuthProvider({ children }) {
         user_id: user.uid,
         product_id: id,
         selectedSize: size,
+        selectedVariant: variant,
         quantity: qty,
       });
 
@@ -307,7 +335,7 @@ export function AuthProvider({ children }) {
     try {
       // delete each cart item via API with variant query
       for (const item of cart) {
-        const q = `?size=${encodeURIComponent(item.selectedSize || '')}&color=${encodeURIComponent(item.selectedColor || '')}`;
+        const q = `?size=${encodeURIComponent(item.selectedSize || '')}&color=${encodeURIComponent(item.selectedColor || '')}&variant=${encodeURIComponent(item.selectedVariant || item.variant || '')}`;
         await api.delete(`/cart/${user.uid}/${item.id}${q}`);
       }
       setCart([]);

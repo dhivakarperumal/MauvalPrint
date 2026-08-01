@@ -19,7 +19,7 @@ const optimizeImageUrl = (url) => {
 
 const DesignDetails = () => {
   const { productId } = useParams();
-  const { user, designs = [], addToCart, addToWishlist, wishlist = [] } =
+  const { user, designs = [], addToCart, addToWishlist } =
     useContext(AuthContext);
   const navigate = useNavigate();
 
@@ -32,6 +32,7 @@ const DesignDetails = () => {
   const [showSize, setShowSize] = useState(false);
   const [selectedColor, setSelectedColor] = useState("");
   const [imagesLoaded, setImagesLoaded] = useState({});
+  const [selectedVariant, setSelectedVariant] = useState("regular");
 
   // find design by productId
   const design = useMemo(() =>
@@ -50,14 +51,35 @@ const DesignDetails = () => {
     mrp = 0,
     salePrice = 0,
     offer = 0,
-    size: sizeArr = [],
     sizeChartImage = "",
     category = "",
     subcategory = "",
-    fabricDetails = "N/A",
-    washingDetails = [],
+    fabricDetails: fabricDetailsValue = "",
     notes = "",
+    ourDesign = false,
+    price_by_type = {},
+    size_charts = {},
   } = design || {};
+
+  // Calculate the effective price based on variant
+  const getVariantPrice = () => {
+    if (ourDesign && price_by_type && price_by_type[selectedVariant]) {
+      return price_by_type[selectedVariant];
+    }
+    return salePrice || mrp;
+  };
+
+  const getVariantSizeChart = () => {
+    if (ourDesign && size_charts && size_charts[selectedVariant]) {
+      return size_charts[selectedVariant];
+    }
+    return sizeChartImage;
+  };
+
+  const displayPrice = getVariantPrice();
+  const displaySizeChart = getVariantSizeChart();
+  const normalizedSelectedSize = selectedSize.trim();
+  const canPurchase = normalizedSelectedSize.length > 0;
 
   // Helper: normalize a color item
   const normalizeColor = (clr) => {
@@ -73,11 +95,10 @@ const DesignDetails = () => {
     Array.isArray(designImages) && designImages.length
       ? designImages
       : ["/placeholder.png"];
-  const colors = Array.isArray(designColors)
-    ? designColors.map(normalizeColor)
-    : [];
-  const sizes = Array.isArray(sizeArr) ? sizeArr : [];
-
+  const colors = useMemo(
+    () => (Array.isArray(designColors) ? designColors.map(normalizeColor) : []),
+    [designColors]
+  );
   // Color map
   const colorMap = {
     navy: "#001f54",
@@ -99,9 +120,13 @@ const DesignDetails = () => {
     setSelectedImageIndex(0);
     setQuantity(1);
     setZoomVisible(false);
-    if (sizes.length > 0) setSelectedSize(sizes[0]);
+    setSelectedSize("");
     if (colors.length > 0) setSelectedColor(colors[0].value);
-  }, [productId, designs]);
+  }, [productId, designs, colors]);
+
+  useEffect(() => {
+    if (ourDesign) setSelectedSize("");
+  }, [selectedVariant, ourDesign]);
 
   if (!design) {
     return (
@@ -119,18 +144,20 @@ const DesignDetails = () => {
       return;
     }
 
-    if (!selectedSize) return toast.warn("Please select a size");
+    if (!normalizedSelectedSize) return toast.warn("Please enter your size");
     if (colors.length > 0 && !selectedColor) return toast.warn("Please select a color");
 
     const item = {
       ...design,
       id: design.id || design.product_id || design.productId,
-      selectedSize,
+      selectedSize: normalizedSelectedSize,
       quantity,
-      price: salePrice || mrp,
+      price: displayPrice,
       selectedColor,
       color: selectedColor,
       image: images[selectedImageIndex] || images[0],
+      selectedVariant: ourDesign ? selectedVariant : undefined,
+      variant: ourDesign ? selectedVariant : undefined,
     };
     addToCart(item, quantity);
   };
@@ -142,51 +169,26 @@ const DesignDetails = () => {
       return;
     }
 
-    if (!selectedSize) return toast.warn("Please select a size");
+    if (!normalizedSelectedSize) return toast.warn("Please enter your size");
     if (colors.length > 0 && !selectedColor) return toast.warn("Please select a color");
 
     const productToBuy = {
       productId,
       name,
-      price: salePrice || mrp,
+      price: displayPrice,
       originalPrice: mrp,
       offer,
       image: images[selectedImageIndex] || images[0],
-      selectedSize,
+      selectedSize: normalizedSelectedSize,
       selectedColor,
       quantity,
+      selectedVariant: ourDesign ? selectedVariant : undefined,
+      variant: ourDesign ? selectedVariant : undefined,
     };
 
     navigate("/checkout", {
       state: { buyNowProduct: productToBuy, fromCart: false },
     });
-  };
-
-  // --- Wishlist Logic (Same as SingleProductView) ---
-  const isWishlisted = wishlist.some((item) => item.id === (design.id || design.product_id || design.productId));
-
-  const handleWishlistToggle = () => {
-    if (!user) {
-      toast.warn("Please login to manage wishlist");
-      navigate("/account", { state: { returnUrl: window.location.pathname } });
-      return;
-    }
-
-    if (isWishlisted) {
-      // Remove from wishlist
-      addToWishlist({ ...design, id: design.id || design.product_id || design.productId }, true); // Pass true if your context uses it as "remove" flag
-      toast.info("Removed from favorites");
-    } else {
-      // Add to wishlist
-      const wishlistItem = {
-        ...design,
-        id: design.id || design.product_id || design.productId,
-        selectedSize,
-        color: selectedColor,
-        image: images[selectedImageIndex] || images[0],
-      };
-      addToWishlist(wishlistItem);
-    }
   };
 
   // --- Star Renderer ---
@@ -298,7 +300,7 @@ const DesignDetails = () => {
               </div>
 
               <div className="mt-4 text-xl font-semibold text-gray-800">
-                ₹{salePrice || mrp}{" "}
+                ₹{displayPrice} {" "}
                 <span className="line-through text-gray-500 text-sm ml-2">
                   ₹{mrp}
                 </span>{" "}
@@ -307,38 +309,92 @@ const DesignDetails = () => {
                 </span>
               </div>
 
-              {/* Sizes */}
-              <div className="mt-4 flex items-end gap-3">
-                <div>
-                  <p className="font-medium mb-2">Sizes:</p>
-                  <div className="flex gap-3 flex-wrap">
-                    {sizes.length > 0 ? (
-                      (() => {
-                        const sizeOrder = ["XS", "S", "M", "L", "XL", "XXL", "3XL", "4XL"];
-                        const sortedSizes = [...sizes].sort((a, b) => {
-                          const indexA = sizeOrder.indexOf(a);
-                          const indexB = sizeOrder.indexOf(b);
-                          if (indexA === -1) return 1;
-                          if (indexB === -1) return -1;
-                          return indexA - indexB;
-                        });
-                        return sortedSizes.map((s) => (
-                          <button
-                            key={s}
-                            onClick={() => setSelectedSize(s)}
-                            className={`px-3 py-1 border rounded cursor-pointer hover:opacity-80 transition-all ${selectedSize === s
-                              ? "bg-gray-800 text-white"
-                              : "bg-white border-gray-400 hover:bg-gray-50"
-                              }`}
-                          >
-                            {s}
-                          </button>
-                        ));
-                      })()
-                    ) : (
-                      <div className="text-sm text-gray-500">Single size</div>
-                    )}
+              {/* Variant Selection for Our Design Products */}
+              {ourDesign && (
+                <div className="mt-6 border-t pt-6">
+                  <div className="mb-4">
+                    <p className="font-bold text-lg text-gray-900">Choose Your Fit:</p>
+                    <p className="text-xs text-gray-500 mt-1">Select the perfect type for your style</p>
                   </div>
+                  
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    {[
+                      { key: 'regular', label: 'Regular', price: price_by_type?.regular || 0, desc: '190 GSM Regular Fit', icon: '👕' },
+                      { key: 'oversize', label: 'Oversize', price: price_by_type?.oversize || 0, desc: '240 GSM Oversized', icon: '🛍️' },
+                      { key: 'kids', label: 'Kids', price: price_by_type?.kids || 0, desc: 'Perfect for Kids', icon: '👶' },
+                    ].map(({ key, label, price, desc, icon }) => (
+                      <button
+                        key={key}
+                        onClick={() => setSelectedVariant(key)}
+                        className={`group relative p-4 rounded-xl border-2 cursor-pointer transition-all duration-300 transform hover:scale-105 ${
+                          selectedVariant === key
+                            ? 'bg-gradient-to-br from-blue-600 to-blue-700 text-white border-blue-600 shadow-lg shadow-blue-500/30'
+                            : 'bg-white border-gray-200 text-gray-800 hover:border-blue-400 shadow-sm hover:shadow-md'
+                        }`}
+                      >
+                        {/* Corner Badge */}
+                        {selectedVariant === key && (
+                          <div className="absolute top-2 right-2">
+                            <span className="inline-flex items-center justify-center w-6 h-6 bg-white rounded-full">
+                              <span className="text-blue-600 text-sm">✓</span>
+                            </span>
+                          </div>
+                        )}
+                        
+                        {/* Icon */}
+                        <div className="text-3xl mb-2">{icon}</div>
+                        
+                        {/* Label */}
+                        <div className="font-bold text-base mb-1">{label}</div>
+                        
+                        {/* Description */}
+                        <div className={`text-xs mb-3 ${selectedVariant === key ? 'text-blue-100' : 'text-gray-500'}`}>
+                          {desc}
+                        </div>
+                        
+                        {/* Price Tag */}
+                        <div className={`inline-block px-3 py-1 rounded-full font-semibold text-sm ${
+                          selectedVariant === key
+                            ? 'bg-white text-blue-600'
+                            : 'bg-gray-100 text-gray-700'
+                        }`}>
+                          ₹{price}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Selected Type Info */}
+                  <div className={`mt-4 p-3 rounded-lg text-sm transition-all ${
+                    selectedVariant === 'regular' ? 'bg-blue-50 text-blue-700 border border-blue-200' :
+                    selectedVariant === 'oversize' ? 'bg-purple-50 text-purple-700 border border-purple-200' :
+                    'bg-green-50 text-green-700 border border-green-200'
+                  }`}>
+                    ✨ <span className="font-semibold">{
+                      selectedVariant === 'regular' ? 'Regular Fit' :
+                      selectedVariant === 'oversize' ? 'Premium Oversize' :
+                      'Kids Size'
+                    }</span> selected - Quality product for you!
+                  </div>
+                </div>
+              )}
+              <div className="mt-4 flex flex-col items-start gap-3">
+                <div className="w-full max-w-md">
+                  <label htmlFor="manual-size" className="font-medium mb-2 block">
+                    Enter your size
+                  </label>
+                  <input
+                    id="manual-size"
+                    type="text"
+                    value={selectedSize}
+                    onChange={(event) => setSelectedSize(event.target.value)}
+                    placeholder="Enter size (for example: 42 or XL)"
+                    className="w-full border border-gray-400 rounded px-3 py-2 focus:border-gray-800 focus:outline-none"
+                    aria-describedby="size-help"
+                  />
+                  <p id="size-help" className="text-xs text-gray-500 mt-1">
+                    Enter the size for the selected {selectedVariant} fit.
+                  </p>
                 </div>
                 <p
                   className="text-sm text-primary underline cursor-pointer mt-1"
@@ -356,9 +412,9 @@ const DesignDetails = () => {
                         ×
                       </button>
                       <div className="md:flex gap-4 items-center justify-center">
-                        {sizeChartImage ? (
+                        {displaySizeChart ? (
                           <img
-                            src={sizeChartImage}
+                            src={displaySizeChart}
                             alt="Size Chart"
                             className="w-full max-w-xs object-contain"
                           />
@@ -433,13 +489,15 @@ const DesignDetails = () => {
               <div className="flex flex-col sm:flex-row gap-4 mt-6">
                 <button
                   onClick={handleAddToCart}
-                  className="w-full sm:w-auto bg-white border border-gray-900 cursor-pointer hover:bg-gray-50 text-gray-900 font-semibold px-6 py-2 rounded transition-all hover:shadow-md"
+                  disabled={!canPurchase}
+                  className="w-full sm:w-auto bg-white border border-gray-900 text-gray-900 font-semibold px-6 py-2 rounded transition-all hover:shadow-md disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   Add to Cart
                 </button>
                 <button
                   onClick={handleBuyNow}
-                  className="w-full sm:w-auto bg-gray-900 text-white font-semibold px-6 py-2 rounded cursor-pointer hover:bg-gray-800 transition-all hover:shadow-md"
+                  disabled={!canPurchase}
+                  className="w-full sm:w-auto bg-gray-900 text-white font-semibold px-6 py-2 rounded cursor-pointer hover:bg-gray-800 transition-all hover:shadow-md disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   Buy Now
                 </button>
@@ -452,17 +510,17 @@ const DesignDetails = () => {
 
               <p className="mt-3">
                 <strong>Fabric Details: </strong>
-                {fabricDetails}
+                {fabricDetailsValue || design?.fabric_details || "N/A"}
               </p>
 
               <div className="mt-5">
-                <span className="font-bold mb-3">Washing Instructions:</span>
-                <ul className="list-disc ml-5">
-                  {Array.isArray(washingDetails) && washingDetails.length ? (
-                    washingDetails.map((info, i) => <li key={i}>{info}</li>)
-                  ) : (
-                    <li>No washing instructions provided.</li>
-                  )}
+                <span className="font-bold mb-3">Wash Care:</span>
+                <ul className="mt-2 space-y-1 text-gray-700">
+                  <li>✅ Machine wash cold, inside out</li>
+                  <li>✅ Tumble dry low heat</li>
+                  <li>❌ Do not bleach</li>
+                  <li>❌ Do not iron directly on the print</li>
+                  <li>✅ Iron inside out if needed</li>
                 </ul>
               </div>
 

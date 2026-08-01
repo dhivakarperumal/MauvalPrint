@@ -233,6 +233,7 @@ const ProccesingOrders = () => {
       <tr style="background-color: #f3f3f3;">
         <th style="border: 1px solid #ccc; padding: 8px;">Image</th>
         <th style="border: 1px solid #ccc; padding: 8px;">Product</th>
+        <th style="border: 1px solid #ccc; padding: 8px;">Type</th>
         <th style="border: 1px solid #ccc; padding: 8px;">Qty</th>
         <th style="border: 1px solid #ccc; padding: 8px;">Size</th>
         <th style="border: 1px solid #ccc; padding: 8px;">Color</th>
@@ -252,6 +253,7 @@ const ProccesingOrders = () => {
                  style="width: 40px; height: 40px; object-fit: cover;" />
           </td>
           <td style="border: 1px solid #ccc; padding: 8px;">${item.name}</td>
+          <td style="border: 1px solid #ccc; padding: 8px;">${item.variant ? item.variant.charAt(0).toUpperCase() + item.variant.slice(1) : "-"}</td>
           <td style="border: 1px solid #ccc; padding: 8px;">${
             item.quantity
           }</td>
@@ -571,6 +573,7 @@ const ProccesingOrders = () => {
                                       <div className="mt-5">
                                         <span className="mx-2">Qty: {item.quantity}</span>
                                         <span className="mx-2">Price: ₹{item.price}</span>
+                                        <span className="mx-2">Type: {item.variant ? item.variant.charAt(0).toUpperCase() + item.variant.slice(1) : "-"}</span>
                                         <span className="mx-2">Color: {item.color}</span>
                                         <span className="mx-2">Size: {item.size}</span>
                                         <span className="mx-2">Total: ₹{item.quantity * item.price}</span>
@@ -696,7 +699,9 @@ const ProccesingOrders = () => {
                                 <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-gray-600">
                                   <span className="bg-gray-100 px-1.5 py-0.5 rounded text-gray-700">Qty: <b>{item.quantity}</b></span>
                                   <span className="bg-green-50 text-green-700 px-1.5 py-0.5 rounded font-medium">₹{item.price}</span>
+                                  {item.variant && <span className="bg-blue-100 px-1.5 py-0.5 rounded text-blue-700">Type: <b>{item.variant.charAt(0).toUpperCase() + item.variant.slice(1)}</b></span>}
                                   {item.size && <span className="bg-gray-100 px-1.5 py-0.5 rounded">Size: <b>{item.size}</b></span>}
+                                  {item.color && <span className="bg-gray-100 px-1.5 py-0.5 rounded">Color: <b>{item.color}</b></span>}
                                 </div>
                                 {item.color === "" && item.customizedImage && (
                                   <a
