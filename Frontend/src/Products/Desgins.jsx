@@ -125,7 +125,7 @@ const DesignCard = ({ product, images }) => {
   const sizeOrder = ["XS", "S", "M", "L", "XL", "XXL", "XXXL"];
   const sortedSizes = [...sizes].sort((a, b) => sizeOrder.indexOf(a) - sizeOrder.indexOf(b));
 
-  const handleAddToCart = () => {
+  const handleAddToCart = async () => {
     if (sizes.length > 0 && !selectedSize) {
       toast.warn("Please select a size!");
       return;
@@ -135,17 +135,18 @@ const DesignCard = ({ product, images }) => {
       return;
     }
 
-    addToCart({
+    const added = await addToCart({
       ...product,
       selectedSize: selectedSize || "Free Size",
       selectedColor: selectedColor || "Default Color",
       quantity: 1,
-    });
+    }, 1, false);
 
-    toast.success(
-      `${product.name} (${selectedColor || "Default"}, ${selectedSize || "Free Size"
-      }) added to cart`
-    );
+    if (added) {
+      toast.success(
+        `${product.name} (${selectedColor || "Default"}, ${selectedSize || "Free Size"}) added to cart`
+      );
+    }
   };
 
   return (
