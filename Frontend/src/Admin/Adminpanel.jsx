@@ -100,7 +100,7 @@ const AdminPanel = () => {
       try {
         const { data } = await api.get("/orders");
         const orders = data?.orders || [];
-        const todayStr = new Date().toISOString().split("T")[0];
+        const today = new Date().toDateString();
 
         const todayOrders = orders
           .map((o) => {
@@ -109,7 +109,7 @@ const AdminPanel = () => {
           })
           .filter(
             (order) =>
-              order.createdAt.toISOString().split("T")[0] === todayStr &&
+              order.createdAt.toDateString() === today &&
               ["Place Order", "Placed"].includes(order.status)
           );
 
