@@ -5,6 +5,8 @@ import { toast } from "react-toastify";
 import { AuthContext } from "../Context/AuthContext";
 import AdminSidebar from "./AdminSidebar";
 import AdminTopbar from "./AdminTopbar";
+import useRealtimeCollection from "../hooks/useRealtimeCollection";
+import useRealtimeOrders from "../hooks/useRealtimeOrders";
 
 const AdminPanel = () => {
   const [mobileMenu, setMobileMenu] = useState(false);
@@ -18,14 +20,23 @@ const AdminPanel = () => {
 
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [products, setProducts] = useState([]);
+  useRealtimeCollection("products", setProducts);
   const [lowStockItems, setLowStockItems] = useState([]);
   const [notifications, setNotifications] = useState([]);
+  useRealtimeOrders(setNotifications, (order) => {
+    const createdAt = new Date(order.created_at || order.createdAt || 0);
+    return createdAt.toDateString() === new Date().toDateString() && ["Place Order", "Placed"].includes(order.status);
+  });
   const [counts, setCounts] = useState({
     "/admin/products": 0,
     "/admin/neworders": 0,
     "/admin/newusers": 0,
     "/admin/stockdetails": 0,
   });
+
+  useEffect(() => {
+    setCounts((previous) => ({ ...previous, "/admin/neworders": notifications.length }));
+  }, [notifications]);
 
   const [adminName, setAdminName] = useState("");
   const [searchQuery, setSearchQuery] = useState("");

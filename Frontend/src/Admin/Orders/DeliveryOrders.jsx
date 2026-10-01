@@ -4,6 +4,7 @@ import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import { FaSearch, FaList, FaThLarge, FaChevronDown, FaChevronUp } from "react-icons/fa";
 import api from "../../api";
+import useRealtimeOrders from "../../hooks/useRealtimeOrders";
 
 const getStatusBadge = (status) => {
   const base = "px-2 py-0.5 text-xs rounded font-semibold";
@@ -13,6 +14,7 @@ const getStatusBadge = (status) => {
 
 const DeliveryOrders = () => {
   const [orders, setOrders] = useState([]);
+  useRealtimeOrders(setOrders, (order) => order.status === "Delivered");
   const [filteredOrders, setFilteredOrders] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState("All");

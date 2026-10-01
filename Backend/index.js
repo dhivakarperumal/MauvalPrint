@@ -2,7 +2,10 @@ const express = require("express");
 const cors = require("cors");
 const http = require("http");
 const https = require("https");
+require("dotenv").config();
 const { connectDB } = require("./src/config/db");
+const { createSocketServer } = require("./src/realtime/socketServer");
+const { createMutationEventMiddleware } = require("./src/realtime/mutationEvents");
 const userRoutes = require("./src/routers/userRoutes");
 const productRoutes = require("./src/routers/productRoutes");
 const categoryRoutes = require("./src/routers/categoryRoutes");
@@ -17,7 +20,6 @@ const cartRouter = require("./src/routers/cart");
 const videoRoutes = require("./src/routers/videoRoutes");
 const logoRoutes = require("./src/routers/logoRoutes");
 const logoCartRoutes = require("./src/routers/logoCartRoutes");
-require("dotenv").config();
 
 const app = express();
 
@@ -205,6 +207,8 @@ app.use('/api/orders', (req, res, next) => {
   next();
 });
 
+app.use("/api", createMutationEventMiddleware(app));
+
 app.use("/api/users", userRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/categories", categoryRoutes);
@@ -239,7 +243,9 @@ async function startServer() {
   try {
     const pool = await connectDB();
     app.locals.pool = pool;
-    app.listen(PORT, () => {
+    const server = http.createServer(app);
+    createSocketServer(server, app);
+    server.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
     });
   } catch (error) {

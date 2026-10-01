@@ -3,6 +3,7 @@ import api from "../../api";
 import toast from "react-hot-toast";
 import { FaSearch, FaTh, FaList, FaPlus, FaEdit, FaBoxOpen } from "react-icons/fa";
 import AddStock from "./AddStock"; // We will import and render this in a modal
+import useRealtimeCollection from "../../hooks/useRealtimeCollection";
 
 const StockDetails = () => {
   const [products, setProducts] = useState([]);
@@ -59,6 +60,21 @@ const StockDetails = () => {
 
     return "";
   };
+
+  useRealtimeCollection("products", setProducts, () => true, Infinity, (product, id, existing = {}) => {
+    const stockByVariant = product.stockByVariant || product.stock_by_variant || {};
+    const variants = Object.entries(stockByVariant).map(([key, qty]) => {
+      const [color, size] = key.split("-");
+      return { key, color, size, qty };
+    });
+    return {
+      productId: product.product_id || id,
+      name: product.name || existing.name || "",
+      image: getProductImage(product) || existing.image || "",
+      variants,
+      totalStock: variants.reduce((total, variant) => total + (Number(variant.qty) || 0), 0),
+    };
+  });
 
   useEffect(() => {
     const handleResize = () => {

@@ -9,6 +9,7 @@ import { toast } from "react-toastify";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import PageContainer from "../Components/PageContainer";
+import useRealtimeCollection from "../hooks/useRealtimeCollection";
 
 // Image optimization utility
 const optimizeImageUrl = (url) => {
@@ -184,6 +185,13 @@ ProductCard.displayName = 'ProductCard';
 
 const RelatedProducts = ({ category, subcategory, currentId, addToCart, addToWishlist }) => {
   const [relatedProducts, setRelatedProducts] = useState([]);
+  useRealtimeCollection(
+    "products",
+    setRelatedProducts,
+    (product) => product.product_id !== currentId && product.category === category &&
+      (subcategory ? product.subcategory === subcategory : true),
+    5
+  );
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

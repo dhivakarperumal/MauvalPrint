@@ -2,9 +2,11 @@ import React, { useState, useEffect } from "react";
 import api from "../api";
 import { FaEdit, FaTrash, FaPlus, FaImage, FaSearch, FaList, FaThLarge, FaFilter } from "react-icons/fa";
 import toast from "react-hot-toast";
+import useRealtimeCollection from "../hooks/useRealtimeCollection";
 
 const LogoManagement = () => {
   const [logos, setLogos] = useState([]);
+  useRealtimeCollection("logos", setLogos);
   const [viewMode, setViewMode] = useState("table"); // 'table' or 'form'
   const [displayMode, setDisplayMode] = useState("list"); // 'list' or 'card'
   const [loading, setLoading] = useState(false);

@@ -5,10 +5,12 @@ import PageContainer from "../Components/PageContainer";
 import Head from "../Components/Head";
 import { AuthContext } from "../Context/AuthContext";
 import LogoCartSidebar from "./LogoCartSidebar";
+import useRealtimeCollection from "../hooks/useRealtimeCollection";
 
 const LogosPage = () => {
   const { logoCart, addToLogoCart } = useContext(AuthContext);
   const [logos, setLogos] = useState([]);
+  useRealtimeCollection("logos", setLogos, (logo) => Number(logo.status) === 1);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [clickedLogoId, setClickedLogoId] = useState(null);

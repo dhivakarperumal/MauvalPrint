@@ -29,6 +29,7 @@ import { Doughnut } from "react-chartjs-2";
 import { ArcElement } from "chart.js";
 import api from "../api";
 import { AuthContext } from "../Context/AuthContext";
+import useRealtimeOrders from "../hooks/useRealtimeOrders";
 
 ChartJS.register(
   LineElement,
@@ -84,6 +85,7 @@ const Dashboard = () => {
   const [categoryStats, setCategoryStats] = useState({});
   const [weeklyIncome, setWeeklyIncome] = useState([]);
   const [Orders, setOrders] = useState([]);
+  useRealtimeOrders(setOrders);
 
   const [categoryOrderStats, setCategoryOrderStats] = useState({});
   const getCategoryCountFromOrders = async () => {

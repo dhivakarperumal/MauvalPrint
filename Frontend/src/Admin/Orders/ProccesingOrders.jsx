@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import toast from "react-hot-toast";
 import { FaSearch, FaList, FaThLarge, FaChevronDown, FaChevronUp } from "react-icons/fa";
 import api from "../../api";
+import useRealtimeOrders from "../../hooks/useRealtimeOrders";
 
 const getStatusBadge = (status) => {
   const base = "text-xs font-medium rounded px-2 py-1";
@@ -38,6 +39,7 @@ const getAvailableStatuses = (currentStatus) => {
 
 const ProccesingOrders = () => {
   const [orders, setOrders] = useState([]);
+  useRealtimeOrders(setOrders, (order) => order.status !== "Delivered" && order.status !== "Cancelled");
   const [filteredOrders, setFilteredOrders] = useState([]);
   const [expandedRows, setExpandedRows] = useState([]);
   const [cancellationInput, setCancellationInput] = useState({});

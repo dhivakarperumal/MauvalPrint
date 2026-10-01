@@ -3,6 +3,7 @@ import api from "../../api";
 import ImagePreviewModal from "./ImagePreviewModal";
 import toast from "react-hot-toast";
 import { FaSearch, FaList, FaThLarge, FaChevronDown, FaChevronUp } from "react-icons/fa";
+import useRealtimeOrders from "../../hooks/useRealtimeOrders";
 
 // Utility function to style status
 const getStatusBadge = (status) => {
@@ -27,6 +28,11 @@ const getStatusBadge = (status) => {
 
 const NewOrders = () => {
   const [orders, setOrders] = useState([]);
+  useRealtimeOrders(setOrders, (order) => {
+    const createdAt = new Date(order.created_at || order.createdAt || 0);
+    return createdAt.toDateString() === new Date().toDateString() &&
+      order.status !== "Delivered" && order.status !== "Cancelled";
+  });
   const [filteredOrders, setFilteredOrders] = useState([]);
   const [expandedRows, setExpandedRows] = useState([]);
   const [cancellationInput, setCancellationInput] = useState({});

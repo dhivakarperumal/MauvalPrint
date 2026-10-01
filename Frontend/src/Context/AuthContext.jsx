@@ -1,10 +1,18 @@
 /* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useState, useEffect } from "react";
 import { toast } from "react-toastify";
+import { io } from "socket.io-client";
 
-import api from "../api";
+import api, { API_URL } from "../api";
+import normalizeRealtimeProduct from "../utils/normalizeRealtimeProduct";
 
 const API_USER_KEY = "apiUser";
+
+const upsertById = (items, id, data) => {
+  const index = items.findIndex((item) => String(item.id || item.product_id || item.review_id || item.logo_id) === String(id));
+  if (index === -1) return [{ ...data, id }, ...items];
+  return items.map((item, itemIndex) => itemIndex === index ? { ...item, ...data, id } : item);
+};
 
 export const AuthContext = createContext();
 
@@ -20,6 +28,103 @@ export function AuthProvider({ children }) {
   const [wishlist, setWishlist] = useState([]);
   const [reviews, setReviews] = useState([]);
   const [isOrderSidebarOpen, setOrderSidebarOpen] = useState(false);
+  const [socket, setSocket] = useState(null);
+  const [socketToken, setSocketToken] = useState(() => localStorage.getItem("token"));
+
+  useEffect(() => {
+    if (!user?.uid || !socketToken) {
+      setSocket(null);
+      return undefined;
+    }
+
+    const socketOrigin = new URL(API_URL, window.location.origin).origin;
+    const realtimeSocket = io(socketOrigin, {
+      path: "/socket.io",
+      auth: { token: socketToken },
+      reconnection: true,
+      reconnectionAttempts: Infinity,
+      reconnectionDelay: 1000,
+      reconnectionDelayMax: 10000,
+    });
+    setSocket(realtimeSocket);
+
+    const handleConnectError = (error) => console.error("Realtime connection error:", error.message);
+    realtimeSocket.on("connect_error", handleConnectError);
+    return () => {
+      realtimeSocket.off("connect_error", handleConnectError);
+      realtimeSocket.disconnect();
+    };
+  }, [user?.uid, socketToken]);
+
+  useEffect(() => {
+    if (!socket) return undefined;
+
+    const handleDataChange = (event) => {
+      const data = event.data || {};
+      const id = event.id || data.id || data.product_id || data.productId || data.order_id;
+      if (!id) return;
+
+      if (event.resource === "products") {
+        const product = normalizeRealtimeProduct(data, id);
+        const isDesign = product.ourDesign;
+        setProducts((items) => event.action === "deleted" || isDesign
+          ? items.filter((item) => String(item.id || item.product_id) !== String(id))
+          : upsertById(items, id, product));
+        setDesigns((items) => event.action === "deleted" || !isDesign
+          ? items.filter((item) => String(item.id || item.product_id) !== String(id))
+          : upsertById(items, id, product));
+      } else if (event.resource === "reviews") {
+        setReviews((items) => event.action === "deleted"
+          ? items.filter((item) => String(item.id || item.review_id) !== String(id))
+          : upsertById(items, id, data));
+      } else if (event.resource === "cart") {
+        const rawItem = data.item_data || data;
+        const item = {
+          ...rawItem,
+          id,
+          selectedSize: rawItem.selectedSize || data.selectedSize || "",
+          selectedColor: rawItem.selectedColor || data.selectedColor || data.selected_color || "",
+          selectedVariant: rawItem.selectedVariant || data.selectedVariant || data.variant || "",
+          quantity: Number(data.quantity ?? rawItem.quantity ?? 1),
+        };
+        setCart((items) => {
+          const index = items.findIndex((current) =>
+            String(current.id || current.product_id) === String(id) &&
+            (current.selectedSize || "") === item.selectedSize &&
+            (current.selectedColor || "") === item.selectedColor &&
+            (current.selectedVariant || current.variant || "") === item.selectedVariant
+          );
+          if (event.action === "deleted") {
+            return items.filter((current) =>
+              String(current.id || current.product_id) !== String(id) ||
+              (current.selectedSize || "") !== (event.query?.size || "") ||
+              (current.selectedColor || "") !== (event.query?.color || "") ||
+              (current.selectedVariant || current.variant || "") !== (event.query?.variant || "")
+            );
+          }
+          if (index === -1) return [item, ...items];
+          return items.map((current, currentIndex) => currentIndex === index
+            ? { ...current, ...item, quantity: event.action === "created" ? Number(current.quantity || 0) + item.quantity : item.quantity }
+            : current);
+        });
+      } else if (event.resource === "wishlist" || event.resource === "logoCart") {
+        const setItems = event.resource === "wishlist" ? setWishlist : setLogoCart;
+        if (data.clearAll) return setItems([]);
+        setItems((items) => event.action === "deleted"
+          ? items.filter((item) => String(item.id || item.product_id || item.logo_id) !== String(id))
+          : upsertById(items, id, data.item_data || data));
+      }
+    };
+
+    socket.on("data:created", handleDataChange);
+    socket.on("data:updated", handleDataChange);
+    socket.on("data:deleted", handleDataChange);
+    return () => {
+      socket.off("data:created", handleDataChange);
+      socket.off("data:updated", handleDataChange);
+      socket.off("data:deleted", handleDataChange);
+    };
+  }, [socket]);
 
   useEffect(() => {
     if (user?.uid) {
@@ -220,6 +325,10 @@ export function AuthProvider({ children }) {
       ...apiUser,
       uid: apiUser.user_id || apiUser.uid,
     };
+    if (response.data.token) {
+      localStorage.setItem("token", response.data.token);
+      setSocketToken(response.data.token);
+    }
     setLoggedIn(normalizedUser);
     localStorage.setItem(API_USER_KEY, JSON.stringify(normalizedUser));
     return normalizedUser;
@@ -248,6 +357,10 @@ export function AuthProvider({ children }) {
       ...apiUser,
       uid: apiUser.user_id || apiUser.uid,
     };
+    if (response.data.token) {
+      localStorage.setItem("token", response.data.token);
+      setSocketToken(response.data.token);
+    }
     setLoggedIn(normalizedUser);
     localStorage.setItem(API_USER_KEY, JSON.stringify(normalizedUser));
     return normalizedUser;
@@ -255,6 +368,8 @@ export function AuthProvider({ children }) {
 
   const logout = async () => {
     localStorage.removeItem(API_USER_KEY);
+    localStorage.removeItem("token");
+    setSocketToken(null);
     setLoggedIn(null);
   };
 
@@ -494,6 +609,7 @@ export function AuthProvider({ children }) {
     <AuthContext.Provider
       value={{
         user,
+        socket,
         setUser,
         registerUser: () => { },
         loginWithIdentifier,

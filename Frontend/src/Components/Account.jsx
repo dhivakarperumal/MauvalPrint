@@ -17,12 +17,15 @@ import Head from "./Head";
 import { FaBoxOpen } from "react-icons/fa";
 import { FaPrint } from "react-icons/fa";
 import { ImSpinner8 } from "react-icons/im";
+import useRealtimeOrders from "../hooks/useRealtimeOrders";
+import useRealtimeCollection from "../hooks/useRealtimeCollection";
 
 const Account = () => {
   const { user, setUser } = useContext(AuthContext);
   const [activeTab, setActiveTab] = useState("personal");
   const [userInfo, setUserInfo] = useState({});
   const [addresses, setAddresses] = useState([]);
+  useRealtimeCollection("userAddresses", setAddresses);
   const [newAddress, setNewAddress] = useState({
     fullname: "",
     contact: "",
@@ -47,6 +50,7 @@ const Account = () => {
   const [loadingAddresses, setLoadingAddresses] = useState(false);
 
   const [orders, setOrders] = useState([]);
+  useRealtimeOrders(setOrders);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [loadingOrders, setLoadingOrders] = useState(false);
   const [reason, setReason] = useState("");

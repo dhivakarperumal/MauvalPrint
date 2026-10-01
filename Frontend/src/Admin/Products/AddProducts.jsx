@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import api from "../../api";
+import useRealtimeCollection from "../../hooks/useRealtimeCollection";
 import imageCompression from "browser-image-compression";
 import toast from "react-hot-toast";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
@@ -68,6 +69,7 @@ const AddProducts = () => {
   const [variantImages, setVariantImages] = useState({}); // { "Color-Size": [url,...] }
   const [loading, setLoading] = useState(false);
   const [categories, setCategories] = useState([]);
+  useRealtimeCollection("categories", setCategories);
   const [subcategories, setSubcategories] = useState([]);
   const [availableKeywords, setAvailableKeywords] = useState([]);
 

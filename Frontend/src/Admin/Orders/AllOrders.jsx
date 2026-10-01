@@ -7,6 +7,7 @@ import {
 import api from "../../api";
 import Billing from "../Billing";
 import ImagePreviewModal from "./ImagePreviewModal";
+import useRealtimeOrders from "../../hooks/useRealtimeOrders";
 const getStatusBadge = (status) => {
   const base = "text-xs font-medium rounded px-2 py-1";
   switch (status) {
@@ -41,6 +42,7 @@ const getAvailableStatuses = (currentStatus) => {
 
 const AllOrders = () => {
   const [orders, setOrders] = useState([]);
+  useRealtimeOrders(setOrders);
   const [filteredOrders, setFilteredOrders] = useState([]);
   const [expandedRows, setExpandedRows] = useState([]);
   const [cancellationInput, setCancellationInput] = useState({});

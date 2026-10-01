@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import api from "../api";
+import useRealtimeCollection from "../hooks/useRealtimeCollection";
 import imageCompression from "browser-image-compression";
 import toast from "react-hot-toast";
 import {
@@ -19,6 +20,7 @@ const generateNextCatId = (list) =>
 // ─── Component ────────────────────────────────────────────────────────────────
 const Category = () => {
   const [categories, setCategories] = useState([]);
+  useRealtimeCollection("categories", setCategories);
   const [viewMode, setViewMode] = useState("table");
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(false);

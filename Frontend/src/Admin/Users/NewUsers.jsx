@@ -2,9 +2,11 @@ import React, { useState, useEffect } from "react";
 import api from "../../api";
 import { FaEye, FaEdit, FaTrash, FaThLarge, FaTable, FaUsers, FaUserCheck, FaUserTimes } from "react-icons/fa";
 import toast from "react-hot-toast";
+import useRealtimeCollection from "../../hooks/useRealtimeCollection";
 
 const NewUsers = () => {
   const [users, setUsers] = useState([]);
+  useRealtimeCollection("users", setUsers);
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
   const [showModal, setShowModal] = useState(false);

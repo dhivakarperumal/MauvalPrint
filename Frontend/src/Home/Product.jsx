@@ -11,12 +11,14 @@ import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import api from "../api";
 import { pickPrimaryImage, flattenVariantImages } from "../Products/helpers";
+import useRealtimeCollection from "../hooks/useRealtimeCollection";
 
 function Product() {
   const navigate = useNavigate();
   const { addToCart, addToWishlist } = useContext(AuthContext);
 
   const [products, setProducts] = useState([]);
+  useRealtimeCollection("products", setProducts, (product) => !product.ourDesign && !product.our_design);
   const [loading, setLoading] = useState(true);
   const [clickedProductId, setClickedProductId] = useState(null);
   const [cardSize, setCardSize] = useState({});

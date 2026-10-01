@@ -31,6 +31,7 @@ import CartSidebar from "../Products/CartSidebar";
 import LogoCartSidebar from "../Products/LogoCartSidebar";
 import Wishlist from "../Products/Wishlist";
 import Orders from "../Products/Orders";
+import useRealtimeEvent from "../hooks/useRealtimeEvent";
 import api from "../api";
 import { toast } from "react-toastify";
 import PageContainer from "./PageContainer";
@@ -55,6 +56,8 @@ export default function Navbar() {
 
   const {
     products,
+    designs,
+    socket,
     user,
     logout,
     cart = [],
@@ -67,44 +70,29 @@ export default function Navbar() {
   const pagesRef = useRef(null);
   const userRef = useRef(null);
 
+  useRealtimeEvent(socket, "order:updated", (event) => {
+    if (event.resource !== "orders") return;
+    setOrdersCount((count) => event.action === "created"
+      ? count + 1
+      : event.action === "deleted"
+        ? Math.max(0, count - 1)
+        : count);
+  });
+
   useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const { data } = await api.get("/products");
-        const products = data?.products || [];
-
-        // Get all unique categories (lowercase for consistency)
-        const allCategories = [...new Set(products.map(p => p.category?.toLowerCase()).filter(Boolean))];
-        const grouped = [];
-
-        allCategories.forEach((cat) => {
-          const categoryProducts = products.filter(
-            (p) => p.category?.toLowerCase() === cat
-          );
-          if (categoryProducts.length) {
-            const subSet = new Set();
-            categoryProducts.forEach((p) =>
-              subSet.add(p.subcategory?.toLowerCase())
-            );
-
-            grouped.push({
-              name: cat,
-              // Capitalize the first letter of each word for display name
-              cname: cat.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' '),
-              subcategories: [...subSet].filter(Boolean),
-              products: categoryProducts,
-            });
-          }
-        });
-
-        setCustomizeData(grouped);
-      } catch (error) {
-        console.error("Error fetching product categories:", error);
-      }
-    };
-
-    fetchCategories();
-  }, []);
+    const allProducts = [...(products || []), ...(designs || [])];
+    const categories = [...new Set(allProducts.map((product) => product.category?.toLowerCase()).filter(Boolean))];
+    setCustomizeData(categories.map((category) => {
+      const categoryProducts = allProducts.filter((product) => product.category?.toLowerCase() === category);
+      const subcategories = [...new Set(categoryProducts.map((product) => product.subcategory?.toLowerCase()).filter(Boolean))];
+      return {
+        name: category,
+        cname: category.split(" ").map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join(" "),
+        subcategories,
+        products: categoryProducts,
+      };
+    }));
+  }, [products, designs]);
 
   useEffect(() => {
     if (!user?.uid) {

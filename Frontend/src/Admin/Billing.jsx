@@ -3,9 +3,12 @@ import { FaSearch, FaList, FaThLarge, FaClipboardList, FaRupeeSign } from "react
 import api from "../api";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast"; 
+import useRealtimeOrders from "../hooks/useRealtimeOrders";
+import useRealtimeCollection from "../hooks/useRealtimeCollection";
 
 const Billing = ({ setActiveTab }) => {
   const [products, setProducts] = useState([]);
+  useRealtimeCollection("products", setProducts);
   const [selectedId, setSelectedId] = useState("");
   const [quantity, setQuantity] = useState(1);
   const [color, setColor] = useState("");
@@ -28,6 +31,10 @@ const Billing = ({ setActiveTab }) => {
   const [showOrderDetails, setShowOrderDetails] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [shopOrders, setShopOrders] = useState([]);
+  useRealtimeOrders(setShopOrders, (order) => {
+    const checkout = order.checkout || {};
+    return checkout.shopCustomerType === "ShopCustomer" || checkout.shopCustomerType === "ShopCustome" || Boolean(checkout.customerName);
+  });
   
   const [searchTerm, setSearchTerm] = useState("");
   const [viewMode, setViewMode] = useState(window.innerWidth < 768 ? "card" : "table");

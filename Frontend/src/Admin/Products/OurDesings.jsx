@@ -3,6 +3,8 @@ import api from "../../api";
 import imageCompression from "browser-image-compression";
 import toast from "react-hot-toast";
 import { FaEye, FaEdit, FaTrash } from "react-icons/fa";
+import useRealtimeCollection from "../../hooks/useRealtimeCollection";
+
 
 const OurDesings = () => {
   const [product, setProduct] = useState({
@@ -27,6 +29,8 @@ const OurDesings = () => {
   const [loading, setLoading] = useState(false);
   const [categories, setCategories] = useState([]);
   const [designProducts, setDesignProducts] = useState([]);
+  useRealtimeCollection("categories", setCategories);
+  useRealtimeCollection("products", setDesignProducts, (product) => product.ourDesign || product.our_design === true || Number(product.our_design) === 1);
   const [viewMode, setViewMode] = useState("form");
 
   const sizes = ["XS", "S", "M", "L", "XL", "XXL"];

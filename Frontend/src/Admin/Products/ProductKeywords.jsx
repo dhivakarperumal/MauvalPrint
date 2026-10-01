@@ -3,6 +3,7 @@ import api from "../../api";
 import toast from "react-hot-toast";
 import { FaEdit, FaTrash, FaPlus, FaCheck, FaTimes, FaSearch } from "react-icons/fa";
 import { FaTh, FaList } from "react-icons/fa";
+import useRealtimeCollection from "../../hooks/useRealtimeCollection";
 
 const toRoman = (num) => {
   const lookup = [
@@ -25,6 +26,7 @@ const ProductKeywords = () => {
     { keyword_id: "default-4", keyword_name: "Custom Print", status: "active", show_on_home: false, display_order: 0 },
     { keyword_id: "default-5", keyword_name: "Featured", status: "active", show_on_home: false, display_order: 0 }
   ]);
+  useRealtimeCollection("keywords", setKeywords);
   const [stats, setStats] = useState({
     totalKeywords: 0,
     activeKeywords: 0,

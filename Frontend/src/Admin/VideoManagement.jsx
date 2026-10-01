@@ -22,6 +22,7 @@ import {
 } from "react-icons/fa";
 import api from "../api";
 import toast from "react-hot-toast";
+import useRealtimeCollection from "../hooks/useRealtimeCollection";
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -183,6 +184,7 @@ const UploadedVideoPlayer = ({ src }) => (
 
 const VideoManagement = () => {
   const [videos, setVideos] = useState([]);
+  useRealtimeCollection("videos", setVideos);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [viewMode, setViewMode] = useState(() => window.innerWidth < 768 ? "card" : "table"); // auto card on mobile
   const [isPlayerOpen, setIsPlayerOpen] = useState(false);
