@@ -1,5 +1,6 @@
 const { randomUUID, randomBytes, scrypt: _scrypt } = require("crypto");
 const { promisify } = require("util");
+const { issueAccessToken } = require("../auth/token");
 
 const scrypt = promisify(_scrypt);
 
@@ -84,6 +85,7 @@ const register = async (req, res) => {
     res.status(201).json({
       success: true,
       message: "Registration successful.",
+      token: issueAccessToken({ user_id: userId, role }),
       user_id: userId,
       data: {
         user_id: userId,
@@ -147,6 +149,7 @@ const login = async (req, res) => {
     res.status(200).json({
       success: true,
       message: "Login successful.",
+      token: issueAccessToken(user),
       data: {
         user_id: user.user_id,
         username: user.username,
@@ -235,6 +238,7 @@ const googleLogin = async (req, res) => {
     res.status(200).json({
       success: true,
       message: "Login successful.",
+      token: issueAccessToken(user),
       data: {
         user_id: user.user_id,
         username: user.username,
