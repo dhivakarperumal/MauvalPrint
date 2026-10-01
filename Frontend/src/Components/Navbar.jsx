@@ -1,5 +1,5 @@
 // Navbar.jsx
-import React, { useState, useContext, useEffect, useRef } from "react";
+import React, { useState, useContext, useEffect, useRef, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   FaSearch,
@@ -49,6 +49,7 @@ export default function Navbar() {
   const [showLogoCart, setShowLogoCart] = useState(false);
   const [showOrders, setShowOrders] = useState(false);
   const [ordersCount, setOrdersCount] = useState(0);
+  const orderCountRequestRef = useRef(0);
   const [customizeDropdownOpen, setCustomizeDropdownOpen] = useState(false);
   const [hoveredCategory, setHoveredCategory] = useState(null);
   const [customizeData, setCustomizeData] = useState([]);
@@ -70,13 +71,25 @@ export default function Navbar() {
   const pagesRef = useRef(null);
   const userRef = useRef(null);
 
+  const refreshOrderCount = useCallback(async (userId) => {
+    const requestId = ++orderCountRequestRef.current;
+
+    try {
+      const { data } = await api.get(`/orders/user/${userId}`);
+      if (requestId !== orderCountRequestRef.current) return;
+
+      setOrdersCount(data.success && Array.isArray(data.orders) ? data.orders.length : 0);
+    } catch (error) {
+      if (requestId !== orderCountRequestRef.current) return;
+      console.error("Error fetching order count:", error);
+      setOrdersCount(0);
+    }
+  }, []);
+
   useRealtimeEvent(socket, "order:updated", (event) => {
-    if (event.resource !== "orders") return;
-    setOrdersCount((count) => event.action === "created"
-      ? count + 1
-      : event.action === "deleted"
-        ? Math.max(0, count - 1)
-        : count);
+    if (event.resource === "orders" && user?.uid) {
+      refreshOrderCount(user.uid);
+    }
   });
 
   useEffect(() => {
@@ -96,26 +109,13 @@ export default function Navbar() {
 
   useEffect(() => {
     if (!user?.uid) {
+      orderCountRequestRef.current += 1;
       setOrdersCount(0);
       return;
     }
 
-    const fetchOrderCount = async () => {
-      try {
-        const { data } = await api.get(`/orders/user/${user.uid}`);
-        if (data.success && Array.isArray(data.orders)) {
-          setOrdersCount(data.orders.length);
-        } else {
-          setOrdersCount(0);
-        }
-      } catch (error) {
-        console.error("Error fetching order count:", error);
-        setOrdersCount(0);
-      }
-    };
-
-    fetchOrderCount();
-  }, [user?.uid]);
+    refreshOrderCount(user.uid);
+  }, [user?.uid, refreshOrderCount]);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
