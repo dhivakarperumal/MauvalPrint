@@ -310,9 +310,15 @@ export function AuthProvider({ children }) {
     }
   };
 
-  const updateQuantity = async (id, size, qty, variant = "") => {
+  const updateQuantity = async (id, size, qty, variant = "", color = "") => {
     if (!user) return;
-    const item = cart.find((item) => item.id === id && item.selectedSize === size);
+    const item = cart.find(
+      (item) =>
+        item.id === id &&
+        item.selectedSize === size &&
+        (item.selectedColor || "") === color &&
+        (item.selectedVariant || item.variant || "") === variant
+    );
     if (!item) return;
 
     try {
@@ -320,6 +326,7 @@ export function AuthProvider({ children }) {
         user_id: user.uid,
         product_id: id,
         selectedSize: size,
+        selectedColor: color,
         selectedVariant: variant,
         quantity: qty,
       });

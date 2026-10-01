@@ -103,7 +103,7 @@ const CartSidebar = ({ show, onClose }) => {
                   <div className="flex items-center gap-1">
                     <button
                       onClick={() =>
-                        updateQuantity(item.id, item.selectedSize, Math.max(1, item.quantity - 1), item.selectedVariant || item.variant)
+                        updateQuantity(item.id, item.selectedSize, Math.max(1, item.quantity - 1), item.selectedVariant || item.variant, item.selectedColor)
                       }
                       className="p-1 rounded-full bg-indigo-100 hover:bg-indigo-200 text-primary cursor-pointer"
                     >
@@ -112,7 +112,7 @@ const CartSidebar = ({ show, onClose }) => {
                     <span className="mx-1 text-sm font-medium text-gray-800">{item.quantity}</span>
                     <button
                       onClick={() =>
-                        updateQuantity(item.id, item.selectedSize, item.quantity + 1, item.selectedVariant || item.variant)
+                        updateQuantity(item.id, item.selectedSize, item.quantity + 1, item.selectedVariant || item.variant, item.selectedColor)
                       }
                       className="p-1 rounded-full bg-indigo-100 hover:bg-indigo-200 text-primary cursor-pointer"
                     >
