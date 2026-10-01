@@ -13,8 +13,6 @@ import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import PageContainer from "../Components/PageContainer";
 
-const SHIPPING_FLAT = 30;
-
 const Checkout = () => {
   const { cart, clearCart, user } = useContext(AuthContext);
   const navigate = useNavigate();
@@ -86,8 +84,9 @@ const Checkout = () => {
     itemsToShow.reduce((t, i) => t + i.price * i.quantity, 0);
   const subtotal = getSubtotal();
   const totalQuantity = itemsToShow.reduce((sum, i) => sum + i.quantity, 0);
-  const shippingCost = totalQuantity * SHIPPING_FLAT;
-  const grandTotal = subtotal;
+  const shippingCost =
+    totalQuantity === 0 ? 0 : 50 + (totalQuantity - 1) * 20;
+  const grandTotal = subtotal + shippingCost;
   const payable = grandTotal;
 
   const handleAddressSelect = (index, data = savedAddresses) => {
@@ -774,14 +773,8 @@ const Checkout = () => {
                   )}
 
                   <div className="flex justify-between">
-                    <span>Shipping <b> (Free) </b> </span>
-                    <span>
-                      {shippingCost === 0 ? <span className="text-green-600 font-semibold">Free</span> : (
-
-                        <del>  ₹ {shippingCost.toFixed(2)} </del>
-
-                      )}
-                    </span>
+                    <span>Shipping Charge</span>
+                    <span>₹{shippingCost.toFixed(2)}</span>
                   </div>
 
                   <div className="flex justify-between font-bold text-base border-t border-gray-300 pt-3">
