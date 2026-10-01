@@ -19,6 +19,7 @@ import { FaPrint } from "react-icons/fa";
 import { ImSpinner8 } from "react-icons/im";
 import useRealtimeOrders from "../hooks/useRealtimeOrders";
 import useRealtimeCollection from "../hooks/useRealtimeCollection";
+import { getOrderTrackingIndex } from "../utils/orderStatus";
 
 const Account = () => {
   const { user, setUser } = useContext(AuthContext);
@@ -293,22 +294,12 @@ const Account = () => {
   };
 
   const trackingSteps = [
-    "Place Order",
-    "Paked",
+    "Order Placed",
+    "Packed",
     "Shipped",
     "Delivered",
     "Cancelled",
   ];
-  const getTrackingIndex = (status) => {
-    const normalized = status?.toLowerCase() || "";
-    if (normalized.includes("cancel")) return 4;
-    if (normalized.includes("delivered")) return 3;
-    if (normalized.includes("shipped")) return 2;
-    if (normalized.includes("paked")) return 1;
-    if (normalized.includes("place")) return 0;
-    return 0;
-  };
-
   const handlePrint = (order) => {
     const orderHTML = `
       <!DOCTYPE html>
@@ -708,7 +699,7 @@ const Account = () => {
                           ? "bg-orange-100 text-orange-700"
                           : order.status
                               ?.toLowerCase()
-                              .includes("paked")
+                              .includes("pack")
                           ? "bg-yellow-100 text-yellow-700"
                           : "bg-slate-100 text-slate-700"
                       }`}
@@ -953,7 +944,7 @@ const Account = () => {
                     const isCancelled = selectedOrder.status
                       ?.toLowerCase()
                       .includes("cancel");
-                    const reachedStep = i <= getTrackingIndex(selectedOrder.status);
+                    const reachedStep = i <= getOrderTrackingIndex(selectedOrder.status);
                     const circleColor = isCancelled
                       ? reachedStep
                         ? "bg-red-600"
@@ -962,10 +953,10 @@ const Account = () => {
                         ? "bg-green-600"
                         : "bg-gray-300";
                     const barColor = isCancelled
-                      ? i < getTrackingIndex(selectedOrder.status)
+                      ? i < getOrderTrackingIndex(selectedOrder.status)
                         ? "bg-red-600"
                         : "bg-gray-300"
-                      : i < getTrackingIndex(selectedOrder.status)
+                      : i < getOrderTrackingIndex(selectedOrder.status)
                         ? "bg-green-600"
                         : "bg-gray-300";
 

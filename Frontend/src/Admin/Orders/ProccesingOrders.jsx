@@ -3,6 +3,7 @@ import toast from "react-hot-toast";
 import { FaSearch, FaList, FaThLarge, FaChevronDown, FaChevronUp } from "react-icons/fa";
 import api from "../../api";
 import useRealtimeOrders from "../../hooks/useRealtimeOrders";
+import { getAvailableOrderStatuses } from "../../utils/orderStatus";
 
 const getStatusBadge = (status) => {
   const base = "text-xs font-medium rounded px-2 py-1";
@@ -22,19 +23,6 @@ const getStatusBadge = (status) => {
     default:
       return base;
   }
-};
-
-// Helper function to determine available status options based on current status
-const getAvailableStatuses = (currentStatus) => {
-  const statusHierarchy = {
-    "Place Order": [" Place Order", "Packed", "Shipped", "Delivered", "Cancelled"],
-    "Packed": [ "Packed", "Shipped", "Delivered", "Cancelled"],
-    "Shipped": ["Shipped", "Delivered", "Cancelled"],
-    "Delivered": ["Delivered"],
-    "Cancelled": ["Cancelled"],
-    
-  };
-  return statusHierarchy[currentStatus] || ["Place Order"];
 };
 
 const ProccesingOrders = () => {
@@ -480,9 +468,9 @@ const ProccesingOrders = () => {
                             }
                             className={`${getStatusBadge(order.status)} w-full max-w-[150px]`}
                           >
-                            {getAvailableStatuses(order.status).map((status) => (
-                              <option key={status} value={status}>
-                                {status}
+                            {getAvailableOrderStatuses(order.status).map((status) => (
+                              <option key={status.value} value={status.value}>
+                                {status.label}
                               </option>
                             ))}
                           </select>
@@ -635,8 +623,8 @@ const ProccesingOrders = () => {
                       onChange={(e) => handleStatusChange(order.orderID, e.target.value)}
                       className="border border-gray-300 rounded-lg px-3 py-2 text-sm w-full focus:ring-2 focus:ring-blue-500 focus:outline-none cursor-pointer font-medium"
                     >
-                      {getAvailableStatuses(order.status).map((status) => (
-                        <option key={status} value={status}>{status}</option>
+                      {getAvailableOrderStatuses(order.status).map((status) => (
+                        <option key={status.value} value={status.value}>{status.label}</option>
                       ))}
                     </select>
                   </div>

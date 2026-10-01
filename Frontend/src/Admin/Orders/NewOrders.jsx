@@ -4,6 +4,7 @@ import ImagePreviewModal from "./ImagePreviewModal";
 import toast from "react-hot-toast";
 import { FaSearch, FaList, FaThLarge, FaChevronDown, FaChevronUp } from "react-icons/fa";
 import useRealtimeOrders from "../../hooks/useRealtimeOrders";
+import { getAvailableOrderStatuses } from "../../utils/orderStatus";
 
 // Utility function to style status
 const getStatusBadge = (status) => {
@@ -510,12 +511,11 @@ const NewOrders = () => {
                             order.status
                           )} w-full max-w-[150px]`}
                         >
-                          <option value="Place Order">Place Order</option>
-                          <option value="Packed">Packed</option>
-                          <option value="Shipped">Shipped</option>
-                          <option value="Delivered">Delivered</option>
-                          <option value="Cancelled">Cancelled</option>
-                          <option value="Add More">Add More</option>
+                          {getAvailableOrderStatuses(order.status).map((status) => (
+                            <option key={status.value} value={status.value}>
+                              {status.label}
+                            </option>
+                          ))}
                         </select>
                       </td>
                       <td className="px-4 py-4 flex gap-2">
@@ -689,11 +689,11 @@ const NewOrders = () => {
                     onChange={(e) => handleStatusChange(order.order_id || order.orderID, e.target.value)}
                     className="border border-gray-300 rounded-lg px-3 py-2 text-sm w-full focus:ring-2 focus:ring-blue-500 focus:outline-none cursor-pointer font-medium"
                   >
-                    <option value="Place Order">Place Order</option>
-                    <option value="Packed">Packed</option>
-                    <option value="Shipped">Shipped</option>
-                    <option value="Delivered">Delivered</option>
-                    <option value="Cancelled">Cancelled</option>
+                    {getAvailableOrderStatuses(order.status).map((status) => (
+                      <option key={status.value} value={status.value}>
+                        {status.label}
+                      </option>
+                    ))}
                     <option value="Add More">Add More</option>
                   </select>
                 </div>

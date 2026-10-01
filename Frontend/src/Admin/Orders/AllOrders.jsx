@@ -8,6 +8,7 @@ import api from "../../api";
 import Billing from "../Billing";
 import ImagePreviewModal from "./ImagePreviewModal";
 import useRealtimeOrders from "../../hooks/useRealtimeOrders";
+import { getAvailableOrderStatuses } from "../../utils/orderStatus";
 const getStatusBadge = (status) => {
   const base = "text-xs font-medium rounded px-2 py-1";
   switch (status) {
@@ -25,19 +26,6 @@ const getStatusBadge = (status) => {
     default:
       return base;
   }
-};
-
-// Helper function to determine available status options based on current status
-const getAvailableStatuses = (currentStatus) => {
-  const statusHierarchy = {
-    "Place Order": [" Place Order", "Packed", "Shipped", "Delivered", "Cancelled"],
-    "Packed": ["Packed", "Shipped", "Delivered", "Cancelled"],
-    "Shipped": ["Shipped", "Delivered", "Cancelled"],
-    "Delivered": ["Delivered"],
-    "Cancelled": ["Cancelled"],
-
-  };
-  return statusHierarchy[currentStatus] || ["Place Order"];
 };
 
 const AllOrders = () => {
@@ -589,9 +577,9 @@ const AllOrders = () => {
                               order.status
                             )} w-full  max-w-[150px]`}
                           >
-                            {getAvailableStatuses(order.status).map((status) => (
-                              <option key={status} value={status}>
-                                {status}
+                            {getAvailableOrderStatuses(order.status).map((status) => (
+                              <option key={status.value} value={status.value}>
+                                {status.label}
                               </option>
                             ))}
                           </select>
@@ -750,9 +738,9 @@ const AllOrders = () => {
                           onChange={(e) => handleStatusChange(order.orderID, e.target.value)}
                           className="w-full appearance-none border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-medium text-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm cursor-pointer hover:border-gray-300 transition-colors"
                         >
-                          {getAvailableStatuses(order.status).map((status) => (
-                            <option key={status} value={status}>
-                              {status}
+                          {getAvailableOrderStatuses(order.status).map((status) => (
+                            <option key={status.value} value={status.value}>
+                              {status.label}
                             </option>
                           ))}
                         </select>
