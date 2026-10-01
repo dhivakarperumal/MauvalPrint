@@ -12,6 +12,34 @@ import api from "../api";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import PageContainer from "../Components/PageContainer";
+import imageCompression from "browser-image-compression";
+
+const compressOrderImage = async (imageSource) => {
+  if (
+    typeof imageSource !== "string" ||
+    !/^data:image\/(png|jpe?g|webp|bmp);base64,/i.test(imageSource) ||
+    imageSource.length < 300_000
+  ) {
+    return imageSource;
+  }
+
+  const imageBlob = await fetch(imageSource).then((response) => response.blob());
+  const imageFile = new File([imageBlob], "order-image", { type: imageBlob.type });
+  const compressedFile = await imageCompression(imageFile, {
+    maxSizeMB: 0.2,
+    maxWidthOrHeight: 1000,
+    initialQuality: 0.75,
+    fileType: "image/webp",
+    useWebWorker: true,
+  });
+
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(reader.error || new Error("Could not read compressed image."));
+    reader.readAsDataURL(compressedFile);
+  });
+};
 
 const Checkout = () => {
   const { cart, clearCart, user } = useContext(AuthContext);
@@ -277,17 +305,29 @@ const Checkout = () => {
       : shipping;
 
     // -------------------- TRIM CART ITEMS --------------------
-    const trimmedCart = itemsToShow.map((item) => ({
-      productId: item.productId || item.id || "",
-      name: getItemName(item),
-      price: getItemPrice(item),
-      quantity: item.quantity || 0,
-      color: item.selectedColor || "",
-      size: item.selectedSize || "",
-      variant: item.selectedVariant || item.variant || "",
-      image: item.customizedImage || item.image || item.images?.[0] || "",
-      subtotal: getItemPrice(item) * (item.quantity || 0),
-    }));
+    let trimmedCart;
+    try {
+      trimmedCart = await Promise.all(
+        itemsToShow.map(async (item) => ({
+          productId: item.productId || item.id || "",
+          name: getItemName(item),
+          price: getItemPrice(item),
+          quantity: item.quantity || 0,
+          color: item.selectedColor || "",
+          size: item.selectedSize || "",
+          variant: item.selectedVariant || item.variant || "",
+          image: await compressOrderImage(
+            item.customizedImage || item.image || item.images?.[0] || ""
+          ),
+          subtotal: getItemPrice(item) * (item.quantity || 0),
+        }))
+      );
+    } catch (error) {
+      console.error("Order image compression failed:", error);
+      setIsSavingOrder(false);
+      toast.error("Could not prepare a product image for checkout. Please try again.");
+      return;
+    }
 
     const dateStr = new Date().toLocaleString();
 
@@ -406,9 +446,17 @@ const Checkout = () => {
             navigate("/");
           }, 1500);
         } catch (err) {
-          console.error("Order error:", err);
+          const errorMessage = import.meta.env.DEV
+            ? err.response?.data?.message || err.message
+            : "We couldn't confirm your order. Check your payment status before trying again.";
+          console.error("Order error:", {
+            message: errorMessage,
+            status: err.response?.status,
+            response: err.response?.data,
+            error: err,
+          });
           setIsSavingOrder(false);
-          toast.error("Failed to place order. Try again.");
+          toast.error(errorMessage);
         }
       },
     };

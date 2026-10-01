@@ -234,38 +234,69 @@ const createWebOrder = async (req, res) => {
   try {
     const pool = req.app.locals.pool;
     const prefix = isCustomLogoPrint ? "OFP" : "ORD";
-    
-    // Generate order ID
-    const [rows] = await pool.query(
-      "SELECT MAX(CAST(SUBSTRING(order_id, 4) AS UNSIGNED)) AS max_id FROM orders WHERE order_id LIKE ?",
-      [`${prefix}%`]
-    );
-    const nextNumber = (rows?.[0]?.max_id || 0) + 1;
-    const orderId = `${prefix}${String(nextNumber).padStart(4, "0")}`;
-    
-    const timestamp = new Date().toISOString().slice(0, 19).replace("T", " ");
+    const transientDbErrors = new Set([
+      "ECONNRESET",
+      "PROTOCOL_CONNECTION_LOST",
+      "ETIMEDOUT",
+      "EPIPE",
+    ]);
 
-    await pool.query(
-      `INSERT INTO orders (order_id, user_id, user_email, checkout, cart, total, payment_id, status, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [
-        orderId,
-        userId || null,
-        userEmail || null,
-        JSON.stringify(checkout || {}),
-        JSON.stringify(cart || []),
-        total || 0,
-        paymentID || null,
-        "Placed",
-        timestamp,
-        timestamp,
-      ]
-    );
+    const saveOrder = async () => {
+      if (paymentID) {
+        const [existingOrders] = await pool.query(
+          "SELECT order_id FROM orders WHERE payment_id = ? LIMIT 1",
+          [paymentID]
+        );
+        if (existingOrders.length > 0) {
+          return { orderId: existingOrders[0].order_id, alreadyExists: true };
+        }
+      }
 
-    res.status(201).json({
+      const [rows] = await pool.query(
+        "SELECT MAX(CAST(SUBSTRING(order_id, 4) AS UNSIGNED)) AS max_id FROM orders WHERE order_id LIKE ?",
+        [`${prefix}%`]
+      );
+      const nextNumber = (rows?.[0]?.max_id || 0) + 1;
+      const orderId = `${prefix}${String(nextNumber).padStart(4, "0")}`;
+      const timestamp = new Date().toISOString().slice(0, 19).replace("T", " ");
+
+      await pool.query(
+        `INSERT INTO orders (order_id, user_id, user_email, checkout, cart, total, payment_id, status, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          orderId,
+          userId || null,
+          userEmail || null,
+          JSON.stringify(checkout || {}),
+          JSON.stringify(cart || []),
+          total || 0,
+          paymentID || null,
+          "Placed",
+          timestamp,
+          timestamp,
+        ]
+      );
+
+      return { orderId, alreadyExists: false };
+    };
+
+    let savedOrder;
+    for (let attempt = 0; attempt < 2; attempt += 1) {
+      try {
+        savedOrder = await saveOrder();
+        break;
+      } catch (error) {
+        if (attempt === 1 || !transientDbErrors.has(error.code)) {
+          throw error;
+        }
+        console.warn("Transient database connection error; retrying web order save.");
+      }
+    }
+
+    res.status(savedOrder.alreadyExists ? 200 : 201).json({
       success: true,
-      message: "Order placed successfully.",
-      order_id: orderId,
+      message: savedOrder.alreadyExists ? "Order was already saved." : "Order placed successfully.",
+      order_id: savedOrder.orderId,
     });
   } catch (error) {
     // Log full error details to help debugging (stack + request body)
