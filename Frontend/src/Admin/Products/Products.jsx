@@ -83,6 +83,8 @@ const ProductList = () => {
         fabric_gsm: parseJSON(p.fabric_gsm, []),
         washing_details: parseJSON(p.washing_details, []),
         stock_by_variant: parseJSON(p.stock_by_variant, {}),
+        size_charts: parseJSON(p.size_charts, { regular: null, oversize: null, kids: null }),
+        price_by_type: parseJSON(p.price_by_type, { regular: 0, oversize: 0, kids: 0 }),
         our_design: p.our_design === true || p.our_design === 1 || p.our_design === "1" || p.our_design === "true",
       }));
 

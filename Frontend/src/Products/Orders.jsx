@@ -179,6 +179,7 @@ const Orders = ({ titleorder }) => {
               <th>Image</th>
               <th>Product</th>
               <th>Qty</th>
+              <th>Type</th>
               <th>Size</th>
               <th>Color</th>
               <th>Price</th>
@@ -198,6 +199,7 @@ const Orders = ({ titleorder }) => {
                 </td>
                 <td>${item.name}</td>
                 <td>${item.quantity}</td>
+                <td>${item.variant ? item.variant.charAt(0).toUpperCase() + item.variant.slice(1) : "-"}</td>
                 <td>${item.size || "-"}</td>
                 <td>${item.color || "-"}</td>
                 <td>₹${item.price}</td>
@@ -454,6 +456,11 @@ const Orders = ({ titleorder }) => {
                     </p>
                     <p>Size: {item.size}</p>
                     <p>Qty: {item.quantity}</p>
+                    {item.variant && (
+                      <p className="font-semibold text-blue-600">
+                        Type: {item.variant.charAt(0).toUpperCase() + item.variant.slice(1)}
+                      </p>
+                    )}
                     <p>Price: ₹{item.price}</p>
                     <p>Color:{item.color}</p>
                     <p>Subtotal: ₹{item.subtotal}</p>

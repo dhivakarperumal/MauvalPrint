@@ -150,6 +150,7 @@ const DeliveryOrders = () => {
           <tr style="background-color: #f3f4f6;">
             <th style="padding: 8px; border: 1px solid #ccc;">Image</th>
             <th style="padding: 8px; border: 1px solid #ccc;">Product</th>
+            <th style="padding: 8px; border: 1px solid #ccc;">Type</th>
             <th style="padding: 8px; border: 1px solid #ccc;">Size</th>
             <th style="padding: 8px; border: 1px solid #ccc;">Color</th>
             <th style="padding: 8px; border: 1px solid #ccc;">Qty</th>
@@ -172,6 +173,9 @@ const DeliveryOrders = () => {
                 </td>
                 <td style="padding: 8px; border: 1px solid #ccc;">${
                   actualItem.name || actualItem.fullname
+                }</td>
+                <td style="padding: 8px; border: 1px solid #ccc; text-align: center;">${
+                  item.variant ? item.variant.charAt(0).toUpperCase() + item.variant.slice(1) : "-"
                 }</td>
                 <td style="padding: 8px; border: 1px solid #ccc; text-align: center;">${
                   actualItem.size || "-"
@@ -400,6 +404,7 @@ const DeliveryOrders = () => {
                                       />
                                       <div className="flex">
                                         <span className='mx-3'>{actualItem.name}</span>
+                                        <span className='mx-3'>Type: {item.variant ? item.variant.charAt(0).toUpperCase() + item.variant.slice(1) : "-"}</span>
                                         <span className='mx-3'>Color: {item.color}</span>
                                         <span className='mx-3'>Size: {item.size}</span>
                                         <span className='mx-3'>Qty: {item.quantity}</span>
@@ -484,6 +489,7 @@ const DeliveryOrders = () => {
                                   <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-gray-600">
                                     <span className="bg-gray-100 px-1.5 py-0.5 rounded text-gray-700">Qty: <b>{item.quantity}</b></span>
                                     <span className="bg-green-50 text-green-700 px-1.5 py-0.5 rounded font-medium">₹{item.price}</span>
+                                    {item.variant && <span className="bg-blue-100 px-1.5 py-0.5 rounded text-blue-700">Type: <b>{item.variant.charAt(0).toUpperCase() + item.variant.slice(1)}</b></span>}
                                     {item.size && <span className="bg-gray-100 px-1.5 py-0.5 rounded">Size: <b>{item.size}</b></span>}
                                     {item.color && <span className="bg-gray-100 px-1.5 py-0.5 rounded">Color: <b>{item.color}</b></span>}
                                   </div>

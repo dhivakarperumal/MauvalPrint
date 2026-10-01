@@ -269,6 +269,7 @@ const Checkout = () => {
       quantity: item.quantity || 0,
       color: item.selectedColor || "",
       size: item.selectedSize || "",
+      variant: item.selectedVariant || item.variant || "",
       image: item.customizedImage || item.image || item.images?.[0] || "",
       subtotal: (item.price || 0) * (item.quantity || 0),
     }));
@@ -720,6 +721,12 @@ const Checkout = () => {
 
                     <div className="flex-1">
                       <h4 className="font-medium text-sm">{i.name}</h4>
+
+                      {(i.selectedVariant || i.variant) && (
+                        <p className="text-xs text-gray-500 capitalize">
+                          Type: {i.selectedVariant || i.variant}
+                        </p>
+                      )}
 
                       {i.selectedSize && (
                         <p className="text-xs text-gray-500">

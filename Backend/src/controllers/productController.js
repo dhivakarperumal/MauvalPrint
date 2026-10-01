@@ -25,6 +25,8 @@ const getProducts = async (req, res) => {
       washing_details: parseJSON(p.washing_details, []),
       color: parseJSON(p.color, []),
       size: parseJSON(p.size, []),
+      size_charts: parseJSON(p.size_charts, { regular: null, oversize: null, kids: null }),
+      price_by_type: parseJSON(p.price_by_type, { regular: 0, oversize: 0, kids: 0 }),
     }));
 
     res.status(200).json({
@@ -36,6 +38,50 @@ const getProducts = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Could not fetch products.",
+    });
+  }
+};
+
+const getProductById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const pool = req.app.locals.pool;
+    const [products] = await pool.query(
+      "SELECT * FROM products WHERE product_id = ? LIMIT 1",
+      [id]
+    );
+
+    if (!products || products.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Product not found.",
+      });
+    }
+
+    const p = products[0];
+    const parsed = {
+      ...p,
+      images: parseJSON(p.images, []),
+      images_by_variant: parseJSON(p.images_by_variant, {}),
+      stock_by_variant: parseJSON(p.stock_by_variant, {}),
+      fabric_gsm: parseJSON(p.fabric_gsm, []),
+      keywords: parseJSON(p.keywords, []),
+      washing_details: parseJSON(p.washing_details, []),
+      color: parseJSON(p.color, []),
+      size: parseJSON(p.size, []),
+      size_charts: parseJSON(p.size_charts, { regular: null, oversize: null, kids: null }),
+      price_by_type: parseJSON(p.price_by_type, { regular: 0, oversize: 0, kids: 0 }),
+    };
+
+    res.status(200).json({
+      success: true,
+      product: parsed,
+    });
+  } catch (error) {
+    console.error("Fetch product by id error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Could not fetch product.",
     });
   }
 };
@@ -108,6 +154,8 @@ const addProduct = async (req, res) => {
       'notes',
       'stock_by_variant',
       'size_chart_image',
+      'size_charts',
+      'price_by_type',
       'created_at',
       'updated_at',
     ];
@@ -138,6 +186,8 @@ const addProduct = async (req, res) => {
       notes || null,
       JSON.stringify(stock_by_variant || {}),
       size_chart_image || null,
+      JSON.stringify(req.body.size_charts || {}),
+      JSON.stringify(req.body.price_by_type || {}),
       timestamp,
       timestamp,
     ];
@@ -145,6 +195,12 @@ const addProduct = async (req, res) => {
     const placeholders = cols.map(() => '?').join(', ');
     const insertQuery = `INSERT INTO products (${cols.join(', ')}) VALUES (${placeholders})`;
 
+    console.log('DEBUG ADD PRODUCT:', {
+      size_charts: req.body.size_charts,
+      price_by_type: req.body.price_by_type,
+      insertValuesSizeCharts: insertValues[insertValues.length - 3],
+      insertValuesPriceByType: insertValues[insertValues.length - 2],
+    });
     console.log('DEBUG: cols.length =', cols.length, 'insertValues.length =', insertValues.length);
     await pool.query(insertQuery, insertValues);
 
@@ -296,6 +352,14 @@ const updateProduct = async (req, res) => {
     if (size_chart_image !== undefined) {
       fields.push("size_chart_image = ?");
       values.push(size_chart_image);
+    }
+    if (req.body.size_charts !== undefined) {
+      fields.push("size_charts = ?");
+      values.push(JSON.stringify(req.body.size_charts));
+    }
+    if (req.body.price_by_type !== undefined) {
+      fields.push("price_by_type = ?");
+      values.push(JSON.stringify(req.body.price_by_type));
     }
       if (images_by_variant !== undefined) {
         fields.push("images_by_variant = ?");
@@ -630,6 +694,7 @@ const reduceStock = async (req, res) => {
 
 module.exports = {
   getProducts,
+  getProductById,
   addProduct,
   updateProduct,
   deleteProduct,

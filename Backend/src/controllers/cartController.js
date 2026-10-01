@@ -13,6 +13,7 @@ exports.addCart = async (req, res) => {
 
     const selected_size = (item_data && (item_data.selectedSize || item_data.selected_size)) || '';
     const selected_color = (item_data && (item_data.selectedColor || item_data.selected_color)) || '';
+    const selected_variant = (item_data && (item_data.selectedVariant || item_data.variant || item_data.selected_variant)) || '';
 
     const [existing] = await pool.execute(
       `SELECT id, quantity, item_data
@@ -32,8 +33,9 @@ exports.addCart = async (req, res) => {
 
       const rowSize = parsed.selectedSize || parsed.selected_size || "";
       const rowColor = parsed.selectedColor || parsed.selected_color || "";
+      const rowVariant = parsed.selectedVariant || parsed.variant || parsed.selected_variant || "";
 
-      if (rowSize === selected_size && rowColor === selected_color) {
+      if (rowSize === selected_size && rowColor === selected_color && rowVariant === selected_variant) {
         matchId = row.id;
         matchQuantity = row.quantity;
         break;
@@ -113,6 +115,8 @@ exports.getCart = async (req, res) => {
         quantity: item.quantity,
         selectedSize: parsed.selectedSize || parsed.selected_size || "",
         selectedColor: parsed.selectedColor || parsed.selected_color || "",
+        selectedVariant: parsed.selectedVariant || parsed.variant || parsed.selected_variant || "",
+        variant: parsed.selectedVariant || parsed.variant || parsed.selected_variant || "",
         item_data: parsed,
       };
     });
@@ -139,6 +143,7 @@ exports.removeCart = async (req, res) => {
     const { user_id, product_id } = req.params;
     const selected_size = req.query.size || req.query.selectedSize || req.query.selected_size || '';
     const selected_color = req.query.color || req.query.selectedColor || req.query.selected_color || '';
+    const selected_variant = req.query.variant || req.query.selectedVariant || req.query.selected_variant || '';
 
     const [existing] = await pool.execute(
       `SELECT id, item_data
@@ -156,8 +161,9 @@ exports.removeCart = async (req, res) => {
 
       const rowSize = parsed.selectedSize || parsed.selected_size || "";
       const rowColor = parsed.selectedColor || parsed.selected_color || "";
+      const rowVariant = parsed.selectedVariant || parsed.variant || parsed.selected_variant || "";
 
-      if (rowSize === selected_size && rowColor === selected_color) {
+      if (rowSize === selected_size && rowColor === selected_color && rowVariant === selected_variant) {
         matchId = row.id;
         break;
       }
@@ -188,8 +194,9 @@ exports.updateCart = async (req, res) => {
   try {
     const pool = db.pool();
 
-    const { user_id, product_id, selectedSize, selected_color, selectedColor, quantity } = req.body;
-    const selected_size = selectedSize || selected_color || selectedColor || '';
+    const { user_id, product_id, selectedSize, selected_color, selectedColor, selectedVariant, variant, quantity } = req.body;
+    const selected_size = selectedSize || '';
+    const selected_variant = selectedVariant || variant || '';
 
     const [existing] = await pool.execute(
       `SELECT id, item_data
@@ -207,8 +214,9 @@ exports.updateCart = async (req, res) => {
 
       const rowSize = parsed.selectedSize || parsed.selected_size || "";
       const rowColor = parsed.selectedColor || parsed.selected_color || "";
+      const rowVariant = parsed.selectedVariant || parsed.variant || parsed.selected_variant || "";
 
-      if (rowSize === selected_size) { // Wait, the original code had COALESCE(selected_size, '')=? which only checked selected_size. I will match that logic.
+      if (rowSize === selected_size && rowColor === (selectedColor || selected_color || '') && rowVariant === selected_variant) {
         matchId = row.id;
         break;
       }

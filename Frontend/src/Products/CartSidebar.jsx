@@ -72,7 +72,7 @@ const CartSidebar = ({ show, onClose }) => {
           ) : (
             cart.map((item) => (
               <div
-                key={`${item.id}-${item.selectedSize}-${item.selectedColor || ""}`}
+                key={`${item.id}-${item.selectedSize}-${item.selectedColor || ""}-${item.selectedVariant || item.variant || ""}`}
                 className="flex items-center gap-3 mb-4 border-b border-gray-200 pb-4"
               >
                 <img
@@ -87,6 +87,11 @@ const CartSidebar = ({ show, onClose }) => {
                   <h3 className="font-semibold text-sm sm:text-md text-gray-800 truncate">{item.name}</h3>
                   <p className="text-gray-500 text-sm font-semibold">MRP: ₹{item.price}</p>
                   <p className="text-gray-500 text-sm">Size: {item.selectedSize}</p>
+                  {(item.selectedVariant || item.variant) && (
+                    <p className="text-gray-500 text-sm">
+                      Fit: {(item.selectedVariant || item.variant).charAt(0).toUpperCase() + (item.selectedVariant || item.variant).slice(1)}
+                    </p>
+                  )}
                  
                   {item.selectedColor && <p className="text-gray-500 text-sm">Color: {item.selectedColor}</p>}
                   <p className="font-bold text-sm sm:text-md text-primary">
@@ -98,7 +103,7 @@ const CartSidebar = ({ show, onClose }) => {
                   <div className="flex items-center gap-1">
                     <button
                       onClick={() =>
-                        updateQuantity(item.id, item.selectedSize, Math.max(1, item.quantity - 1))
+                        updateQuantity(item.id, item.selectedSize, Math.max(1, item.quantity - 1), item.selectedVariant || item.variant)
                       }
                       className="p-1 rounded-full bg-indigo-100 hover:bg-indigo-200 text-primary cursor-pointer"
                     >
@@ -107,7 +112,7 @@ const CartSidebar = ({ show, onClose }) => {
                     <span className="mx-1 text-sm font-medium text-gray-800">{item.quantity}</span>
                     <button
                       onClick={() =>
-                        updateQuantity(item.id, item.selectedSize, item.quantity + 1)
+                        updateQuantity(item.id, item.selectedSize, item.quantity + 1, item.selectedVariant || item.variant)
                       }
                       className="p-1 rounded-full bg-indigo-100 hover:bg-indigo-200 text-primary cursor-pointer"
                     >
@@ -115,7 +120,7 @@ const CartSidebar = ({ show, onClose }) => {
                     </button>
                   </div>
                   <button
-                    onClick={() => removeFromCart(item.id, item.selectedSize, item.selectedColor)}
+                    onClick={() => removeFromCart(item.id, item.selectedSize, item.selectedColor, item.selectedVariant || item.variant)}
                     className="text-red-600 hover:text-red-800 cursor-pointer"
                     title="Remove Item"
                   >
