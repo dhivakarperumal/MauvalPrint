@@ -3,6 +3,7 @@ import api from "../../api";
 import toast from "react-hot-toast";
 import { FaSearch, FaTh, FaList, FaPlus, FaEdit, FaBoxOpen } from "react-icons/fa";
 import AddStock from "./AddStock"; // We will import and render this in a modal
+import useRealtimeCollection from "../../hooks/useRealtimeCollection";
 
 const StockDetails = () => {
   const [products, setProducts] = useState([]);
@@ -21,9 +22,55 @@ const StockDetails = () => {
     if (product.image) return product.image;
     if (product.image_url) return product.image_url;
 
+<<<<<<< Updated upstream
     const images = (() => {
       if (Array.isArray(product.images)) return product.images;
       if (typeof product.images === "string") {
+=======
+    const images = parseImageArray(product.images);
+    if (images.length > 0) return images[0];
+
+    const variantImage = getVariantImage(product.images_by_variant || product.image_varient || product.imagesByVariant);
+    if (variantImage) return variantImage;
+
+    return "";
+  };
+
+  useRealtimeCollection("products", setProducts, () => true, Infinity, (product, id) => {
+    const stockByVariant = product.stock_by_variant || product.stockByVariant || {};
+    const variants = Object.entries(stockByVariant).map(([key, qty]) => {
+      const [color, size] = key.split("-");
+      return { key, color, size, qty };
+    });
+
+    return {
+      productId: product.product_id || id,
+      name: product.name || "",
+      image: getProductImage(product),
+      variants,
+      totalStock: variants.reduce((total, variant) => total + (Number(variant.qty) || 0), 0),
+    };
+  });
+
+  useEffect(() => {
+    const handleResize = () => {
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+      if (mobile) setViewMode("card");
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  const fetchStock = async () => {
+    const { data } = await api.get("/products");
+    const productList = [];
+
+    (data.products || []).forEach((product) => {
+      let stockByVariant = product.stock_by_variant || {};
+      if (typeof stockByVariant === "string") {
+>>>>>>> Stashed changes
         try {
           return JSON.parse(product.images || "[]");
         } catch {

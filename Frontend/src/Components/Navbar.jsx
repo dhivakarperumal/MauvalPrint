@@ -29,6 +29,7 @@ import Search from "./Search";
 import CartSidebar from "../Products/CartSidebar";
 import Wishlist from "../Products/Wishlist";
 import Orders from "../Products/Orders";
+import useRealtimeEvent from "../hooks/useRealtimeEvent";
 import api from "../api";
 import { toast } from "react-toastify";
 
@@ -51,6 +52,8 @@ export default function Navbar() {
 
   const {
     products,
+    designs,
+    socket,
     user,
     logout,
     cart = [],
@@ -62,7 +65,17 @@ export default function Navbar() {
   const pagesRef = useRef(null);
   const userRef = useRef(null);
 
+  useRealtimeEvent(socket, "order:updated", (event) => {
+    if (event.resource !== "orders") return;
+    setOrdersCount((count) => event.action === "created"
+      ? count + 1
+      : event.action === "deleted"
+        ? Math.max(0, count - 1)
+        : count);
+  });
+
   useEffect(() => {
+<<<<<<< Updated upstream
     const fetchCategories = async () => {
       try {
         const { data } = await api.get("/products");
@@ -101,6 +114,21 @@ export default function Navbar() {
 
     fetchCategories();
   }, []);
+=======
+    const allProducts = [...(products || []), ...(designs || [])];
+    const allCategories = [...new Set(allProducts.map((product) => product.category?.toLowerCase()).filter(Boolean))];
+    setCustomizeData(allCategories.map((category) => {
+      const categoryProducts = allProducts.filter((product) => product.category?.toLowerCase() === category);
+      const subcategories = [...new Set(categoryProducts.map((product) => product.subcategory?.toLowerCase()).filter(Boolean))];
+      return {
+        name: category,
+        cname: category.split(" ").map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join(" "),
+        subcategories,
+        products: categoryProducts,
+      };
+    }));
+  }, [products, designs]);
+>>>>>>> Stashed changes
 
   useEffect(() => {
     if (!user?.uid) {

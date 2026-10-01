@@ -1,10 +1,29 @@
 /* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useState, useEffect } from "react";
 import { toast } from "react-toastify";
+import { io } from "socket.io-client";
 
-import api from "../api";
+import api, { API_URL } from "../api";
+import normalizeRealtimeProduct from "../utils/normalizeRealtimeProduct";
 
 const API_USER_KEY = "apiUser";
+
+const getCollectionItemId = (item) =>
+  item?.id || item?.product_id || item?.productId || item?.user_id || item?.order_id || item?.orderID;
+
+const upsertById = (items, id, data) => {
+  const index = items.findIndex((item) => String(getCollectionItemId(item)) === String(id));
+  if (index === -1) return [{ ...data, id }, ...items];
+  return items.map((item, itemIndex) =>
+    itemIndex === index ? { ...item, ...data, id } : item
+  );
+};
+
+const sameCartVariant = (item, id, data) =>
+  String(getCollectionItemId(item)) === String(id) &&
+  (item.selectedSize || item.size || "") === (data.selectedSize || data.size || "") &&
+  (item.selectedColor || item.color || "") === (data.selectedColor || data.color || "") &&
+  (item.selectedVariant || item.variant || "") === (data.selectedVariant || data.variant || "");
 
 export const AuthContext = createContext();
 
@@ -16,6 +35,113 @@ export function AuthProvider({ children }) {
   const [wishlist, setWishlist] = useState([]);
   const [reviews, setReviews] = useState([]);
   const [isOrderSidebarOpen, setOrderSidebarOpen] = useState(false);
+  const [socket, setSocket] = useState(null);
+  const [socketToken, setSocketToken] = useState(() => localStorage.getItem("token"));
+
+  useEffect(() => {
+    if (!user?.uid || !socketToken) {
+      setSocket(null);
+      return undefined;
+    }
+
+    const socketOrigin = new URL(API_URL, window.location.origin).origin;
+    const realtimeSocket = io(socketOrigin, {
+      path: "/socket.io",
+      auth: { token: socketToken },
+      reconnection: true,
+      reconnectionAttempts: Infinity,
+      reconnectionDelay: 1000,
+      reconnectionDelayMax: 10000,
+    });
+    setSocket(realtimeSocket);
+
+    const handleConnectError = (error) => {
+      console.error("Realtime connection error:", error.message);
+    };
+    realtimeSocket.on("connect_error", handleConnectError);
+
+    return () => {
+      realtimeSocket.off("connect_error", handleConnectError);
+      realtimeSocket.disconnect();
+    };
+  }, [user?.uid, socketToken]);
+
+  useEffect(() => {
+    if (!socket) return undefined;
+
+    const handleDataChange = (event) => {
+      const id = event.id || getCollectionItemId(event.data);
+      if (!id) return;
+      const incoming = event.data || {};
+
+      if (event.resource === "products") {
+        const product = normalizeRealtimeProduct(incoming, id);
+        const isDesign = product.ourDesign === true || product.our_design === true || Number(product.our_design) === 1;
+        setProducts((items) => event.action === "deleted" || isDesign
+          ? items.filter((item) => String(getCollectionItemId(item)) !== String(id))
+          : upsertById(items, id, product));
+        setDesigns((items) => event.action === "deleted" || !isDesign
+          ? items.filter((item) => String(getCollectionItemId(item)) !== String(id))
+          : upsertById(items, id, product));
+      } else if (event.resource === "reviews") {
+        setReviews((items) =>
+          event.action === "deleted"
+            ? items.filter((item) => String(getCollectionItemId(item)) !== String(id))
+            : upsertById(items, id, incoming)
+        );
+      } else if (event.resource === "cart") {
+        const itemData = incoming.item_data || incoming;
+        const item = {
+          ...itemData,
+          id,
+          selectedSize: itemData.selectedSize || incoming.selectedSize || "",
+          selectedColor: itemData.selectedColor || incoming.selectedColor || incoming.selected_color || "",
+          selectedVariant: itemData.selectedVariant || incoming.selectedVariant || incoming.variant || "",
+          quantity: Number(incoming.quantity ?? itemData.quantity ?? 1),
+        };
+        setCart((items) => {
+          const index = items.findIndex((current) => sameCartVariant(current, id, item));
+          if (event.action === "deleted") {
+            return items.filter((current) => {
+              if (String(getCollectionItemId(current)) !== String(id)) return true;
+              const query = event.query || {};
+              return (current.selectedSize || "") !== (query.size || "") ||
+                (current.selectedColor || "") !== (query.color || "") ||
+                (current.selectedVariant || current.variant || "") !== (query.variant || "");
+            });
+          }
+          if (index === -1) return [item, ...items];
+          return items.map((current, currentIndex) => {
+            if (currentIndex !== index) return current;
+            const quantity = event.action === "created"
+              ? Number(current.quantity || 0) + item.quantity
+              : item.quantity;
+            return { ...current, ...item, quantity };
+          });
+        });
+      } else if (event.resource === "wishlist" || event.resource === "logoCart") {
+        const setter = event.resource === "wishlist" ? setWishlist : setLogoCart;
+        if (event.data?.clearAll) {
+          setter([]);
+          return;
+        }
+        setter((items) =>
+          event.action === "deleted"
+            ? items.filter((item) => String(getCollectionItemId(item)) !== String(id))
+            : upsertById(items, id, incoming.item_data || incoming)
+        );
+      }
+    };
+
+    socket.on("data:created", handleDataChange);
+    socket.on("data:updated", handleDataChange);
+    socket.on("data:deleted", handleDataChange);
+    return () => {
+      socket.off("data:created", handleDataChange);
+      socket.off("data:updated", handleDataChange);
+      socket.off("data:deleted", handleDataChange);
+    };
+  }, [socket]);
 
   useEffect(() => {
     const storedApiUser = localStorage.getItem(API_USER_KEY);
@@ -166,13 +292,54 @@ export function AuthProvider({ children }) {
       ...apiUser,
       uid: apiUser.user_id || apiUser.uid,
     };
+    if (response.data.token) {
+      localStorage.setItem("token", response.data.token);
+      setSocketToken(response.data.token);
+    }
     setLoggedIn(normalizedUser);
     localStorage.setItem(API_USER_KEY, JSON.stringify(normalizedUser));
     return normalizedUser;
   };
 
+<<<<<<< Updated upstream
+=======
+  const loginWithGoogle = async (idToken) => {
+    if (!idToken) {
+      throw new Error("Google login credential is missing.");
+    }
+
+    const response = await api.post(
+      "/users/google-login",
+      JSON.stringify({ idToken }),
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    const apiUser = response.data?.data;
+    if (!apiUser) {
+      throw new Error("Google login failed.");
+    }
+
+    const normalizedUser = {
+      ...apiUser,
+      uid: apiUser.user_id || apiUser.uid,
+    };
+    if (response.data.token) {
+      localStorage.setItem("token", response.data.token);
+      setSocketToken(response.data.token);
+    }
+    setLoggedIn(normalizedUser);
+    localStorage.setItem(API_USER_KEY, JSON.stringify(normalizedUser));
+    return normalizedUser;
+  };
+
+>>>>>>> Stashed changes
   const logout = async () => {
     localStorage.removeItem(API_USER_KEY);
+    localStorage.removeItem("token");
+    setSocketToken(null);
     setLoggedIn(null);
   };
 
@@ -330,6 +497,7 @@ export function AuthProvider({ children }) {
     <AuthContext.Provider
       value={{
         user,
+        socket,
         setUser,
         registerUser: () => { },
         loginWithEmail,

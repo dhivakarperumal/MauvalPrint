@@ -14,6 +14,12 @@ export default defineConfig({
         changeOrigin: true,
         secure: false,
       },
+      "/socket.io": {
+        target: process.env.VITE_BACKEND_URL || "http://localhost:5000",
+        changeOrigin: true,
+        secure: false,
+        ws: true,
+      },
       '/proxy-uploads': {
         target: 'https://mauvalprint.in/uploads',
         changeOrigin: true,

@@ -4,6 +4,7 @@ import { AuthContext } from "../Context/AuthContext";
 import { ImSpinner8 } from "react-icons/im";
 import { FaTrashAlt, FaBoxOpen, FaPrint } from "react-icons/fa";
 import api from "../api";
+import useRealtimeOrders from "../hooks/useRealtimeOrders";
 
 const Orders = ({ titleorder }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -15,6 +16,7 @@ const Orders = ({ titleorder }) => {
   const [isCancelling, setIsCancelling] = useState(false);
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [reviewData, setReviewData] = useState({ rating: 0, comment: "" });
+  useRealtimeOrders(setOrders);
 
   const { user } = useContext(AuthContext);
   const printRef = useRef();

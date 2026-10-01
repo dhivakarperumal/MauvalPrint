@@ -29,6 +29,7 @@ import { Doughnut } from "react-chartjs-2";
 import { ArcElement } from "chart.js";
 import api from "../api";
 import { AuthContext } from "../Context/AuthContext";
+import useRealtimeOrders from "../hooks/useRealtimeOrders";
 
 ChartJS.register(
   LineElement,
@@ -84,6 +85,7 @@ const Dashboard = () => {
   const [categoryStats, setCategoryStats] = useState({});
   const [weeklyIncome, setWeeklyIncome] = useState([]);
   const [Orders, setOrders] = useState([]);
+  useRealtimeOrders(setOrders);
 
   const [categoryOrderStats, setCategoryOrderStats] = useState({});
   const getCategoryCountFromOrders = async () => {
@@ -396,47 +398,26 @@ const Dashboard = () => {
   };
 
   useEffect(() => {
-    const fetchOrderStats = async () => {
-      try {
-        const { data } = await api.get("/orders");
-        const orders = data?.orders || [];
+    let itemsSold = 0;
+    let revenue = 0;
+    const monthlyTotals = Array(12).fill(0);
 
-        let orderTotal = orders.length;
-        let itemsSold = 0;
-        let revenue = 0;
-        let monthlyTotals = Array(12).fill(0);
+    Orders.forEach((order) => {
+      itemsSold += (order.cart || []).reduce(
+        (sum, item) => sum + (Number(item.quantity) || 0),
+        0
+      );
+      const orderTotal = Number(order.total) || 0;
+      revenue += orderTotal;
+      const createdAt = new Date(order.created_at || order.createdAt || 0);
+      if (!Number.isNaN(createdAt.getTime())) monthlyTotals[createdAt.getMonth()] += orderTotal;
+    });
 
-        orders.forEach((order) => {
-          const cart = order.cart || [];
-          const orderItemsQty = cart.reduce(
-            (sum, item) => sum + (item.quantity || 0),
-            0
-          );
-          itemsSold += orderItemsQty;
-
-          revenue += parseFloat(order.total || 0) || 0;
-
-          const createdAt = order.created_at
-            ? new Date(order.created_at)
-            : null;
-
-          if (createdAt && !Number.isNaN(createdAt.getTime())) {
-            const monthIndex = createdAt.getMonth();
-            monthlyTotals[monthIndex] += parseFloat(order.total || 0) || 0;
-          }
-        });
-
-        setOrderCount(orderTotal);
-        setTotalItemsSold(itemsSold);
-        setTotalRevenue(revenue);
-        setMonthlySales(monthlyTotals);
-      } catch (error) {
-        console.error("Error fetching order stats:", error);
-      }
-    };
-
-    fetchOrderStats();
-  }, []);
+    setOrderCount(Orders.length);
+    setTotalItemsSold(itemsSold);
+    setTotalRevenue(revenue);
+    setMonthlySales(monthlyTotals);
+  }, [Orders]);
 
   const [topSellingProducts, setTopSellingProducts] = useState([]);
 

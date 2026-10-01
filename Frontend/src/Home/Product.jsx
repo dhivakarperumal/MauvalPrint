@@ -9,11 +9,17 @@ import "aos/dist/aos.css";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import api from "../api";
+<<<<<<< Updated upstream
+=======
+import { pickPrimaryImage, flattenVariantImages } from "../Products/helpers";
+import useRealtimeCollection from "../hooks/useRealtimeCollection";
+>>>>>>> Stashed changes
 
 function Product() {
   const { addToCart, addToWishlist } = useContext(AuthContext);
 
   const [products, setProducts] = useState([]);
+  useRealtimeCollection("products", setProducts, (product) => !product.our_design && !product.ourDesign);
   const [loading, setLoading] = useState(true);
   const [clickedProductId, setClickedProductId] = useState(null);
   const [cardSize, setCardSize] = useState({});

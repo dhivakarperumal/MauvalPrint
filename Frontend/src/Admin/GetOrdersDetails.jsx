@@ -3,6 +3,7 @@ import api from "../api";
 import imageCompression from "browser-image-compression";
 import toast from "react-hot-toast";
 import { FaEdit, FaTrash, FaSearch, FaPlus, FaTimes, FaTh, FaList, FaPrint } from "react-icons/fa";
+import useRealtimeCollection from "../hooks/useRealtimeCollection";
 
 const GetOrdersDetails = () => {
   const [form, setForm] = useState({
@@ -15,6 +16,7 @@ const GetOrdersDetails = () => {
   });
 
   const [orders, setOrders] = useState([]);
+  useRealtimeCollection("printOrders", setOrders);
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState(null);
   

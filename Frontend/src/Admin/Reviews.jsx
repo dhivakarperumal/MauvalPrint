@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { FaStar, FaStarHalfAlt, FaRegStar, FaEdit, FaTrash, FaPlus, FaSearch, FaTable, FaThLarge, FaTimes } from "react-icons/fa";
 import api from "../api";
 import toast from "react-hot-toast";
+import useRealtimeCollection from "../hooks/useRealtimeCollection";
 
 const renderStars = (rating) => {
   const stars = [];
@@ -15,6 +16,7 @@ const renderStars = (rating) => {
 
 const Reviews = () => {
   const [reviews, setReviews] = useState([]);
+  useRealtimeCollection("reviews", setReviews);
   const [form, setForm] = useState({
     name: "",
     product: "",

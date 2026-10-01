@@ -1,6 +1,8 @@
 const express = require("express");
 const cors = require("cors");
 const { connectDB } = require("./src/config/db");
+const { createSocketServer } = require("./src/realtime/socketServer");
+const { createMutationEventMiddleware } = require("./src/realtime/mutationEvents");
 const userRoutes = require("./src/routers/userRoutes");
 const productRoutes = require("./src/routers/productRoutes");
 const orderRoutes = require("./src/routers/orderRoutes");
@@ -28,8 +30,27 @@ app.use((req, res, next) => {
   next();
 });
 
+<<<<<<< Updated upstream
 app.use("/api", userRoutes);
 app.use("/api", productRoutes);
+=======
+// Log incoming order request sizes for debugging large payloads
+app.use('/api/orders', (req, res, next) => {
+  try {
+    const len = req.headers['content-length'] || '(unknown)';
+    console.log(`[${new Date().toISOString()}] /api/orders ${req.method} content-length=${len}`);
+  } catch (e) {
+    console.error('Error logging /api/orders request size', e);
+  }
+  next();
+});
+
+app.use("/api", createMutationEventMiddleware(app));
+
+app.use("/api/users", userRoutes);
+app.use("/api/products", productRoutes);
+app.use("/api/categories", categoryRoutes);
+>>>>>>> Stashed changes
 app.use("/api/orders", orderRoutes);
 app.use("/api/print-orders", printOrderRoutes);
 app.use("/api", reviewRoutes);
@@ -58,7 +79,9 @@ async function startServer() {
   try {
     const pool = await connectDB();
     app.locals.pool = pool;
-    app.listen(PORT, () => {
+    const server = http.createServer(app);
+    createSocketServer(server, app);
+    server.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
     });
   } catch (error) {

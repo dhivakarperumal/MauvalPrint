@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import api from "../api";
 import toast from "react-hot-toast";
+import useRealtimeCollection from "../hooks/useRealtimeCollection";
 import { FaEdit, FaTrash, FaSearch, FaPlus, FaTimes, FaTh, FaList, FaUserTie } from "react-icons/fa";
 
 const Dealers = () => {
@@ -14,6 +15,7 @@ const Dealers = () => {
   });
 
   const [dealersList, setDealersList] = useState([]);
+  useRealtimeCollection("dealers", setDealersList);
   const [invoiceOptions, setInvoiceOptions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);

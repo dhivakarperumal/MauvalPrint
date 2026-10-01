@@ -1,9 +1,18 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../api";
+<<<<<<< Updated upstream
+=======
+import PageContainer from "../Components/PageContainer";
+import { motion } from "framer-motion";
+import useRealtimeCollection from "../hooks/useRealtimeCollection";
+
+const MotionDiv = motion.div;
+>>>>>>> Stashed changes
 
 const Category = () => {
   const [categories, setCategories] = useState([]);
+  useRealtimeCollection("categories", setCategories);
 
   useEffect(() => {
     const fetchCategories = async () => {

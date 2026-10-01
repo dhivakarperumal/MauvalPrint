@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import api from "../api";
 import toast from "react-hot-toast";
+import useRealtimeCollection from "../hooks/useRealtimeCollection";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import { FaEdit, FaTrash, FaSearch, FaPlus, FaTimes, FaTh, FaList, FaFileInvoice, FaFileDownload } from "react-icons/fa";
@@ -18,6 +19,7 @@ const Invoice = () => {
   });
 
   const [invoiceList, setInvoiceList] = useState([]);
+  useRealtimeCollection("invoices", setInvoiceList);
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState(null);
   

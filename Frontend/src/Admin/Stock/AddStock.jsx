@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import api from "../../api";
 import toast from "react-hot-toast";
+import useRealtimeCollection from "../../hooks/useRealtimeCollection";
 
 const parseJSON = (value, fallback) => {
   if (Array.isArray(value) || (value && typeof value === "object")) return value;
@@ -13,6 +14,7 @@ const parseJSON = (value, fallback) => {
 
 const AddStock = () => {
   const [products, setProducts] = useState([]);
+  useRealtimeCollection("products", setProducts, (product) => product.product_id?.startsWith("MP"));
   const [selectedId, setSelectedId] = useState("");
   const [product, setProduct] = useState({
     product_id: "",

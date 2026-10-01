@@ -3,6 +3,11 @@ import { FaEye, FaEdit, FaTrash, FaFilter, FaStar, FaPlus, FaTh, FaList, FaSearc
 import api from "../../api";
 import toast from "react-hot-toast";
 import * as XLSX from "xlsx";
+<<<<<<< Updated upstream
+=======
+import { useNavigate } from "react-router-dom";
+import useRealtimeCollection from "../../hooks/useRealtimeCollection";
+>>>>>>> Stashed changes
 
 const parseJSON = (val, fallback = []) => {
   if (Array.isArray(val) || (val && typeof val === "object")) return val;
@@ -11,6 +16,7 @@ const parseJSON = (val, fallback = []) => {
 
 const ProductList = ({ setSelectedProduct, setActiveTab }) => {
   const [products, setProducts] = useState([]);
+  useRealtimeCollection("products", setProducts);
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState([]);
   const [categoryOptions, setCategoryOptions] = useState([]);

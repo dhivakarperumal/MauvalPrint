@@ -14,12 +14,21 @@ import { AuthContext } from "../Context/AuthContext";
 import api from "../api";
 import { toast } from "react-toastify";
 import Head from "./Head";
+<<<<<<< Updated upstream
+=======
+import { FaBoxOpen } from "react-icons/fa";
+import { FaPrint } from "react-icons/fa";
+import { ImSpinner8 } from "react-icons/im";
+import useRealtimeOrders from "../hooks/useRealtimeOrders";
+import useRealtimeCollection from "../hooks/useRealtimeCollection";
+>>>>>>> Stashed changes
 
 const Account = () => {
   const { user, setUser } = useContext(AuthContext);
   const [activeTab, setActiveTab] = useState("personal");
   const [userInfo, setUserInfo] = useState({});
   const [addresses, setAddresses] = useState([]);
+  useRealtimeCollection("userAddresses", setAddresses);
   const [newAddress, setNewAddress] = useState({
     fullname: "",
     contact: "",
@@ -41,6 +50,27 @@ const Account = () => {
     newPassword: false,
     confirmPassword: false,
   });
+<<<<<<< Updated upstream
+=======
+  const [loadingAddresses, setLoadingAddresses] = useState(false);
+
+  const [orders, setOrders] = useState([]);
+  useRealtimeOrders(setOrders);
+  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [loadingOrders, setLoadingOrders] = useState(false);
+  const [reason, setReason] = useState("");
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [isCancelling, setIsCancelling] = useState(false);
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [hasPassword, setHasPassword] = useState(true); // Track if user has existing password
+
+  const [reviewData, setReviewData] = useState({
+    rating: 0,
+    comment: "",
+  });
+
+  const printRef = useRef();
+>>>>>>> Stashed changes
 
   const navigate = useNavigate();
   const location = useLocation();

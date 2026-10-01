@@ -29,6 +29,7 @@ import { Link, useNavigate } from "react-router-dom";
 import api from "../api";
 import { toast } from "react-toastify";
 import { AuthContext } from "../Context/AuthContext";
+<<<<<<< Updated upstream
 
 // Components
 import Dashboard from "./Dashboard";
@@ -147,6 +148,12 @@ const SidebarItem = ({ icon, label, active, onClick, count, isChild, isParentAct
     )}
   </button>
 );
+=======
+import AdminSidebar from "./AdminSidebar";
+import AdminTopbar from "./AdminTopbar";
+import useRealtimeCollection from "../hooks/useRealtimeCollection";
+import useRealtimeOrders from "../hooks/useRealtimeOrders";
+>>>>>>> Stashed changes
 
 const AdminPanel = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -160,14 +167,44 @@ const AdminPanel = () => {
 
 
   const [products, setProducts] = useState([]);
+  useRealtimeCollection("products", setProducts);
   const [lowStockItems, setLowStockItems] = useState([]);
   const [notifications, setNotifications] = useState([]);
+  useRealtimeOrders(setNotifications, (order) => {
+    const createdAt = new Date(order.created_at || order.createdAt || 0);
+    return createdAt.toDateString() === new Date().toDateString() &&
+      ["Place Order", "Placed"].includes(order.status);
+  });
   const [counts, setCounts] = useState({
     allProducts: 0,
     newOrders: 0,
     newUsers: 0,
     stockDetails: 0,
   });
+
+  useEffect(() => {
+    const lowStockList = products.map((product) => {
+      const stockByVariant = typeof product.stock_by_variant === "string"
+        ? JSON.parse(product.stock_by_variant || "{}")
+        : product.stock_by_variant || {};
+      const totalStock = Object.values(stockByVariant).reduce(
+        (total, quantity) => total + (parseInt(quantity, 10) || 0),
+        0
+      );
+      return { ...product, totalStock };
+    }).filter((product) => product.totalStock < 5);
+
+    setLowStockItems(lowStockList);
+    setCounts((previous) => ({
+      ...previous,
+      "/admin/products": products.length,
+      "/admin/stockdetails": lowStockList.length,
+    }));
+  }, [products]);
+
+  useEffect(() => {
+    setCounts((previous) => ({ ...previous, "/admin/neworders": notifications.length }));
+  }, [notifications]);
 
   const [adminName, setAdminName] = useState("");
   const [adminImage, setAdminImage] = useState("");
@@ -251,7 +288,7 @@ const AdminPanel = () => {
       try {
         const { data } = await api.get("/orders");
         const orders = data?.orders || [];
-        const todayStr = new Date().toISOString().split("T")[0];
+        const today = new Date().toDateString();
 
         const todayOrders = orders
           .map((o) => {
@@ -260,7 +297,7 @@ const AdminPanel = () => {
           })
           .filter(
             (order) =>
-              order.createdAt.toISOString().split("T")[0] === todayStr &&
+              order.createdAt.toDateString() === today &&
               ["Place Order", "Placed"].includes(order.status)
           );
 
