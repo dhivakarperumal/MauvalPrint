@@ -93,6 +93,19 @@ export default function Navbar() {
   });
 
   useEffect(() => {
+    if (!user?.uid) return undefined;
+
+    const handleOrdersUpdated = (event) => {
+      if (!event.detail?.userId || event.detail.userId === user.uid) {
+        refreshOrderCount(user.uid);
+      }
+    };
+
+    window.addEventListener("mauval:orders-updated", handleOrdersUpdated);
+    return () => window.removeEventListener("mauval:orders-updated", handleOrdersUpdated);
+  }, [user?.uid, refreshOrderCount]);
+
+  useEffect(() => {
     const allProducts = [...(products || []), ...(designs || [])];
     const categories = [...new Set(allProducts.map((product) => product.category?.toLowerCase()).filter(Boolean))];
     setCustomizeData(categories.map((category) => {

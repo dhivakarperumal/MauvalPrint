@@ -58,6 +58,9 @@ const Orders = ({ titleorder }) => {
     try {
       await api.delete(`/orders/${orderId}`);
       setOrders((prev) => prev.filter((o) => o.order_id !== orderId));
+      window.dispatchEvent(new CustomEvent("mauval:orders-updated", {
+        detail: { userId: user?.uid },
+      }));
       toast.success("Order deleted!");
     } catch {
       toast.error("Failed to delete order");

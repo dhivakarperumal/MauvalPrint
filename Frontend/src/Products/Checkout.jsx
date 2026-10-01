@@ -364,6 +364,9 @@ const Checkout = () => {
             throw new Error(orderRes.message || "Failed to place order.");
           }
           const finalOrderID = orderRes.order_id;
+          window.dispatchEvent(new CustomEvent("mauval:orders-updated", {
+            detail: { userId: user.uid },
+          }));
 
           // -------------------- UPDATE STOCK --------------------
           await Promise.all(
@@ -891,5 +894,4 @@ const Checkout = () => {
 };
 
 export default Checkout;
-
 

@@ -1,9 +1,11 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback, useRef, useContext } from "react";
 import api from "../api";
 import imageCompression from "browser-image-compression";
 import toast from "react-hot-toast";
 import { FaEdit, FaTrash, FaSearch, FaPlus, FaTimes, FaTh, FaList, FaPrint } from "react-icons/fa";
 import useRealtimeCollection from "../hooks/useRealtimeCollection";
+import useRealtimeEvent from "../hooks/useRealtimeEvent";
+import { AuthContext } from "../Context/AuthContext";
 
 const GetOrdersDetails = () => {
   const [form, setForm] = useState({
@@ -17,8 +19,10 @@ const GetOrdersDetails = () => {
 
   const [orders, setOrders] = useState([]);
   useRealtimeCollection("printOrders", setOrders);
+  const { socket } = useContext(AuthContext);
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState(null);
+  const latestOrdersRequest = useRef(0);
   
   const [search, setSearch] = useState("");
   const [viewMode, setViewMode] = useState(window.innerWidth < 768 ? "card" : "table");
@@ -27,19 +31,31 @@ const GetOrdersDetails = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
-  useEffect(() => {
-    fetchOrders();
-  }, []);
-
-  const fetchOrders = async () => {
+  const fetchOrders = useCallback(async () => {
+    const requestId = ++latestOrdersRequest.current;
     try {
       const { data } = await api.get("/print-orders");
+      if (requestId !== latestOrdersRequest.current) return;
       if (data.success) setOrders(data.orders);
     } catch (error) {
+      if (requestId !== latestOrdersRequest.current) return;
       console.error("Error fetching orders:", error);
       toast.error("Failed to load orders");
     }
-  };
+  }, []);
+
+  useRealtimeEvent(socket, "order:updated", (event) => {
+    if (event.resource === "printOrders") {
+      fetchOrders();
+    }
+  });
+
+  useEffect(() => {
+    fetchOrders();
+    return () => {
+      latestOrdersRequest.current += 1;
+    };
+  }, [fetchOrders]);
 
   const filteredOrders = useMemo(() => {
     return orders.filter(o => 
