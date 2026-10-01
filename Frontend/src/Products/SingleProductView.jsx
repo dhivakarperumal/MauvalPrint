@@ -47,6 +47,8 @@ const SingleProductView = () => {
   const [quantity, setQuantity] = useState(1);
   const [selectedSize, setSelectedSize] = useState("");
   const [selectedColor, setSelectedColor] = useState("");
+  // Track whether defaults have been applied for the current product id
+  const hasInitializedRef = useRef(false);
   const [showPopup, setShowPopup] = useState(false);
   const [showDescription, setShowDescription] = useState(false);
   const [availableSizes, setAvailableSizes] = useState([]);
@@ -67,6 +69,13 @@ const SingleProductView = () => {
   const [textSize, setTextSize] = useState(24);
 
   const memoizedProducts = useMemo(() => products, [products]);
+
+  // Reset initialization flag whenever the URL product id changes
+  useEffect(() => {
+    hasInitializedRef.current = false;
+    setSelectedSize("");
+    setSelectedColor("");
+  }, [id]);
 
   useEffect(() => {
     const found = memoizedProducts.find((p) => `${p.product_id || p.productId || p.id}` === id);
@@ -101,12 +110,16 @@ const SingleProductView = () => {
       setAvailableSizes(sizeArray);
       setAvailableColors(colorArray);
 
-      // ✅ Set default selections only after setting options
-      if (sizeArray.length > 0) {
-        setSelectedSize(sizeArray[0]);
-      }
-      if (colorArray.length > 0) {
-        setSelectedColor(colorArray[0]);
+      // ✅ Set default selections ONLY on first load for this product
+      // Never overwrite a size/color the user has already chosen
+      if (!hasInitializedRef.current) {
+        hasInitializedRef.current = true;
+        if (sizeArray.length > 0) {
+          setSelectedSize(sizeArray[0]);
+        }
+        if (colorArray.length > 0) {
+          setSelectedColor(colorArray[0]);
+        }
       }
     }
 
@@ -625,6 +638,7 @@ const SingleProductView = () => {
                       navigate(`/customizer/${product.id || product.productId}`, {
                         state: {
                           selectedColor,
+                          selectedSize,
                           selectedImageIndex,
                         },
                       });

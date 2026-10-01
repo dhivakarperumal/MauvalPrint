@@ -20,6 +20,7 @@ const CustomizerLayout = () => {
   const [activeObject, setActiveObject] = useState(null);
   const [zoomLevel, setZoomLevel] = useState(1);
   const [selectedProductColor, setSelectedProductColor] = useState('#ffffff');
+  const [selectedSize, setSelectedSize] = useState(location.state?.selectedSize || '');
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [showRightPanelMobile, setShowRightPanelMobile] = useState(false);
   const [canvasExportSafe, setCanvasExportSafe] = useState(true);
@@ -107,10 +108,13 @@ const CustomizerLayout = () => {
     if (location?.state?.selectedColor) {
       setSelectedProductColor(location.state.selectedColor);
     }
+    if (location?.state?.selectedSize) {
+      setSelectedSize(location.state.selectedSize);
+    }
     if (location?.state?.selectedImageIndex !== undefined) {
       setSelectedImageIndex(location.state.selectedImageIndex);
     }
-  }, [location?.state?.selectedColor, location?.state?.selectedImageIndex]);
+  }, [location?.state?.selectedColor, location?.state?.selectedSize, location?.state?.selectedImageIndex]);
 
   useEffect(() => {
     if (!product) return;
@@ -342,7 +346,7 @@ const CustomizerLayout = () => {
       ...product,
       customizedImage,
       isCustomized: true,
-      selectedSize: 'M', // Defaulting for now
+      selectedSize: selectedSize || 'M', // use selected size; fall back to M only if none chosen
       selectedColor: selectedProductColor,
       quantity: 1,
       price: product.salePrice || product.price || 0,
@@ -577,6 +581,42 @@ const CustomizerLayout = () => {
                 })}
               </div>
             </div>
+
+            {/* Size Selector */}
+            {(() => {
+              const sizes = new Set();
+              for (const key in product?.stockByVariant || {}) {
+                if (product.stockByVariant[key] > 0) {
+                  const parts = key.split('-');
+                  if (parts[1]) sizes.add(parts[1]);
+                }
+              }
+              const sizeArray = Array.from(sizes);
+              if (sizeArray.length === 0) return null;
+              return (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-semibold text-white">Selected Size</span>
+                    <span className="text-xs text-indigo-300 font-bold">{selectedSize || 'None'}</span>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {sizeArray.map((s) => (
+                      <button
+                        key={s}
+                        onClick={() => setSelectedSize(s)}
+                        className={`px-3 py-1 rounded text-sm font-medium border transition-all ${
+                          selectedSize === s
+                            ? 'bg-indigo-600 border-indigo-500 text-white'
+                            : 'bg-gray-800 border-gray-700 text-gray-300 hover:border-gray-500'
+                        }`}
+                      >
+                        {s}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              );
+            })()}
 
             <div className="space-y-3">
               <div className="flex items-center justify-between">
