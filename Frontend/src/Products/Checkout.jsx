@@ -80,8 +80,16 @@ const Checkout = () => {
 
   const itemsToShow =
     buyNowProduct.length && !isFromCart ? buyNowProduct : cart;
+  const getItemName = (item) =>
+    (item.name || item.title || item.productName || "").toString().trim();
+  const getItemPrice = (item) => {
+    const price = [item.price, item.salePrice, item.sale_price, item.mrp]
+      .map(Number)
+      .find((value) => Number.isFinite(value) && value > 0);
+    return price || 0;
+  };
   const getSubtotal = () =>
-    itemsToShow.reduce((t, i) => t + i.price * i.quantity, 0);
+    itemsToShow.reduce((total, item) => total + getItemPrice(item) * item.quantity, 0);
   const subtotal = getSubtotal();
   const totalQuantity = itemsToShow.reduce((sum, i) => sum + i.quantity, 0);
   const shippingCost =
@@ -231,6 +239,14 @@ const Checkout = () => {
       return;
     }
 
+    const hasInvalidItem = itemsToShow.some(
+      (item) => !getItemName(item) || getItemPrice(item) <= 0
+    );
+    if (hasInvalidItem) {
+      toast.error("A cart item is missing its name or price. Remove it and add the product again.");
+      return;
+    }
+
     setIsSavingOrder(true);
     const FD = new FormData(form.current);
 
@@ -263,21 +279,21 @@ const Checkout = () => {
     // -------------------- TRIM CART ITEMS --------------------
     const trimmedCart = itemsToShow.map((item) => ({
       productId: item.productId || item.id || "",
-      name: item.name || "",
-      price: item.price || 0,
+      name: getItemName(item),
+      price: getItemPrice(item),
       quantity: item.quantity || 0,
       color: item.selectedColor || "",
       size: item.selectedSize || "",
       variant: item.selectedVariant || item.variant || "",
       image: item.customizedImage || item.image || item.images?.[0] || "",
-      subtotal: (item.price || 0) * (item.quantity || 0),
+      subtotal: getItemPrice(item) * (item.quantity || 0),
     }));
 
     const dateStr = new Date().toLocaleString();
 
     // -------------------- RAZORPAY OPTIONS --------------------
     const options = {
-      key: "rzp_live_RZ9VDWWKGZ8MTG",
+      key: "rzp_test_SGj8n5SyKSE10b",
       amount: Math.round(payable * 100),
       currency: "INR",
       name: "MAUVAL PRINT",

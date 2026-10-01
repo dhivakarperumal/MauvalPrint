@@ -10,12 +10,9 @@ const CartSidebar = ({ show, onClose }) => {
 
   // ✅ Calculate subtotal, shipping, and total
   const subtotal = cart.reduce((acc, item) => acc + item.price * item.quantity, 0);
-  const shippingPerItem = 30; // ₹20 per quantity
   const totalQuantity = cart.reduce((acc, item) => acc + item.quantity, 0);
-
-  // ✅ Free shipping if total quantity >= 10
-  const shipping =  totalQuantity * shippingPerItem;
-  const total = subtotal ;
+  const shipping = totalQuantity === 0 ? 0 : 50 + (totalQuantity - 1) * 20;
+  const total = subtotal + shipping;
 
   const handleCheckout = () => {
     onClose();
@@ -140,15 +137,9 @@ const CartSidebar = ({ show, onClose }) => {
               <span>₹{subtotal.toFixed(2)}</span>
             </div>
             <div className="flex justify-between text-gray-800">
-          <span>Shipping <b> (Free) </b> </span>
-         <span>
-       {shipping === 0 ?   <span className="text-green-600 font-semibold">Free</span> : (
-        
-        <del>  ₹ {shipping.toFixed(2)} </del> 
-       
-    )}
-  </span>
-</div>
+              <span>Shipping Charge</span>
+              <span>₹{shipping.toFixed(2)}</span>
+            </div>
           
 
             <hr className="my-2 border-gray-300" />
