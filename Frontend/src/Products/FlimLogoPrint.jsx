@@ -4,8 +4,6 @@ import Head from "../Components/Head";
 import imageCompression from "browser-image-compression";
 import Testimonial from "../Home/Testimonial";
 import { motion } from "framer-motion";
-import Login from "../Components/Login";
-import RegisterPage from "../Components/Register";
 import { AuthContext } from "../Context/AuthContext";
 
 // Size options
@@ -24,8 +22,6 @@ const FlimLogoPrint = () => {
   const [selectedSize, setSelectedSize] = useState(sizeOptions[0].label);
   const [price, setPrice] = useState(sizeOptions[0].price);
   const [quantity, setQuantity] = useState(1);
-  const [showLogin, setShowLogin] = useState(false);
-  const [showRegister, setShowRegister] = useState(false);
 
   useEffect(() => {
     const selected = sizeOptions.find((s) => s.label === selectedSize);
@@ -63,7 +59,7 @@ const FlimLogoPrint = () => {
 
   const handleBuyNow = () => {
     if (!user) {
-      setShowLogin(true);
+      navigate("/login", { state: { from: window.location.hash.slice(1) } });
       return;
     }
 
@@ -233,25 +229,6 @@ const FlimLogoPrint = () => {
       </div>
 
       <Testimonial />
-      {showLogin && (
-        <Login
-          onClose={() => setShowLogin(false)}
-          onSwitch={() => {
-            setShowLogin(false);
-            setShowRegister(true);
-          }}
-        />
-      )}
-
-      {showRegister && (
-        <RegisterPage
-          onClose={() => setShowRegister(false)}
-          onSwitch={() => {
-            setShowRegister(false);
-            setShowLogin(true);
-          }}
-        />
-      )}
     </>
   );
 };

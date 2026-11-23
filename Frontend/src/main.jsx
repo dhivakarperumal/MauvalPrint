@@ -46,8 +46,7 @@ import LogoManagement from "./Admin/LogoManagement.jsx";
 import FlimLogoPrint from "./Products/FlimLogoPrint.jsx";
 import LogosPage from "./Products/LogosPage.jsx";
 import PrivateRoute from "./PrivateRoute.jsx";
-import Login from "./Components/Login.jsx";
-import Register from "./Components/Register.jsx";
+import LoginPage from "./Components/LoginPage.jsx";
 import CustomizerLayout from "./Customizer/CustomizerLayout.jsx";
 
 // Import Hot Toast
@@ -66,6 +65,7 @@ const router = createHashRouter(
       { path: "/products", element: <Products /> },
       { path: "/products/:categorys", element: <Products /> },
       { path: "/productdetails/:id", element: <SingleProductView /> },
+      { path: "/login", element: <LoginPage /> },
       {
         path: "/cart",
         element: (

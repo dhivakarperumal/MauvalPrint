@@ -140,8 +140,7 @@ const DesignDetails = () => {
   // --- Add to Cart ---
   const handleAddToCart = () => {
     if (!user) {
-      toast.warn("Please login to add items to cart");
-      navigate("/account", { state: { returnUrl: window.location.pathname } });
+      navigate("/login", { state: { from: window.location.hash.slice(1) } });
       return;
     }
 
@@ -170,7 +169,7 @@ const DesignDetails = () => {
   // --- Buy Now ---
   const handleBuyNow = () => {
     if (!user) {
-      toast.warn("Please login to continue shopping");
+      navigate("/login", { state: { from: window.location.hash.slice(1) } });
       return;
     }
 

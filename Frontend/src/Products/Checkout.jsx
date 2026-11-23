@@ -333,7 +333,7 @@ const Checkout = () => {
 
     // -------------------- RAZORPAY OPTIONS --------------------
     const options = {
-      key: "rzp_test_SGj8n5SyKSE10b",
+      key: "rzp_live_RZ9VDWWKGZ8MTG",
       amount: Math.round(payable * 100),
       currency: "INR",
       name: "MAUVAL PRINT",

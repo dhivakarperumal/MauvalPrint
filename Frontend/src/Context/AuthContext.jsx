@@ -8,11 +8,77 @@ import normalizeRealtimeProduct from "../utils/normalizeRealtimeProduct";
 
 const API_USER_KEY = "apiUser";
 
+const redirectToLogin = () => {
+  const currentRoute = window.location.hash.startsWith("#/")
+    ? window.location.hash.slice(1)
+    : "/";
+
+  if (!currentRoute.startsWith("/login")) {
+    window.location.hash = `/login?redirect=${encodeURIComponent(currentRoute)}`;
+  }
+};
+
 const upsertById = (items, id, data) => {
   const index = items.findIndex((item) => String(item.id || item.product_id || item.review_id || item.logo_id) === String(id));
   if (index === -1) return [{ ...data, id }, ...items];
   return items.map((item, itemIndex) => itemIndex === index ? { ...item, ...data, id } : item);
 };
+
+const parseCartImages = (value) => {
+  if (Array.isArray(value)) return value.filter(Boolean);
+  if (!value) return [];
+  if (typeof value !== "string") return [value];
+  try {
+    const parsed = JSON.parse(value);
+    return (Array.isArray(parsed) ? parsed : [parsed]).filter(Boolean);
+  } catch {
+    return [value];
+  }
+};
+
+const normalizeCartItems = (items, products) => (Array.isArray(items) ? items : []).map((item) => {
+  const itemId = item.product_id || item.productId || item.id;
+  const itemData = item.item_data && typeof item.item_data === "object"
+    ? item.item_data
+    : {};
+  const product = products.find((candidate) =>
+    [candidate.product_id, candidate.productId, candidate.id, candidate.databaseId]
+      .some((candidateId) => candidateId != null && String(candidateId) === String(itemId))
+  );
+  const itemImages = parseCartImages(item.images);
+  const images = itemImages.length > 0
+    ? itemImages
+    : parseCartImages(product?.images ?? product?.images_final);
+  const prices = [
+    item.price,
+    item.salePrice,
+    item.sale_price,
+    product?.price,
+    product?.salePrice,
+    product?.sale_price,
+    item.mrp,
+    product?.mrp,
+  ].map(Number).filter(Number.isFinite);
+  const price = prices.find((value) => value > 0) ?? prices[0] ?? 0;
+
+  return {
+    ...product,
+    ...item,
+    id: product?.product_id || product?.productId || item.product_id || item.productId || item.id,
+    name: item.name || item.title || product?.name || product?.title || "",
+    images,
+    image: item.image || images[0] || product?.image || product?.product_image || "",
+    price,
+    mrp: Number(item.mrp) || Number(product?.mrp) || price,
+    quantity: Number(item.quantity) || 1,
+    selectedSize:
+      item.selectedSize ||
+      item.selected_size ||
+      itemData.selectedSize ||
+      itemData.selected_size ||
+      "",
+  };
+});
 
 export const AuthContext = createContext();
 
@@ -82,9 +148,26 @@ export function AuthProvider({ children }) {
         const item = {
           ...rawItem,
           id,
-          selectedSize: rawItem.selectedSize || data.selectedSize || "",
-          selectedColor: rawItem.selectedColor || data.selectedColor || data.selected_color || "",
-          selectedVariant: rawItem.selectedVariant || data.selectedVariant || data.variant || "",
+          selectedSize:
+            rawItem.selectedSize ||
+            rawItem.selected_size ||
+            data.selectedSize ||
+            data.selected_size ||
+            "",
+          selectedColor:
+            rawItem.selectedColor ||
+            rawItem.selected_color ||
+            data.selectedColor ||
+            data.selected_color ||
+            "",
+          selectedVariant:
+            rawItem.selectedVariant ||
+            rawItem.selected_variant ||
+            rawItem.variant ||
+            data.selectedVariant ||
+            data.selected_variant ||
+            data.variant ||
+            "",
           quantity: Number(data.quantity ?? rawItem.quantity ?? 1),
         };
         setCart((items) => {
@@ -132,7 +215,7 @@ export function AuthProvider({ children }) {
         try {
           const { data } = await api.get(`/cart/${user.uid}`);
           if (data.success) {
-            setCart(data.cart);
+            setCart(normalizeCartItems(data.cart, []));
           }
         } catch (error) {
           console.error("Cart fetch error:", error);
@@ -175,6 +258,22 @@ export function AuthProvider({ children }) {
       setWishlist([]);
     }
   }, [user]);
+
+  useEffect(() => {
+    if (!products.length || !cart.length) return;
+    const normalizedCart = normalizeCartItems(cart, products);
+    const changed = normalizedCart.some((item, index) => {
+      const current = cart[index];
+      return item.id !== current.id ||
+        item.name !== current.name ||
+        item.price !== Number(current.price) ||
+        item.mrp !== Number(current.mrp) ||
+        item.image !== current.image ||
+        !Array.isArray(current.images) ||
+        JSON.stringify(item.images) !== JSON.stringify(current.images);
+    });
+    if (changed) setCart(normalizedCart);
+  }, [products, cart]);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -252,6 +351,7 @@ export function AuthProvider({ children }) {
             return {
               ...p,
               id: p.product_id || p.id,
+              databaseId: p.id,
               ourDesign: p.our_design == 1 || p.our_design === true || p.ourDesign === true,
               salePrice: p.sale_price || p.salePrice || 0,
               mrp: p.mrp || 0,
@@ -375,17 +475,43 @@ export function AuthProvider({ children }) {
 
   const addToCart = async (product, quantity = 1, showToast = true) => {
     if (!user) {
-      toast.error("Login required");
+      redirectToLogin();
       return false;
     }
 
+    const productId = product.product_id || product.productId || product.id;
+    if (!productId) {
+      console.error("Add to cart failed: product ID is missing", product);
+      if (showToast) toast.error("Unable to add this product to the cart");
+      return false;
+    }
+
+    let images = product.images ?? product.images_final ?? [];
+    if (typeof images === "string") {
+      try {
+        images = JSON.parse(images);
+      } catch {
+        images = [images];
+      }
+    }
+    if (!Array.isArray(images)) images = images ? [images] : [];
+    if (images.length === 0) {
+      images = [product.image || product.product_image].filter(Boolean);
+    }
+
+    const prices = [product.price, product.sale_price, product.salePrice, product.mrp]
+      .map(Number)
+      .filter(Number.isFinite);
+    const price = prices.find((value) => value > 0) ?? prices[0] ?? 0;
+    const selectedSize = product.selectedSize || product.selected_size || "";
     const newItem = {
-      id: product.id,
-      name: product.name,
-      images: product.images ?? [],
-      price: product.price ?? product.salePrice ?? 0,
+      id: productId,
+      name: product.name || product.title || product.product_name || product.productName || "",
+      images,
+      price,
+      mrp: Number(product.mrp) || price,
       quantity,
-      selectedSize: product.selectedSize || "",
+      selectedSize,
       selectedColor: product.selectedColor || "",
       selectedVariant: product.selectedVariant || product.variant || "",
       variant: product.selectedVariant || product.variant || "",
@@ -395,14 +521,15 @@ export function AuthProvider({ children }) {
     try {
       await api.post("/cart/add", {
         user_id: user.uid,
-        product_id: product.id,
+        product_id: productId,
         quantity,
+        selectedSize,
         item_data: newItem,
       });
 
       // refresh cart from server
       const { data } = await api.get(`/cart/${user.uid}`);
-      if (data.success) setCart(data.cart);
+      if (data.success) setCart(normalizeCartItems(data.cart, [...products, product]));
       if (showToast) toast.success("Added to cart");
       return true;
     } catch (err) {
@@ -418,7 +545,7 @@ export function AuthProvider({ children }) {
       const q = `?size=${encodeURIComponent(size || '')}&color=${encodeURIComponent(color || '')}&variant=${encodeURIComponent(variant || '')}`;
       await api.delete(`/cart/${user.uid}/${id}${q}`);
       const { data } = await api.get(`/cart/${user.uid}`);
-      if (data.success) setCart(data.cart);
+      if (data.success) setCart(normalizeCartItems(data.cart, products));
       toast.info("Removed from cart");
     } catch (err) {
       console.error("Remove from cart failed:", err);
@@ -447,7 +574,7 @@ export function AuthProvider({ children }) {
       });
 
       const { data } = await api.get(`/cart/${user.uid}`);
-      if (data.success) setCart(data.cart);
+      if (data.success) setCart(normalizeCartItems(data.cart, products));
     } catch (err) {
       console.error("Update quantity failed:", err);
     }
@@ -469,7 +596,7 @@ export function AuthProvider({ children }) {
 
   const addToLogoCart = async (logo, quantity = 1) => {
     if (!user) {
-      toast.error("Login required");
+      redirectToLogin();
       return false;
     }
     try {
@@ -530,7 +657,10 @@ export function AuthProvider({ children }) {
   };
 
   const addToWishlist = async (product) => {
-    if (!user) return toast.error("Login required");
+    if (!user) {
+      redirectToLogin();
+      return false;
+    }
 
     const productId = product?.id || product?.product_id || product?.productId;
     const alreadyWishlisted = wishlist.some((item) => {

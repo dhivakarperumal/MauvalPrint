@@ -215,15 +215,19 @@ const SingleProductView = () => {
   }, [product, selectedColor, selectedSize, normalizeVariantKey, getVariantImages]);
 
   const handleAddToCart = useCallback(() => {
+    if (!user) {
+      navigate("/login", { state: { from: location } });
+      return;
+    }
+
     if (!selectedSize || !selectedColor)
       return toast.warn("Please select size and color");
     addToCart({ ...product, selectedSize, selectedColor }, quantity);
-  }, [selectedSize, selectedColor, product, quantity, addToCart]);
+  }, [user, navigate, location, selectedSize, selectedColor, product, quantity, addToCart]);
 
   const handleBuyNow = useCallback(() => {
     if (!user) {
-      toast.warn("Please login to continue shopping");
-
+      navigate("/login", { state: { from: location } });
       return;
     }
 
@@ -257,7 +261,7 @@ const SingleProductView = () => {
     navigate("/checkout", {
       state: { buyNowProduct: productToBuy, fromCart: false },
     });
-  }, [user, selectedSize, selectedColor, product, selectedImageIndex, navigate, quantity]);
+  }, [user, selectedSize, selectedColor, product, selectedImageIndex, navigate, quantity, location]);
 
   const handleOverlayMove = (e) => {
     const isTouch = e.type.startsWith("touch");

@@ -190,7 +190,7 @@ const Hero = () => {
             </div>
 
             <div className="grid gap-3 sm:grid-cols-2">
-              <Link to="/products" className="inline-flex items-center justify-center gap-3 rounded-full bg-gradient-to-r from-yellow-400 to-yellow-500 px-8 py-4 font-semibold text-slate-900 shadow-2xl shadow-yellow-500/30 transition-transform duration-300 hover:-translate-y-1">
+              <Link to="/designs" className="inline-flex items-center justify-center gap-3 rounded-full bg-gradient-to-r from-yellow-400 to-yellow-500 px-8 py-4 font-semibold text-slate-900 shadow-2xl shadow-yellow-500/30 transition-transform duration-300 hover:-translate-y-1">
                 Shop Now
                 <FaArrowRight />
               </Link>

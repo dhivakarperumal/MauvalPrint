@@ -2,9 +2,6 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 
-// Vite plugin: image proxy middleware for canvas customizer.
-// Proxies /proxy-image/<path> → https://printmy.qtechx.com/<path>
-// This avoids CORS / tainted canvas issues when drawing external images.
 function imageProxyPlugin() {
   return {
     name: 'image-proxy',

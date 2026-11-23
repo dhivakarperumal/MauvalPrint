@@ -8,12 +8,72 @@ exports.addCart = async (req, res) => {
       user_id,
       product_id,
       quantity,
+      selectedSize,
+      selected_size: requestSelectedSize,
       item_data
     } = req.body;
 
-    const selected_size = (item_data && (item_data.selectedSize || item_data.selected_size)) || '';
-    const selected_color = (item_data && (item_data.selectedColor || item_data.selected_color)) || '';
-    const selected_variant = (item_data && (item_data.selectedVariant || item_data.variant || item_data.selected_variant)) || '';
+    const [productRows] = await pool.execute(
+      `SELECT product_id, name, title, mrp, sale_price, images
+       FROM products
+       WHERE product_id = ? OR CAST(id AS CHAR) = ?
+       LIMIT 1`,
+      [String(product_id), String(product_id)]
+    );
+    const product = productRows[0] || {};
+    const incomingItem = item_data && typeof item_data === 'object' && !Array.isArray(item_data)
+      ? item_data
+      : {};
+    let productImages = product.images || [];
+    if (typeof productImages === 'string') {
+      try {
+        productImages = JSON.parse(productImages);
+      } catch (error) {
+        productImages = [];
+      }
+    }
+    if (!Array.isArray(productImages)) productImages = [];
+
+    let itemImages = incomingItem.images || incomingItem.images_final || [];
+    if (typeof itemImages === 'string') {
+      try {
+        itemImages = JSON.parse(itemImages);
+      } catch (error) {
+        itemImages = [itemImages];
+      }
+    }
+    if (!Array.isArray(itemImages)) itemImages = itemImages ? [itemImages] : [];
+    if (itemImages.length === 0) {
+      itemImages = [incomingItem.image, incomingItem.product_image].filter(Boolean);
+    }
+
+    const prices = [
+      incomingItem.price,
+      incomingItem.salePrice,
+      incomingItem.sale_price,
+      product.sale_price,
+      incomingItem.mrp,
+      product.mrp,
+    ].map(Number).filter(Number.isFinite);
+    const price = prices.find((value) => value > 0) ?? prices[0] ?? 0;
+    const itemSize = incomingItem.selectedSize ||
+      incomingItem.selected_size ||
+      selectedSize ||
+      requestSelectedSize ||
+      '';
+    const cartItemData = {
+      ...incomingItem,
+      id: product.product_id || incomingItem.id || product_id,
+      name: incomingItem.name || incomingItem.title || incomingItem.product_name || product.name || product.title || '',
+      images: itemImages.length > 0 ? itemImages : productImages,
+      price,
+      mrp: Number(incomingItem.mrp) || Number(product.mrp) || price,
+      selectedSize: itemSize,
+    };
+
+    const selected_size = cartItemData.selectedSize || cartItemData.selected_size || '';
+    const selected_color = cartItemData.selectedColor || cartItemData.selected_color || '';
+    const selected_variant = cartItemData.selectedVariant || cartItemData.variant || cartItemData.selected_variant || '';
 
     const [existing] = await pool.execute(
       `SELECT id, quantity, item_data
@@ -45,9 +105,9 @@ exports.addCart = async (req, res) => {
     if (matchId) {
       await pool.execute(
         `UPDATE user_cart
-         SET quantity = quantity + ?, updated_at = ?
+         SET quantity = quantity + ?, item_data = ?, updated_at = ?
          WHERE id=?`,
-        [quantity, new Date(), matchId]
+        [quantity, JSON.stringify(cartItemData), new Date(), matchId]
       );
 
       return res.json({ success: true, message: "Cart updated" });
@@ -67,7 +127,7 @@ exports.addCart = async (req, res) => {
         user_id,
         product_id,
         quantity,
-        JSON.stringify(item_data || {}),
+        JSON.stringify(cartItemData),
         new Date()
       ]
     );
@@ -92,8 +152,13 @@ exports.getCart = async (req, res) => {
     const { user_id } = req.params;
 
     const [rows] = await pool.execute(
-      `SELECT * FROM user_cart
-       WHERE user_id=?`,
+      `SELECT c.*, p.name AS catalog_name, p.title AS catalog_title,
+              p.mrp AS catalog_mrp, p.sale_price AS catalog_sale_price,
+              p.images AS catalog_images
+       FROM user_cart c
+       LEFT JOIN products p
+         ON p.product_id = c.product_id OR CAST(p.id AS CHAR) = c.product_id
+       WHERE c.user_id=?`,
       [user_id]
     );
 
@@ -105,19 +170,43 @@ exports.getCart = async (req, res) => {
         parsed = {};
       }
 
+      let catalogImages = item.catalog_images || [];
+      if (typeof catalogImages === 'string') {
+        try {
+          catalogImages = JSON.parse(catalogImages);
+        } catch (e) {
+          catalogImages = [];
+        }
+      }
+      if (!Array.isArray(catalogImages)) catalogImages = [];
+      const images = Array.isArray(parsed.images) && parsed.images.length > 0
+        ? parsed.images
+        : catalogImages;
+      const prices = [
+        parsed.price,
+        parsed.salePrice,
+        parsed.sale_price,
+        item.catalog_sale_price,
+        parsed.mrp,
+        item.catalog_mrp,
+      ].map(Number).filter(Number.isFinite);
+      const price = prices.find((value) => value > 0) ?? prices[0] ?? 0;
+      const name = parsed.name || parsed.title || item.catalog_name || item.catalog_title || '';
+      const mrp = Number(parsed.mrp) || Number(item.catalog_mrp) || price;
+
       return {
         id: item.product_id,
-        name: parsed.name || parsed.title || "",
-        price: parsed.salePrice || parsed.sale_price || parsed.price || parsed.mrp || 0,
-        mrp: parsed.mrp || 0,
-        image: (parsed.images && parsed.images[0]) || parsed.product_image || parsed.image || "",
-        images: parsed.images || [],
+        name,
+        price,
+        mrp,
+        image: images[0] || parsed.product_image || parsed.image || "",
+        images,
         quantity: item.quantity,
         selectedSize: parsed.selectedSize || parsed.selected_size || "",
         selectedColor: parsed.selectedColor || parsed.selected_color || "",
         selectedVariant: parsed.selectedVariant || parsed.variant || parsed.selected_variant || "",
         variant: parsed.selectedVariant || parsed.variant || parsed.selected_variant || "",
-        item_data: parsed,
+        item_data: { ...parsed, name, price, mrp, images },
       };
     });
 
